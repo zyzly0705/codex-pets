@@ -1,73 +1,145 @@
 # 🧠 行为引擎详解
 
-> Yoyo 的行为决策采用**效用 AI（Utility AI）**架构，每 2 秒进行一次决策 tick，从所有可用行为中选择效用分最高的执行。
+> Yoyo 的行为决策采用**三层 StateMachine + Utility AI** 架构。StateMachine 统一管理全局模式、行为状态和叠加特效；行为引擎每 2 秒 tick 一次，通过评分流水线从候选行为中选出最优执行。
 
 ## 目录
 
-- [效用 AI 原理](#效用-ai-原理)
+- [StateMachine 三层架构](#statemachine-三层架构)
+- [互斥组定义](#互斥组定义)
+- [canTransition 判断逻辑](#cantransition-判断逻辑)
+- [统一锁管理](#统一锁管理)
+- [评分流水线](#评分流水线)
 - [BEHAVIORS 数组结构](#behaviors-数组结构)
 - [需求系统](#需求系统)
-- [冷却机制](#冷却机制)
+- [冷却系统 + 菜单冷却同步](#冷却系统--菜单冷却同步)
+- [定时器编排策略](#定时器编排策略)
 - [阈值与活跃度设置的关系](#阈值与活跃度设置的关系)
 - [决策流程图](#决策流程图)
 - [如何添加自定义行为](#如何添加自定义行为)
 
 ---
 
-## 效用 AI 原理
+## StateMachine 三层架构
 
-传统状态机在行为多了以后容易变得难以维护。Yoyo 采用 **Utility AI** 模式：
+StateMachine 将宠物的全部状态分为三个层次，自上而下依次收窄：
 
-1. **每 2 秒 tick 一次**：`setInterval(behaviorEngineTick, 2000)`
-2. **遍历所有行为**：对 `BEHAVIORS` 数组中每个行为调用其 `utilityFn(needs, ctx)` 
-3. **评分竞争**：选出分数最高的行为
-4. **阈值过滤**：最高分必须超过动态阈值才会执行（否则保持 idle）
-5. **情感修饰**：最终分数会经过 `applyEmotionModifier()` 调整
-6. **执行行为**：调用 `onExecute()`，设置冷却，更新需求值
+```
+┌──────────────────────────────────────────────────┐
+│  Layer 1: globalMode（全局模式）                    │
+│    INTERACTIVE — 正常交互模式                       │
+│    AUTO_PLAY   — 自动演出（行为引擎全权驱动）         │
+│    SLEEP       — 睡眠模式（仅允许 → IDLE）           │
+│    FROZEN      — 冻结模式（禁止一切转换）             │
+│  ┌────────────────────────────────────────────┐   │
+│  │  Layer 2: actionState（行为状态）             │   │
+│  │    IDLE / WALKING / DANCING / CLIMBING /     │   │
+│  │    FOLLOWING / FEEDING / DRAGGING /           │   │
+│  │    TYPING_COMPANION / WHIP / DROPPING         │   │
+│  │  ┌──────────────────────────────────────┐    │   │
+│  │  │  Layer 3: effects（叠加特效，可多个）   │    │   │
+│  │  │    EMOTION_BUBBLE — 情感气泡           │    │   │
+│  │  │    SEASONAL_PARTICLES — 季节粒子       │    │   │
+│  │  │    SCALE_ANIMATION — 缩放动画          │    │   │
+│  │  │    CLONE_EFFECT — 分身术               │    │   │
+│  │  └──────────────────────────────────────┘    │   │
+│  └────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────┘
+```
+
+**核心特点**：
+- **Layer 1** 决定整体可用范围，`FROZEN` 时所有转换被拒绝
+- **Layer 2** 在互斥组约束下切换，同一时刻只有一个 actionState
+- **Layer 3** 采用 `Set` 结构，多个特效可同时叠加，独立于行为状态
+
+## 互斥组定义
+
+同一互斥组内的行为不能同时存在，当前 actionState 处于某组时，必须先回到 IDLE 才能切换到同组其他行为：
+
+| 互斥组 | 包含的 actionState |
+|--------|-------------------|
+| **movement** | WALKING, CLIMBING, FOLLOWING |
+| **interaction** | DRAGGING, FEEDING |
+| **specialty** | DANCING, TYPING_COMPANION |
+| **punish** | WHIP, DROPPING |
+
+**punish 组特殊规则**：处于 punish 组时，拒绝一切转换（鞭打/下落不可被打断）。
+
+## canTransition 判断逻辑
+
+`canTransition(targetAction)` 的判断流程：
 
 ```mermaid
 graph TB
-    A[Tick 触发 每2秒] --> B{全局阻塞检查}
-    B -->|被阻塞| Z[跳过本次 tick]
-    B -->|正常| C{当前行为仍在执行?}
-    C -->|是| Z
-    C -->|否| D[尝试记忆驱动行为]
-    D -->|触发| Z
-    D -->|未触发| E[获取上下文 ctx]
-    E --> F[更新需求值]
-    F --> G[计算动态阈值]
-    G --> H[遍历 BEHAVIORS 计算评分]
-    H --> I[情感修饰评分]
-    I --> J{最高分 > 阈值?}
-    J -->|否| K[保持 idle]
-    J -->|是| L[执行最高分行为]
-    L --> M[设置冷却]
-    M --> N[更新需求值]
+    A[canTransition 调用] --> B{globalMode === FROZEN?}
+    B -->|是| X[返回 false]
+    B -->|否| C{globalMode === SLEEP 且目标不是 IDLE?}
+    C -->|是| X
+    C -->|否| D{当前 === 目标?}
+    D -->|是| Y[返回 true]
+    D -->|否| E{当前不是 IDLE?}
+    E -->|否| Y
+    E -->|是| F{当前在 punish 组?}
+    F -->|是| X
+    F -->|否| Y
 ```
 
-### 全局阻塞条件
+## 统一锁管理
 
-当以下任何条件为 true 时，行为引擎跳过本次 tick：
+StateMachine 内置 `locks` Map，替代了之前散落在各处的 boolean 标志位：
 
-- `isDancing` — 用户手动开启跳舞模式
-- `isSleeping` — 用户手动开启睡眠模式
-- `isFollowing` — 跟随鼠标模式
-- `isWhipRunning` — 鞭打后逃跑中
-- `feedingLock` — 正在执行喂食动画
-- `dragState` — 正在被拖拽
-- `isClimbing` — 正在攀爬中
-- `isDropping` — 下落动画中
+- **`acquireLock(name, duration)`**：获取锁，可选自动过期时长
+- **`releaseLock(name)`**：手动释放锁
+- **`isLocked(name)`**：检查锁状态（自动清理过期锁）
+- **`isAnyLocked()`**：检查是否有任意锁存在
+
+典型使用场景：
+- 喂食动画期间获取 `feeding` 锁，防止行为引擎打断
+- 鞭打反应期间获取 `whip` 锁，三段动画完整播放
+- 拖拽期间获取 `dragging` 锁
+
+## 评分流水线
+
+每次 tick，行为引擎对每个候选行为执行三阶段评分：
+
+```
+utilityFn(needs, ctx)  →  applyEmotionModifier(name, score)  →  applyGrowthModifiers(score, name)
+      ↑                           ↑                                      ↑
+  基础效用评分                 情感系统修饰                          成长/进化修饰
+  基于需求值+环境            PAD 情感维度调整                    等级解锁+路线偏好加成
+```
+
+### 第一阶段：utilityFn
+
+每个行为自带的评分函数，基于当前需求值和环境上下文计算基础分（0-100）。
+
+### 第二阶段：applyEmotionModifier
+
+根据 PAD 情感空间的当前值修饰评分。例如：
+- Pleasure 高时，跳舞/送花等行为加分
+- Arousal 高时，活跃类行为加分
+- Pleasure 低时，撒娇/哭泣类行为加分
+
+### 第三阶段：applyGrowthModifiers
+
+根据成长等级和进化路线修饰评分：
+- **等级加成**：Lv.3+ 荡秋千×1.15、看书×1.1；Lv.5 送花×1.2
+- **进化路线加成**：
+  - 活力线：跳舞×1.2、走路×1.15
+  - 温柔线：甜言蜜语×1.2、看书×1.15
+  - 元气线：招手×1.2、WPS陪伴×1.15
+
+最终选择评分最高且超过动态阈值的行为执行。
 
 ## BEHAVIORS 数组结构
 
-每个行为是一个对象，结构如下：
+每个行为是一个对象：
 
 ```javascript
 {
   name: 'walk',              // 行为唯一标识
   state: 'runningRight',     // 对应的动画状态
-  duration: 4000,            // 行为持续时间（ms），期间不会被打断
-  cooldown: 60000,           // 冷却时间（ms），执行后多久才能再次触发
+  duration: 4000,            // 持续时间（ms），期间不会被打断
+  cooldown: 60000,           // 冷却时间（ms）
   utilityFn(needs, ctx) {},  // 效用评分函数，返回 0-100
   onExecute() {},            // 执行逻辑
 }
@@ -106,17 +178,7 @@ Yoyo 有 4 个维度的需求值，范围 0-100：
 | `hunger` | 10 | +0.03 | 越高越饿，>70 触发 hungry 行为 |
 | `playfulness` | 50 | 趋向天气目标值 | 好动度，晴天→70，雨天→30 |
 
-### 需求值的自然变化
-
-```javascript
-// 每 2 秒 tick 一次
-petNeeds.energy += 0.1;    // 慢慢变困
-petNeeds.boredom += 0.05;  // 慢慢无聊
-petNeeds.hunger += 0.03;   // 慢慢饿
-
-// 天气影响 playfulness（缓动到目标值）
-petNeeds.playfulness += (targetPlayfulness - petNeeds.playfulness) * 0.02;
-```
+**特殊状态暂停需求衰减**：当宠物处于 SLEEP / FROZEN 模式，或正在执行特殊交互（鞭打/喂食）时，需求值暂停自然增长。
 
 ### 行为如何消耗需求
 
@@ -141,121 +203,107 @@ petNeeds.playfulness += (targetPlayfulness - petNeeds.playfulness) * 0.02;
 | 喂食 | hunger =10, boredom -20 |
 | 鞭打 | energy -30 |
 
-## 冷却机制
+## 冷却系统 + 菜单冷却同步
 
-```javascript
-const cooldowns = {}; // { behaviorName: endTimestamp }
+### 行为冷却
 
-function isOnCooldown(name) {
-  if (!cooldowns[name]) return false;
-  if (Date.now() >= cooldowns[name]) {
-    delete cooldowns[name];
-    return false;
-  }
-  return true;
-}
+- 行为执行后立即设置冷却计时
+- 冷却期间该行为跳过评分（不参与竞争）
+- 特殊情况：喂食成功后手动重置 `hungry` 冷却
 
-function setCooldown(name, ms) {
-  if (ms > 0) cooldowns[name] = Date.now() + ms;
-}
-```
+### 菜单冷却同步
 
-- 行为执行后立即设置冷却
-- 冷却期间该行为的评分直接跳过（不参与竞争）
-- 特殊情况：喂食成功后会 `delete cooldowns['hungry']` 手动重置冷却
+通过 `menu-state:sync` IPC 通道，将渲染进程的行为状态（跳舞/跟随/睡觉的开关）实时同步到主进程的右键菜单 checkbox 状态，保证用户看到的菜单与实际状态一致。
+
+## 定时器编排策略
+
+所有定时器通过 `timers.js` 统一管理，采用以下策略避免启动时的密集计算：
+
+| 定时器 | 启动时机 | 周期 | 说明 |
+|--------|----------|------|------|
+| 每日提醒 | 立即 + 延迟5秒 | 60秒 | 检查喝水/吃饭/上下班提醒 |
+| 天气刷新 | 延迟10秒 | 30分钟 | 避免与初始天气请求冲突 |
+| 记忆系统 | 立即 | 65秒 | 每小时活跃度更新 + XP |
+| 自动保存 | 立即 | 5分钟 | 定期持久化记忆数据 |
+| 情感衰减 | 立即 | 5秒 | PAD 值缓慢衰减回基线 |
+| 行为引擎 | 延迟启动 | 2秒 | 等待天气/记忆就绪后再 tick |
+
+**天气即时触发**：天气数据更新后，`weather-seasonal.js` 会立即重新计算 `playfulness` 目标值并触发季节粒子检测，无需等待下一次 tick。
 
 ## 阈值与活跃度设置的关系
 
 行为引擎有一个**动态阈值**，最高评分必须超过阈值才会执行：
 
-```javascript
-let threshold = 25; // 默认基础阈值
-
-// 时间调节
-if (ctx.hour >= 23 || ctx.hour < 6) threshold = 40;  // 深夜更安静
-if (ctx.hour >= 8 && ctx.hour <= 10) threshold = 18;  // 上午更活泼
-
-// 记忆调节：妈妈忙碌时段少打扰
-if (isInBusyHour()) threshold += 10;
-
-// 成长调节：等级越高越活泼
-threshold -= (level - 1) * 2;
-
-// 设置面板调节
-if (activity === 'quiet') threshold += 15;   // 安静模式大幅提高阈值
-if (activity === 'active') threshold -= 10;  // 活泼模式降低阈值
-```
+- 默认基础阈值：25
+- 深夜（23:00-6:00）：+15 → 更安静
+- 上午（8:00-10:00）：-7 → 更活泼
+- 妈妈忙碌时段：+10 → 少打扰
+- 成长等级：每级 -2
+- 设置面板：安静 +15 / 正常 0 / 活泼 -10
 
 **阈值越高 = Yoyo 越安静，阈值越低 = Yoyo 越活泼**
 
-| 活跃度设置 | 阈值调整 | 效果 |
-|-----------|----------|------|
-| 安静 | +15 | 很少主动行动，适合需要安静工作的场景 |
-| 正常 | 0 | 默认行为频率 |
-| 活泼 | -10 | 更频繁地走动、跳舞、说话 |
+## 决策流程图
+
+```mermaid
+graph TB
+    A[Tick 触发 每2秒] --> B{StateMachine.isIdle?}
+    B -->|否| Z[跳过本次 tick]
+    B -->|是| C{isAnyLocked?}
+    C -->|是| Z
+    C -->|否| D[尝试记忆驱动行为]
+    D -->|触发| Z
+    D -->|未触发| E[获取上下文 ctx]
+    E --> F[更新需求值]
+    F --> G[计算动态阈值]
+    G --> H[遍历 BEHAVIORS]
+    H --> I[utilityFn 基础评分]
+    I --> J[applyEmotionModifier]
+    J --> K[applyGrowthModifiers]
+    K --> L{最高分 > 阈值?}
+    L -->|否| M[保持 idle]
+    L -->|是| N[transition + 执行行为]
+    N --> O[设置冷却]
+    O --> P[更新需求值]
+```
 
 ## 如何添加自定义行为
 
 ### 第 1 步：在 STATES 中注册动画状态（如果需要新动画）
 
+在 `core-state.js` 的 STATES 对象中添加：
+
 ```javascript
-// renderer.js 顶部 STATES 对象
 const STATES = {
   // ... 已有状态
-  myNewState: { row: 26, frames: 8, speed: 200 },  // 新动画行
+  myNewState: { row: 26, frames: 8, speed: 200 },
 };
 ```
 
 ### 第 2 步：在 BEHAVIORS 数组中添加行为
 
+在 `behavior-engine.js` 的 BEHAVIORS 数组末尾追加：
+
 ```javascript
-// 在 BEHAVIORS 数组末尾追加
 {
-  name: 'myBehavior',        // 唯一标识
-  state: 'myNewState',       // 对应动画状态
-  duration: 5000,            // 持续 5 秒
-  cooldown: 1800000,         // 30 分钟冷却
+  name: 'myBehavior',
+  state: 'myNewState',
+  duration: 5000,
+  cooldown: 1800000,
   
   utilityFn(needs, ctx) {
-    let score = 0;
-    
-    // 基于需求计算评分
-    score += needs.boredom * 0.5;
-    
-    // 环境加权
+    let score = needs.boredom * 0.5;
     if (ctx.isWeekend) score += 10;
-    if (ctx.hour >= 23 || ctx.hour < 6) score -= 30; // 深夜不触发
-    
+    if (ctx.hour >= 23 || ctx.hour < 6) score -= 30;
     return Math.max(0, Math.min(100, score));
   },
   
   onExecute() {
     setState('myNewState');
     say('Yoyo的新行为台词！');
-    // 可选：触发情感事件
     applyEmotionEvent('happy');
   }
 }
-```
-
-### 第 3 步：（可选）添加需求值消耗
-
-在 `behaviorEngineTick` 函数的执行后逻辑中添加：
-
-```javascript
-} else if (bestBehavior.name === 'myBehavior') {
-  petNeeds.boredom = Math.max(0, petNeeds.boredom - 15);
-}
-```
-
-### 第 4 步：（可选）添加专用文案
-
-```javascript
-const MY_BEHAVIOR_LINES = [
-  '文案1',
-  '文案2',
-  '文案3'
-];
 ```
 
 ### utilityFn 编写指南

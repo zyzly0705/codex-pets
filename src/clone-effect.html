@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  canvas { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // 全屏 canvas
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // Spritesheet 配置
+  const COLS = 8;
+  const ROWS = 26;
+  const FRAME_W = 192;
+  const FRAME_H = 208;
+  const TOTAL_DURATION = 6000; // 6秒总时长
+
+  const sprite = new Image();
+  sprite.src = '../assets/xiao-hong/spritesheet.webp';
+
+  // 分身数据
+  let clones = [];
+  let startTime = 0;
+  let animating = false;
+
+  // 缓动函数
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+  function easeInCubic(t) {
+    return t * t * t;
+  }
+
+  // 生成花朵形状的目标位置
+  function generateFlowerPositions(count, cx, cy) {
+    const positions = [];
+    const innerCount = Math.min(4, count);
+    const outerCount = count - innerCount;
+    const innerRadius = 80;
+    const outerRadius = 180;
+
+    // 内圈
+    for (let i = 0; i < innerCount; i++) {
+      const angle = (i / innerCount) * Math.PI * 2 - Math.PI / 2;
+      positions.push({
+        x: cx + Math.cos(angle) * innerRadius,
+        y: cy + Math.sin(angle) * innerRadius,
+        rotation: angle + Math.PI / 6
+      });
+    }
+
+    // 外圈
+    for (let i = 0; i < outerCount; i++) {
+      const angle = (i / outerCount) * Math.PI * 2 - Math.PI / 2;
+      positions.push({
+        x: cx + Math.cos(angle) * outerRadius,
+        y: cy + Math.sin(angle) * outerRadius,
+        rotation: angle - Math.PI / 6
+      });
+    }
+
+    return positions;
+  }
+
+  sprite.onload = function() {
+    initClones();
+    startTime = performance.now();
+    animating = true;
+    requestAnimationFrame(animate);
+  };
+
+  function initClones() {
+    const count = 12 + Math.floor(Math.random() * 5); // 12-16个
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    // 随机选择不同的行来取帧
+    const availableRows = [];
+    for (let r = 0; r < ROWS; r++) availableRows.push(r);
+    // 打乱
+    for (let i = availableRows.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [availableRows[i], availableRows[j]] = [availableRows[j], availableRows[i]];
+    }
+
+    const flowerPositions = generateFlowerPositions(count, cx, cy);
+
+    for (let i = 0; i < count; i++) {
+      const row = availableRows[i % availableRows.length];
+      const col = Math.floor(Math.random() * 3); // 取前3帧随机
+
+      // 爆炸散开的目标位置（屏幕随机位置）
+      const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+      const distance = 200 + Math.random() * 300;
+      const explodeX = cx + Math.cos(angle) * distance;
+      const explodeY = cy + Math.sin(angle) * distance;
+
+      clones.push({
+        row,
+        col,
+        // 起始位置（中心）
+        startX: cx,
+        startY: cy,
+        // 爆炸散开后的位置
+        explodeX,
+        explodeY,
+        // 花朵位置
+        flowerX: flowerPositions[i].x,
+        flowerY: flowerPositions[i].y,
+        flowerRotation: flowerPositions[i].rotation,
+        // 浮动偏移
+        floatOffset: Math.random() * Math.PI * 2,
+        floatSpeed: 1.5 + Math.random() * 1.5,
+        // 当前绘制状态
+        x: cx,
+        y: cy,
+        rotation: 0,
+        scale: 0.6,
+        opacity: 1
+      });
+    }
+  }
+
+  function animate(now) {
+    if (!animating) return;
+
+    const elapsed = now - startTime;
+
+    if (elapsed >= TOTAL_DURATION) {
+      // 动画结束
+      animating = false;
+      try { window.close(); } catch(e) {}
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    if (elapsed < 1000) {
+      // 阶段1：爆炸散开（0-1s）
+      const t = easeOutCubic(elapsed / 1000);
+      for (const c of clones) {
+        c.x = c.startX + (c.explodeX - c.startX) * t;
+        c.y = c.startY + (c.explodeY - c.startY) * t;
+        c.rotation = t * (Math.random() > 0.5 ? 0.3 : -0.3);
+        c.scale = 0.3 + t * 0.35;
+        c.opacity = 0.3 + t * 0.7;
+      }
+    } else if (elapsed < 3000) {
+      // 阶段2：展示浮动（1-3s）
+      const phase = (elapsed - 1000) / 1000;
+      for (const c of clones) {
+        c.x = c.explodeX;
+        c.y = c.explodeY + Math.sin(phase * c.floatSpeed + c.floatOffset) * 3;
+        c.scale = 0.65;
+        c.opacity = 1;
+        c.rotation = Math.sin(phase * 0.8 + c.floatOffset) * 0.05;
+      }
+    } else if (elapsed < 5000) {
+      // 阶段3：花朵汇聚（3-5s）
+      const t = easeInOutCubic((elapsed - 3000) / 2000);
+      for (const c of clones) {
+        c.x = c.explodeX + (c.flowerX - c.explodeX) * t;
+        c.y = c.explodeY + (c.flowerY - c.explodeY) * t;
+        c.rotation = c.flowerRotation * t;
+        c.scale = 0.65 - t * 0.1;
+        c.opacity = 1;
+      }
+    } else {
+      // 阶段4：消散（5-6s）
+      const t = easeInCubic((elapsed - 5000) / 1000);
+      const globalScale = 1 - t * 0.7;
+      const globalRotation = t * Math.PI * 0.5;
+      for (const c of clones) {
+        // 以中心旋转缩小
+        const dx = c.flowerX - cx;
+        const dy = c.flowerY - cy;
+        const cos = Math.cos(globalRotation);
+        const sin = Math.sin(globalRotation);
+        c.x = cx + (dx * cos - dy * sin) * globalScale;
+        c.y = cy + (dx * sin + dy * cos) * globalScale;
+        c.rotation = c.flowerRotation + globalRotation;
+        c.scale = 0.55 * globalScale;
+        c.opacity = 1 - t;
+      }
+    }
+
+    // 绘制所有分身
+    for (const c of clones) {
+      if (c.opacity <= 0) continue;
+      ctx.save();
+      ctx.globalAlpha = c.opacity;
+      ctx.translate(c.x, c.y);
+      ctx.rotate(c.rotation);
+      ctx.scale(c.scale, c.scale);
+      // 从 spritesheet 裁剪对应帧
+      ctx.drawImage(
+        sprite,
+        c.col * FRAME_W, c.row * FRAME_H,
+        FRAME_W, FRAME_H,
+        -FRAME_W / 2, -FRAME_H / 2,
+        FRAME_W, FRAME_H
+      );
+      ctx.restore();
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  // 若图片加载失败，5秒后关闭
+  sprite.onerror = function() {
+    setTimeout(function() { try { window.close(); } catch(e) {} }, 5000);
+  };
+})();
+</script>
+</body>
+</html>

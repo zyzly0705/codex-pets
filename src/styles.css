@@ -30,8 +30,8 @@ body {
 /* 漫画式对话气泡 - 带小三角 */
 .bubble {
   position: absolute;
-  left: 15px;
-  right: 15px;
+  left: 10px;
+  right: 10px;
   bottom: 138px;
   padding: 8px 12px;
   border-radius: 12px;
@@ -44,6 +44,7 @@ body {
   transform: translateY(4px);
   transition: opacity 200ms ease, transform 200ms ease;
   pointer-events: none;
+  word-break: break-word;
 }
 
 .bubble.visible {

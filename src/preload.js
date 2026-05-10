@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('petApi', {
   scanWindows: () => ipcRenderer.invoke('windows:scan'),
   showContextMenu: () => ipcRenderer.invoke('context-menu:show'),
   triggerEffect: (type) => ipcRenderer.invoke('effect:fullscreen', type),
+  triggerCloneEffect: () => ipcRenderer.invoke('effect:clone'),
+  triggerGiantEffect: () => ipcRenderer.invoke('effect:giant'),
   onMenuAction: (callback) => ipcRenderer.on('menu-action', (_e, action) => callback(action)),
   // 新增：右键菜单动作监听
   onAction: (callback) => ipcRenderer.on('action:pet', () => callback()),
@@ -24,11 +26,17 @@ contextBridge.exposeInMainWorld('petApi', {
   onSystemResume: (callback) => ipcRenderer.on('system:resume', () => callback()),
   // 繁忙提醒监听
   onBusyReminder: (callback) => ipcRenderer.on('system:busy-reminder', () => callback()),
+  // 键盘活动监听
+  onKeyboardActivity: (cb) => ipcRenderer.on('keyboard:activity', cb),
   // 前台应用变化监听（WPS工作陪伴）
   onActiveAppChanged: (callback) => ipcRenderer.on('active-app-changed', (_, data) => callback(data)),
   // 状态同步到主进程
   syncMenuState: (state) => ipcRenderer.send('menu-state:sync', state),
   // 设置相关
   onSettingsChanged: (callback) => ipcRenderer.on('settings-changed', (_, data) => callback(data)),
-  onSettingsReset: (callback) => ipcRenderer.on('settings-reset', () => callback())
+  onSettingsReset: (callback) => ipcRenderer.on('settings-reset', () => callback()),
+  // 换装系统
+  onOutfitChange: (cb) => ipcRenderer.on('outfit:change', (e, category, itemId) => cb(category, itemId)),
+  onOutfitRandom: (cb) => ipcRenderer.on('outfit:random', () => cb()),
+  onOutfitReset: (cb) => ipcRenderer.on('outfit:reset', () => cb()),
 });

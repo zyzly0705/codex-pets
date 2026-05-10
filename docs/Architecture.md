@@ -1,13 +1,17 @@
 # 🏗️ 技术架构
 
-> 本文档介绍 Yoyo 桌面宠物的整体技术架构，包含进程模型、通信机制和文件结构。
+> 本文档介绍 Yoyo 桌面宠物的整体技术架构，包含 ES Module 模块结构、进程模型、通信机制和共享状态管理。
 
 ## 目录
 
 - [整体架构图](#整体架构图)
+- [ES Module 模块结构](#es-module-模块结构)
+- [模块间依赖关系](#模块间依赖关系)
+- [共享状态管理](#共享状态管理)
 - [主进程职责](#主进程mainjs职责)
-- [渲染进程职责](#渲染进程rendererjs职责)
+- [渲染进程职责](#渲染进程模块体系)
 - [IPC 通信通道列表](#ipc-通信通道列表)
+- [事件通信机制](#事件通信机制)
 - [文件结构说明](#文件结构说明)
 
 ---
@@ -20,22 +24,122 @@ graph TB
     A --> C[Tray<br>系统托盘]
     A --> D[Settings Window<br>设置窗口]
     
-    B --> E[Renderer Process<br>renderer.js]
+    B --> E[renderer.js<br>模块入口与编排]
     
-    E --> F[Canvas 渲染引擎<br>Spritesheet 动画]
-    E --> G[行为决策引擎<br>效用 AI]
-    E --> H[情感系统<br>PAD 三维模型]
-    E --> I[记忆系统<br>localStorage]
-    E --> J[成长系统<br>等级与经验]
+    E --> F[core-state.js<br>共享状态与常量]
+    E --> G[state-machine.js<br>三层状态机]
+    E --> H[behavior-engine.js<br>行为决策引擎]
+    E --> I[emotion-system.js<br>PAD 情感模型]
+    E --> J[growth-system.js<br>成长与进化]
+    E --> K[interaction.js<br>交互反应系统]
+    E --> L[render-engine.js<br>Canvas 渲染]
+    E --> M[timers.js<br>定时器管理]
+    E --> N[climbing.js<br>攀爬系统]
+    E --> O[weather-seasonal.js<br>天气与季节]
+    E --> P[startup-animation.js<br>启动动画]
+    E --> Q[outfit-system.js<br>换装系统]
+    E --> R[clone-system.js<br>分身术]
     
-    A --> K[窗口扫描模块<br>node-window-manager]
-    A --> L[天气服务<br>Open-Meteo API]
-    A --> M[繁忙检测<br>powerMonitor]
-    A --> N[前台应用检测<br>WPS 工作陪伴]
+    A --> S[窗口扫描<br>node-window-manager]
+    A --> T[天气服务<br>Open-Meteo API]
+    A --> U[繁忙检测<br>powerMonitor]
+    A --> V[前台应用检测<br>WPS 工作陪伴]
     
     E -->|IPC| A
     A -->|事件推送| E
 ```
+
+## ES Module 模块结构
+
+项目渲染进程采用 ES Module 拆分为 12 个职责单一的模块：
+
+```
+src/modules/
+├── core-state.js        — 共享状态与常量（所有模块的基础层，不 import 其他模块）
+├── state-machine.js     — 三层状态机引擎（globalMode → actionState → effects）
+├── emotion-system.js    — PAD 情感模型 + 大五人格参数
+├── growth-system.js     — 成长等级 / 签到 / 成就 / 进化路线 / 记忆系统
+├── behavior-engine.js   — BEHAVIORS 注册表 + tick 逻辑 + 冷却 + 评分流水线
+├── interaction.js       — 拖拽 / 喂食 / 鞭打三段反应 / 抚摸呼噜
+├── climbing.js          — 攀爬系统（接近→攀爬→趴着→探头→下降）
+├── weather-seasonal.js  — 天气获取 + 季节粒子特效
+├── timers.js            — 定时器统一编排（提醒/天气/记忆/情感衰减）
+├── outfit-system.js     — 换装系统（配饰/表情叠加绘制）
+├── render-engine.js     — Canvas 渲染引擎 + 辫子弹簧物理
+├── startup-animation.js — 旋转飞入启动动画
+└── clone-system.js      — 分身术特效
+```
+
+入口文件 `renderer.js` 负责 import 所有模块并按序初始化。
+
+## 模块间依赖关系
+
+```mermaid
+graph TB
+    CS[core-state.js<br>共享状态/常量/工具] --> SM[state-machine.js]
+    CS --> ES[emotion-system.js]
+    CS --> GS[growth-system.js]
+    CS --> BE[behavior-engine.js]
+    CS --> INT[interaction.js]
+    CS --> CL[climbing.js]
+    CS --> WS[weather-seasonal.js]
+    CS --> TM[timers.js]
+    CS --> RE[render-engine.js]
+    CS --> SA[startup-animation.js]
+    CS --> OS[outfit-system.js]
+    
+    SM --> BE
+    SM --> INT
+    ES --> BE
+    ES --> INT
+    ES --> TM
+    GS --> BE
+    GS --> INT
+    GS --> TM
+    BE --> TM
+    BE --> INT
+    CL --> INT
+    WS --> TM
+    
+    R[renderer.js<br>入口] --> CS
+    R --> SM
+    R --> ES
+    R --> GS
+    R --> BE
+    R --> INT
+    R --> CL
+    R --> WS
+    R --> TM
+    R --> RE
+    R --> SA
+    R --> OS
+```
+
+**依赖规则**：
+- `core-state.js` 是最底层模块，不 import 任何其他模块，所有模块都依赖它
+- `state-machine.js` 独立于 core-state，提供状态转换能力
+- 上层模块（behavior-engine、interaction、timers）可以互相引用，但避免循环依赖
+- `renderer.js` 作为入口，import 所有模块并编排初始化顺序
+
+## 共享状态管理
+
+采用**单一对象引用**模式，通过 `core-state.js` 导出的 `state` 对象实现跨模块状态共享：
+
+- **`state` 对象**：包含所有可变运行时状态（当前宠物、模式标志、设置等），各模块通过 import 获得同一引用
+- **`reactionState` 对象**：交互反应专用状态（抚摸阶段、鞭打阶段、喂食动画等）
+- **`braidPhysics` 对象**：辫子物理参数（弹簧质点、刚度、阻尼等）
+- **`petNeeds` 对象**：四维需求值（定义在 behavior-engine.js 中）
+- **`StateMachine` 实例**：全局唯一实例 `stateMachine`，管理三层状态 + 锁
+
+**持久化**使用 `localStorage`，各子系统独立管理自己的存储键：
+
+| 存储键 | 管理模块 | 内容 |
+|--------|----------|------|
+| `yoyo_memory` | growth-system.js | 记忆数据（交互历史、活跃时段） |
+| `yoyo_growth` | growth-system.js | 成长数据（XP、等级、进化路线） |
+| `yoyo_checkin` | growth-system.js | 签到数据（连续天数、最后签到日） |
+| `yoyo_achievements` | growth-system.js | 成就徽章解锁记录 |
+| `yoyo_muted` | core-state.js | 静音状态 |
 
 ## 主进程（main.js）职责
 
@@ -51,7 +155,7 @@ graph TB
 | **天气服务** | IP 定位 + Open-Meteo API 获取实时天气 |
 | **繁忙检测** | 通过 `powerMonitor.getSystemIdleTime()` 检测连续工作，60分钟触发提醒 |
 | **前台应用检测** | 每30秒检测前台窗口，识别 WPS 等工作应用 |
-| **特效窗口** | 创建全屏透明窗口播放飘落特效（花瓣/糖果/爱心） |
+| **特效窗口** | 创建全屏透明窗口播放飘落特效（花瓣/糖果/爱心/巨大化/分身） |
 | **右键菜单** | 动态构建右键菜单（抚摸/鞭打/跳舞/跟随/睡觉/切换宠物/设置） |
 
 ### 关键配置
@@ -71,21 +175,25 @@ const APP_HEIGHT = 260;
 }
 ```
 
-## 渲染进程（renderer.js）职责
+## 渲染进程模块体系
 
-渲染进程承载 Yoyo 的全部"灵魂"，是核心逻辑所在：
+渲染进程承载 Yoyo 的全部"灵魂"，拆分为 12 个 ES Module：
 
 | 模块 | 职责 |
 |------|------|
-| **Canvas 渲染** | 基于 spritesheet 的逐帧动画，192×208 每帧，0.75 缩放绘制 |
-| **行为决策引擎** | 效用 AI，每2秒 tick，评估所有行为的 utility 选最高分执行 |
-| **情感系统** | PAD 三维空间 + 大五人格，情感事件驱动，每5秒衰减回基线 |
-| **记忆系统** | 记录交互历史（抚摸/喂食/鞭打），驱动记忆型问候和撒娇 |
-| **成长系统** | 5级成长路线，经验值累积，升级影响行为阈值 |
-| **攀爬系统** | 爬屏幕边缘/其他窗口，多阶段动画（接近→攀爬→趴着→探头→下降） |
-| **交互系统** | 拖拽物理（重力下落+弹跳）、单击抚摸、右键菜单、喂食 |
-| **提醒系统** | 定时喝水/吃饭提醒，特殊日期庆祝，里程碑检测 |
-| **音效系统** | Web Audio API 合成音效（脚步/笑声/哭声/弹跳/拍手） |
+| **core-state.js** | 共享状态、常量、DOM引用、音频合成、SpeechQueue 文案队列 |
+| **state-machine.js** | 三层状态机（globalMode/actionState/effects）、互斥组、统一锁管理 |
+| **behavior-engine.js** | BEHAVIORS 注册表、每2秒 tick、评分流水线（utility→emotion→growth） |
+| **emotion-system.js** | PAD 三维空间 + 大五人格，情感事件驱动，每5秒衰减回基线 |
+| **growth-system.js** | 5级成长路线 + 3条进化路线 + 签到连击 + 成就徽章 + 记忆系统 |
+| **interaction.js** | 拖拽物理、喂食星星眼、鞭打三段反应、抚摸呼噜、键盘响应 |
+| **climbing.js** | 爬屏幕边缘/其他窗口，多阶段动画（接近→攀爬→趴着→探头→下降） |
+| **weather-seasonal.js** | 天气获取 + 季节粒子 + playfulness 目标值计算 |
+| **timers.js** | 统一定时器编排：延迟启动、错开周期、天气即时触发 |
+| **render-engine.js** | Canvas 逐帧渲染 + 辫子弹簧物理 + 交互反应叠加绘制 |
+| **startup-animation.js** | 旋转飞入动画（3圈旋转 + easeOut + 拖尾粒子） |
+| **outfit-system.js** | 换装系统（配饰/表情/星星眼叠加绘制） |
+| **clone-system.js** | 分身术特效（创建独立窗口播放） |
 
 ## IPC 通信通道列表
 
@@ -131,27 +239,52 @@ const APP_HEIGHT = 260;
 |--------|------|
 | `menu-state:sync` | 同步右键菜单 checkbox 状态 |
 
+## 事件通信机制
+
+模块间通信采用以下方式：
+
+1. **直接函数调用**：模块 import 后直接调用导出函数（主要方式）
+2. **共享状态读写**：通过 `state` / `reactionState` 对象的属性变更，在渲染循环中被其他模块读取
+3. **IPC 双向通信**：渲染进程 ↔ 主进程之间通过 `preload.js` 暴露的 `petApi` 接口
+4. **SpeechQueue 队列**：文案系统通过优先级队列统一调度显示
+
 ## 文件结构说明
 
 ```
 codex-desktop-pet/
 ├── src/
-│   ├── main.js          # 主进程：窗口管理、IPC、系统集成
-│   ├── preload.js       # 预加载脚本：安全暴露 petApi 接口
-│   ├── renderer.js      # 渲染进程：行为引擎、情感、记忆、成长、交互
-│   ├── index.html       # 主窗口页面（Canvas + 气泡 + 喂食按钮）
-│   ├── styles.css       # 样式（动画、气泡、抖动效果）
-│   ├── settings.html    # 设置窗口页面
-│   └── effect.html      # 全屏飘落特效页面
-├── assets/xiao-hong/    # 默认宠物素材
-│   ├── pet.json         # 宠物配置清单
-│   └── spritesheet.webp # 精灵图（8列×N行，每帧 192×208）
+│   ├── modules/          # ES Module 模块目录
+│   │   ├── core-state.js
+│   │   ├── state-machine.js
+│   │   ├── emotion-system.js
+│   │   ├── growth-system.js
+│   │   ├── behavior-engine.js
+│   │   ├── interaction.js
+│   │   ├── climbing.js
+│   │   ├── weather-seasonal.js
+│   │   ├── timers.js
+│   │   ├── outfit-system.js
+│   │   ├── render-engine.js
+│   │   ├── startup-animation.js
+│   │   └── clone-system.js
+│   ├── renderer.js       # 模块入口
+│   ├── main.js           # 主进程
+│   ├── preload.js        # 预加载脚本
+│   ├── index.html        # 主窗口页面（Canvas + 气泡 + 喂食按钮）
+│   ├── styles.css        # 样式（动画、气泡、抖动效果）
+│   ├── settings.html     # 设置窗口页面
+│   ├── effect.html       # 全屏飘落特效页面
+│   ├── giant-effect.html # 法天象地巨大化特效页面
+│   └── clone-effect.html # 分身术特效页面
+├── assets/xiao-hong/     # 默认宠物素材
+│   ├── pet.json          # 宠物配置清单
+│   └── spritesheet.webp  # 精灵图（8列×N行，每帧 192×208）
 ├── scripts/
 │   └── expand-spritesheet.js  # 精灵图扩展工具
 ├── .github/workflows/
 │   └── build-windows.yml      # GitHub Actions 自动打包
-├── package.json         # 项目配置与构建脚本
-└── docs/                # 你正在阅读的文档 :)
+├── package.json          # 项目配置与构建脚本
+└── docs/                 # 你正在阅读的文档 :)
 ```
 
 ### 数据目录（运行时生成）

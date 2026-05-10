@@ -1,13 +1,13 @@
 {
   "name": "codex-desktop-pet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A small Windows desktop pet app for Codex pet spritesheets.",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
     "dist:win": "electron-builder --win nsis",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js"
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\""
   },
   "keywords": [
     "desktop-pet",
@@ -53,9 +53,16 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Codex Desktop Pet"
-    }
+    },
+    "publish": [{
+      "provider": "github",
+      "owner": "zhangyazhou",
+      "repo": "codex-desktop-pet"
+    }]
   },
   "dependencies": {
-    "node-window-manager": "^2.2.4"
+    "electron-updater": "^6.1.0",
+    "node-window-manager": "^2.2.4",
+    "uiohook-napi": "^1.5.5"
   }
 }

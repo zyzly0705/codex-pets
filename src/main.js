@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Tray, dialog, screen, nativeImage, sy
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { autoUpdater } = require('electron-updater');
 
 // ===== 窗口扫描模块 =====
 let windowManager = null;
@@ -9,6 +10,23 @@ try {
   windowManager = require('node-window-manager');
 } catch {
   // node-window-manager 不可用，将使用 macOS 原生 API 降级
+}
+
+// ===== 全局键盘监听（uiohook-napi） =====
+try {
+  const { uIOhook } = require('uiohook-napi');
+  let lastKeyTime = 0;
+  uIOhook.on('keydown', () => {
+    const now = Date.now();
+    if (now - lastKeyTime < 500) return; // 节流 500ms
+    lastKeyTime = now;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('keyboard:activity');
+    }
+  });
+  uIOhook.start();
+} catch (e) {
+  console.log('[uiohook] 不可用，键盘响应功能禁用:', e.message);
 }
 
 // 窗口扫描缓存
@@ -276,6 +294,38 @@ app.on('window-all-closed', (event) => {
   event.preventDefault();
 });
 
+// === 自动更新 ===
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// 应用就绪后检查更新
+app.whenReady().then(() => {
+  // 延迟 10 秒检查（避免启动时阻塞）
+  setTimeout(() => {
+    autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+  }, 10000);
+
+  // 每 4 小时检查一次
+  setInterval(() => {
+    autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+  }, 4 * 60 * 60 * 1000);
+});
+
+// 更新下载完成，通知用户
+autoUpdater.on('update-downloaded', (info) => {
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Yoyo 有新版本啦！',
+    message: `v${info.version} 已准备好，要现在更新吗？`,
+    buttons: ['立即更新', '下次再说'],
+    defaultId: 0
+  }).then(({ response }) => {
+    if (response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+
 ipcMain.handle('pets:list', () => listPets());
 
 ipcMain.handle('window:get-bounds', () => {
@@ -405,6 +455,50 @@ ipcMain.handle('context-menu:show', (event) => {
     { label: '跟随鼠标', type: 'checkbox', checked: menuState.following, click: (item) => { mainWindow.webContents.send('action:follow', item.checked); } },
     { label: '睡觉', type: 'checkbox', checked: menuState.sleeping, click: (item) => { mainWindow.webContents.send('action:sleep', item.checked); } },
     { type: 'separator' },
+    { label: '✨ 分身术！', click: () => { triggerCloneEffect(); } },
+    { label: '🏔️ 法天象地！', click: () => { triggerGiantEffect(); } },
+    { type: 'separator' },
+    {
+      label: '👗 换装',
+      submenu: [
+        {
+          label: '帽子',
+          submenu: [
+            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'none'); } },
+            { label: '🎀 蝴蝶结', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'ribbon'); } },
+            { label: '👑 花冠', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'crown'); } },
+            { label: '🐱 猫耳', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'catears'); } },
+            { label: '🎅 圣诞帽', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'santa'); } },
+            { label: '😇 光环', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'halo'); } },
+          ]
+        },
+        {
+          label: '配饰',
+          submenu: [
+            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'none'); } },
+            { label: '🧣 围巾', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'scarf'); } },
+            { label: '👓 眼镜', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'glasses'); } },
+            { label: '🪽 翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'wings'); } },
+            { label: '🎀 领结', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'bow'); } },
+          ]
+        },
+        {
+          label: '表情',
+          submenu: [
+            { label: '❌ 默认', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'none'); } },
+            { label: '😊 开心', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'happy'); } },
+            { label: '😳 害羞', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'shy'); } },
+            { label: '🤩 星星眼', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'sparkle'); } },
+            { label: '😍 爱心眼', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'heart'); } },
+            { label: '😴 困困', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'sleepy'); } },
+          ]
+        },
+        { type: 'separator' },
+        { label: '🔄 随机搭配', click: () => { mainWindow.webContents.send('outfit:random'); } },
+        { label: '🚫 全部卸下', click: () => { mainWindow.webContents.send('outfit:reset'); } },
+      ]
+    },
+    { type: 'separator' },
     { label: '切换宠物', submenu: petSubmenu },
     { type: 'separator' },
     { label: '设置', click: () => openSettings() },
@@ -487,17 +581,62 @@ ipcMain.handle('weather:get', async () => {
   } catch {
     return { ok: false, error: '无法定位当前位置。' };
   }
-  // 获取天气
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
+  // 获取天气（含未来24小时预报）
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weathercode,windspeed_10m&forecast_days=2&timezone=auto`;
   const weatherResponse = await fetch(weatherUrl);
   if (!weatherResponse.ok) {
     return { ok: false, error: '天气服务不可用。' };
   }
   const weather = await weatherResponse.json();
+
+  // 解析未来6小时预报数据
+  let tempDrop = false;
+  let rainComing = false;
+  let windWarning = false;
+  let minTemp6h = null;
+  let maxTemp6h = null;
+  let forecast = [];
+
+  if (weather.hourly && weather.hourly.time) {
+    const nowISO = new Date().toISOString();
+    const hourlyTimes = weather.hourly.time;
+    // 找到当前时间之后的索引
+    let startIdx = 0;
+    for (let i = 0; i < hourlyTimes.length; i++) {
+      if (hourlyTimes[i] >= nowISO.slice(0, 16)) {
+        startIdx = i;
+        break;
+      }
+    }
+    // 取未来6小时数据
+    const endIdx = Math.min(startIdx + 6, hourlyTimes.length);
+    const temps6h = weather.hourly.temperature_2m.slice(startIdx, endIdx);
+    const codes6h = (weather.hourly.weathercode || []).slice(startIdx, endIdx);
+    const winds6h = (weather.hourly.windspeed_10m || []).slice(startIdx, endIdx);
+
+    forecast = temps6h;
+    if (temps6h.length > 0) {
+      minTemp6h = Math.min(...temps6h);
+      maxTemp6h = Math.max(...temps6h);
+      const currentTemp = weather.current.temperature_2m;
+      tempDrop = (currentTemp - minTemp6h) > 5;
+    }
+    // 下雨检测 (code 51-67, 80-82)
+    rainComing = codes6h.some(code => (code >= 51 && code <= 67) || (code >= 80 && code <= 82));
+    // 大风检测 (>40km/h)
+    windWarning = winds6h.some(speed => speed > 40);
+  }
+
   return {
     ok: true,
     place: placeName,
-    current: weather.current
+    current: weather.current,
+    forecast,
+    tempDrop,
+    rainComing,
+    windWarning,
+    minTemp6h,
+    maxTemp6h
   };
 });
 
@@ -527,6 +666,73 @@ ipcMain.handle('effect:fullscreen', async (_event, type) => {
   setTimeout(() => {
     if (!effectWin.isDestroyed()) effectWin.close();
   }, 6000);
+});
+
+// ===== 分身术特效窗口 =====
+function triggerCloneEffect() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const cloneWin = new BrowserWindow({
+    width, height,
+    x: 0, y: 0,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    hasShadow: false,
+    resizable: false,
+    focusable: false,
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
+  });
+  cloneWin.setIgnoreMouseEvents(true);
+  cloneWin.setAlwaysOnTop(true, 'screen-saver');
+  cloneWin.loadFile(path.join(__dirname, 'clone-effect.html'));
+  // 7秒保险关闭
+  setTimeout(() => {
+    if (!cloneWin.isDestroyed()) cloneWin.close();
+  }, 7000);
+}
+
+function triggerGiantEffect() {
+  const display = screen.getPrimaryDisplay();
+  const { width, height } = display.size;
+
+  const giantWin = new BrowserWindow({
+    x: 0, y: 0,
+    width, height,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    focusable: false,
+    hasShadow: false,
+    resizable: false,
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
+  });
+  giantWin.setIgnoreMouseEvents(true);
+  giantWin.setAlwaysOnTop(true, 'screen-saver');
+  giantWin.loadFile(path.join(__dirname, 'giant-effect.html'));
+
+  const mainBounds = mainWindow.getBounds();
+  giantWin.webContents.once('did-finish-load', () => {
+    giantWin.webContents.executeJavaScript(`
+      window.petPosition = { x: ${mainBounds.x}, y: ${mainBounds.y} };
+      window.petSize = { w: ${mainBounds.width}, h: ${mainBounds.height} };
+      startGiantEffect();
+    `);
+  });
+
+  setTimeout(() => {
+    if (!giantWin.isDestroyed()) giantWin.close();
+  }, 6500);
+}
+
+ipcMain.handle('effect:clone', () => {
+  triggerCloneEffect();
+});
+
+// ===== 法天象地巨大化特效窗口 =====
+ipcMain.handle('effect:giant', () => {
+  triggerGiantEffect();
 });
 
 // ===== 前台窗口检测（WPS工作陪伴） =====
