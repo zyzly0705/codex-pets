@@ -18,11 +18,12 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^36.2.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "sharp": "^0.34.5"
   },
   "build": {
     "appId": "com.codex.desktoppet",
-    "productName": "Codex Desktop Pet",
+    "productName": "Yoyo",
     "directories": {
       "output": "dist"
     },
@@ -53,5 +54,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Codex Desktop Pet"
     }
+  },
+  "dependencies": {
+    "node-window-manager": "^2.2.4"
   }
 }

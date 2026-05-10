@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Yoyo 设置</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; background: #fff5f5; }
+    h2 { color: #e91e63; margin-bottom: 20px; }
+    .setting-group { margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .setting-group label { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .setting-group .desc { font-size: 12px; color: #888; margin-top: 4px; }
+    select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; }
+    .toggle { position: relative; width: 40px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 22px; transition: 0.3s; }
+    .toggle .slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle input:checked + .slider { background: #e91e63; }
+    .toggle input:checked + .slider:before { transform: translateX(18px); }
+    .danger-btn { margin-top: 20px; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .danger-btn:hover { background: #d32f2f; }
+  </style>
+</head>
+<body>
+  <h2>🌸 Yoyo 设置</h2>
+
+  <div class="setting-group">
+    <label>
+      <span>开机自启</span>
+      <span class="toggle"><input type="checkbox" id="autoStart" checked><span class="slider"></span></span>
+    </label>
+    <div class="desc">开机时自动启动 Yoyo</div>
+  </div>
+
+  <div class="setting-group">
+    <label>
+      <span>音效</span>
+      <span class="toggle"><input type="checkbox" id="soundEnabled" checked><span class="slider"></span></span>
+    </label>
+    <div class="desc">Yoyo 的脚步声、笑声等</div>
+  </div>
+
+  <div class="setting-group">
+    <label>
+      <span>提醒频率</span>
+      <select id="reminderFreq">
+        <option value="high">高（全部提醒）</option>
+        <option value="medium" selected>中（主要提醒）</option>
+        <option value="low">低（仅重要提醒）</option>
+      </select>
+    </label>
+    <div class="desc">喝水、吃饭等生活提醒的频率</div>
+  </div>
+
+  <div class="setting-group">
+    <label>
+      <span>Yoyo 活跃度</span>
+      <select id="activity">
+        <option value="quiet">安静</option>
+        <option value="normal" selected>正常</option>
+        <option value="active">活泼</option>
+      </select>
+    </label>
+    <div class="desc">影响 Yoyo 主动说话和行动的频率</div>
+  </div>
+
+  <button class="danger-btn" id="resetBtn">重置所有数据</button>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    // 加载设置
+    ipcRenderer.invoke('settings:load').then(settings => {
+      document.getElementById('autoStart').checked = settings.autoStart !== false;
+      document.getElementById('soundEnabled').checked = settings.soundEnabled !== false;
+      document.getElementById('reminderFreq').value = settings.reminderFreq || 'medium';
+      document.getElementById('activity').value = settings.activity || 'normal';
+    });
+
+    // 保存设置
+    function save() {
+      const settings = {
+        autoStart: document.getElementById('autoStart').checked,
+        soundEnabled: document.getElementById('soundEnabled').checked,
+        reminderFreq: document.getElementById('reminderFreq').value,
+        activity: document.getElementById('activity').value
+      };
+      ipcRenderer.invoke('settings:save', settings);
+    }
+
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('change', save);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (confirm('确定要重置所有数据吗？Yoyo 的记忆和成长都会消失...')) {
+        ipcRenderer.invoke('settings:reset');
+      }
+    });
+  </script>
+</body>
+</html>

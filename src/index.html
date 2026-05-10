@@ -3,28 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Codex Desktop Pet</title>
+    <title>Yoyo</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main id="app">
       <section id="bubble" class="bubble" aria-live="polite"></section>
-      <button id="settingsButton" class="icon-button" title="设置" aria-label="设置">⚙</button>
-      <canvas id="petCanvas" width="192" height="208"></canvas>
-      <section id="settingsPanel" class="panel hidden">
-        <div class="field">
-          <label for="petSelect">宠物</label>
-          <select id="petSelect"></select>
-        </div>
-        <div class="field">
-          <label for="cityInput">天气城市</label>
-          <input id="cityInput" placeholder="Shanghai" />
-        </div>
-        <div class="actions">
-          <button id="refreshWeather">刷新天气</button>
-          <button id="importPet">导入素材</button>
-        </div>
-      </section>
+      <canvas id="petCanvas" width="120" height="130"></canvas>
+      <button id="feed-btn" class="feed-btn">🍪</button>
     </main>
     <script src="./renderer.js"></script>
   </body>

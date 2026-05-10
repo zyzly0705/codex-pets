@@ -15,37 +15,34 @@ body {
   height: 100%;
 }
 
+/* Canvas 居中底部 */
 #petCanvas {
   position: absolute;
-  left: 84px;
-  bottom: 20px;
-  width: 192px;
-  height: 208px;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 130px;
   image-rendering: pixelated;
-  cursor: grab;
+  cursor: pointer;
 }
 
-#petCanvas:active {
-  cursor: grabbing;
-}
-
+/* 漫画式对话气泡 - 带小三角 */
 .bubble {
   position: absolute;
-  left: 24px;
-  right: 24px;
-  top: 18px;
-  min-height: 34px;
-  padding: 10px 14px;
-  border: 1px solid rgba(44, 52, 68, 0.16);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #243042;
-  font-size: 13px;
-  line-height: 1.45;
-  box-shadow: 0 8px 24px rgba(18, 24, 38, 0.14);
+  left: 15px;
+  right: 15px;
+  bottom: 138px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2c3444;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 180ms ease, transform 180ms ease;
+  transform: translateY(4px);
+  transition: opacity 200ms ease, transform 200ms ease;
   pointer-events: none;
 }
 
@@ -54,68 +51,65 @@ body {
   transform: translateY(0);
 }
 
-.icon-button {
+/* 气泡下方小三角 */
+.bubble::after {
+  content: '';
   position: absolute;
-  right: 18px;
-  top: 78px;
-  width: 30px;
-  height: 30px;
-  border: 1px solid rgba(44, 52, 68, 0.18);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.88);
-  color: #2c3444;
-  box-shadow: 0 4px 16px rgba(18, 24, 38, 0.14);
-  cursor: pointer;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid rgba(255, 255, 255, 0.95);
 }
 
-.panel {
+/* 食物按钮 - 默认隐藏，饥饿时才出现 */
+.feed-btn {
   position: absolute;
-  left: 22px;
-  right: 22px;
-  top: 118px;
-  padding: 12px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(44, 52, 68, 0.16);
-  box-shadow: 0 8px 24px rgba(18, 24, 38, 0.16);
-}
-
-.hidden {
-  display: none;
-}
-
-.field {
-  display: grid;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-
-label {
-  color: #4b5565;
-  font-size: 12px;
-}
-
-select,
-input {
-  height: 30px;
-  border: 1px solid #ccd3de;
-  border-radius: 6px;
-  padding: 0 8px;
-  font-size: 13px;
-  outline: none;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-.actions button {
-  flex: 1;
-  height: 30px;
-  border: 1px solid #ccd3de;
-  border-radius: 6px;
-  background: #f7f9fc;
-  color: #253044;
+  right: 20px;
+  bottom: 80px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
   cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.feed-btn.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes feed-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  70% { transform: translate(-20px, 15px) scale(0.6); opacity: 0.7; }
+  100% { transform: translate(-30px, 20px) scale(0); opacity: 0; }
+}
+
+.feed-btn.feeding {
+  animation: feed-fly 400ms ease-in forwards;
+  pointer-events: none;
+}
+
+/* 移除独立设置按钮样式 */
+.icon-button { display: none; }
+
+/* ===== 鞭打抖动动画 ===== */
+@keyframes shake {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  20% { transform: translateX(-50%) translateY(-3px) rotate(2deg); }
+  40% { transform: translateX(-50%) translateY(2px) rotate(-2deg); }
+  60% { transform: translateX(-50%) translateY(-2px) rotate(1deg); }
+  80% { transform: translateX(-50%) translateY(1px) rotate(-1deg); }
+}
+
+#petCanvas.shake {
+  animation: shake 0.3s ease;
 }

@@ -2,3 +2,7 @@ node_modules/
 dist/
 out/
 *.log
+.qoder/
+assets/xiao-hong/spritesheet_expanded.png
+assets/xiao-hong/spritesheet_expanded.webp
+assets/xiao-hong/spritesheet_original.webp

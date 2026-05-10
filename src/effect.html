@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Effect</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+    }
+    .particle {
+      position: fixed;
+      top: -60px;
+      font-size: 30px;
+      pointer-events: none;
+      animation: fall linear forwards;
+      z-index: 99999;
+    }
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+      }
+      80% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(360deg) scale(0.6);
+        opacity: 0;
+      }
+    }
+    @keyframes sway {
+      0%, 100% { margin-left: 0; }
+      25% { margin-left: 15px; }
+      75% { margin-left: -15px; }
+    }
+  </style>
+</head>
+<body>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const type = params.get('type') || 'flower';
+
+  const EMOJIS = {
+    flower: ['🌸', '🌺', '🌷', '💐', '🌹', '🏵️', '💮', '🌼'],
+    candy: ['🍬', '🍭', '🍫', '🧁', '🎂', '🍰', '🍩', '🍪'],
+    heart: ['❤️', '💕', '💖', '💗', '💝', '💓', '🩷', '🫶']
+  };
+
+  const emojis = EMOJIS[type] || EMOJIS.flower;
+  const COUNT = 45;
+
+  function createParticle(delay) {
+    const el = document.createElement('div');
+    el.className = 'particle';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+    const x = Math.random() * 100;
+    const size = 20 + Math.random() * 24;
+    const duration = 2.5 + Math.random() * 3;
+    const swayDuration = 1.5 + Math.random() * 2;
+
+    el.style.left = x + 'vw';
+    el.style.fontSize = size + 'px';
+    el.style.animationDuration = duration + 's';
+    el.style.animationDelay = delay + 's';
+    el.style.animation = `fall ${duration}s linear ${delay}s forwards, sway ${swayDuration}s ease-in-out ${delay}s infinite`;
+
+    document.body.appendChild(el);
+  }
+
+  for (let i = 0; i < COUNT; i++) {
+    const delay = Math.random() * 3;
+    createParticle(delay);
+  }
+</script>
+</body>
+</html>
