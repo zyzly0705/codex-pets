@@ -56,8 +56,8 @@
     },
     "publish": [{
       "provider": "github",
-      "owner": "zhangyazhou",
-      "repo": "codex-desktop-pet"
+      "owner": "ZyzYyy",
+      "repo": "codex-pets"
     }]
   },
   "dependencies": {
