@@ -10,7 +10,9 @@ import { checkSeasonalParticleTrigger } from './weather-seasonal.js';
 
 // ===== 需求系统 =====
 export const petNeeds = {
-  energy: 80,
+  // energy 实际代表“疲劳/困意”：0=精神，100=很困。
+  // 之前默认 80，且睡眠评分直接用 energy * 0.8，启动后很容易立刻睡觉。
+  energy: 30,
   boredom: 20,
   hunger: 10,
   playfulness: 50,
@@ -272,12 +274,22 @@ export const BEHAVIORS = [
   {
     name: 'sleep',
     state: 'sleeping',
-    duration: 8000,
-    cooldown: 600000,
+    duration: 9000,
+    cooldown: 1200000,
     utilityFn(needs, ctx) {
-      let score = needs.energy * 0.8;
-      if (ctx.hour >= 23 || ctx.hour < 6) score += 25;
-      if (ctx.hour >= 13 && ctx.hour <= 14) score += 10;
+      const fatigue = needs.energy;
+      const isNight = ctx.hour >= 23 || ctx.hour < 6;
+      const isNapTime = ctx.hour >= 13 && ctx.hour <= 14;
+
+      // 睡觉必须先满足困意门槛。否则初始/普通状态下不参与竞争，避免频繁触发。
+      if (!isNight && !isNapTime && fatigue < 72) return 0;
+      if (isNapTime && fatigue < 58) return 0;
+      if (isNight && fatigue < 45) return 0;
+
+      let score = (fatigue - 55) * 1.2;
+      if (isNight) score += 18;
+      if (isNapTime) score += 8;
+      if (ctx.idleTime > 10 * 60 * 1000) score += 8;
       return Math.max(0, Math.min(100, score));
     },
     onExecute() {
@@ -694,7 +706,8 @@ function updateNeeds(ctx) {
     return;
   }
 
-  petNeeds.energy = Math.min(100, petNeeds.energy + 0.1);
+  // energy 是“疲劳/困意”，增长要慢；旧值 0.1/2s 会约 3 点/分钟，十几分钟就高频睡觉。
+  petNeeds.energy = Math.min(100, petNeeds.energy + 0.012);
   petNeeds.boredom = Math.min(100, petNeeds.boredom + 0.05);
   petNeeds.hunger = Math.min(100, petNeeds.hunger + 0.03);
 
@@ -705,14 +718,17 @@ function updateNeeds(ctx) {
   petNeeds.playfulness += (targetPlayfulness - petNeeds.playfulness) * 0.02;
 
   if (ctx.hour >= 23 || ctx.hour < 6) {
-    petNeeds.energy = Math.min(100, petNeeds.energy + 0.15);
+    petNeeds.energy = Math.min(100, petNeeds.energy + 0.045);
+  } else if (ctx.hour >= 13 && ctx.hour <= 14) {
+    petNeeds.energy = Math.min(100, petNeeds.energy + 0.018);
   }
 
   if (ctx.idleTime > 120000) {
     petNeeds.boredom = Math.min(100, petNeeds.boredom + 0.05);
   }
 
-  if (ctx.idleTime > 300000 && ctx.idleTime % 300000 < 2000) {
+  if (ctx.idleTime > 15 * 60 * 1000 && Date.now() - lastIgnoreEmotionAt > IGNORE_EMOTION_COOLDOWN) {
+    lastIgnoreEmotionAt = Date.now();
     applyEmotionEvent('ignore');
   }
 
@@ -724,6 +740,8 @@ function updateNeeds(ctx) {
 
 // ===== 记忆驱动行为 =====
 const MEMORY_TRIGGER_COOLDOWN = 1800000;
+const IGNORE_EMOTION_COOLDOWN = 1800000;
+let lastIgnoreEmotionAt = 0;
 
 function tryMemoryDrivenBehavior() {
   if (Date.now() - state.lastMemoryTriggerTime < MEMORY_TRIGGER_COOLDOWN) return false;
@@ -731,7 +749,7 @@ function tryMemoryDrivenBehavior() {
   if (isInBusyHour()) return false;
   if (stateMachine.isDancing || stateMachine.isSleeping || stateMachine.isFollowing || stateMachine.isWhipping || state.feedingLock || stateMachine.isClimbing) return false;
 
-  if (daysSinceLastPet() > 3) {
+  if (yoyoMemory.lastPetTime && daysSinceLastPet() > 3) {
     state.lastMemoryTriggerTime = Date.now();
     setState('waiting');
     say(randomFrom(MEMORY_LINES.longNoPet), 6000);
@@ -794,6 +812,7 @@ export function behaviorEngineTick() {
 
   if (state.yoyoSettings.activity === 'quiet') threshold += 15;
   else if (state.yoyoSettings.activity === 'active') threshold -= 10;
+  threshold = Math.max(15, Math.min(60, threshold));
 
   let bestBehavior = null;
   let bestScore = -1;
@@ -836,7 +855,7 @@ export function behaviorEngineTick() {
     petNeeds.boredom = Math.max(0, petNeeds.boredom - 25);
     petNeeds.energy = Math.min(100, petNeeds.energy + 5);
   } else if (bestBehavior.name === 'sleep') {
-    petNeeds.energy = Math.max(0, petNeeds.energy - 30);
+    petNeeds.energy = Math.max(0, petNeeds.energy - 45);
   } else if (bestBehavior.name === 'climb') {
     petNeeds.boredom = Math.max(0, petNeeds.boredom - 30);
   } else if (bestBehavior.name === 'lookAround') {

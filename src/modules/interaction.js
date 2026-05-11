@@ -5,6 +5,7 @@ import { applyEmotionEvent, emotionSay, PET_DIALOGUES, WHIP_DIALOGUES, FEED_DIAL
 import { yoyoMemory, saveMemory, addXP, trackGrowthStat, incrementAchievementStat, trackFeatureUsed, MEMORY_LINES } from './growth-system.js';
 import { cancelClimb } from './climbing.js';
 import { petNeeds, behaviorEngineTick, HUNGER_MESSAGES } from './behavior-engine.js';
+import { applyFaceSpritesheet } from './outfit-system.js';
 
 // ===== 喂食相关消息 =====
 const DISMISS_MESSAGES = [
@@ -55,47 +56,6 @@ export function showHungerUI() {
     setState('failed');
     say(dismissMsg);
   }, 30000);
-}
-
-// ===== 下落物理动画 =====
-function startDropAnimation(posX, startY, targetY) {
-  if (stateMachine.isDropping) return;
-  stateMachine.transition(ACTION_STATES.DROPPING);
-  let velocity = 0;
-  const gravity = 1.5;
-  let currentY = startY;
-  let bounceCount = 0;
-  const maxBounces = 3;
-  const bounceFactor = 0.4;
-
-  function frame() {
-    velocity += gravity;
-    currentY += velocity;
-
-    if (currentY >= targetY) {
-      currentY = targetY;
-      if (bounceCount < maxBounces) {
-        velocity = -(velocity * bounceFactor);
-        bounceCount++;
-        canvas.style.transition = 'transform 0.08s ease-out';
-        canvas.style.transform = 'translateX(-50%) scaleY(0.9) scaleX(1.1)';
-        playSound('bounce');
-        setTimeout(() => {
-          canvas.style.transform = 'translateX(-50%)';
-        }, 100);
-      } else {
-        stateMachine.transition(ACTION_STATES.IDLE);
-        canvas.style.transition = '';
-        canvas.style.transform = 'translateX(-50%)';
-        return;
-      }
-    }
-
-    window.petApi.setPosition({ x: Math.round(posX), y: Math.round(currentY) });
-    requestAnimationFrame(frame);
-  }
-
-  requestAnimationFrame(frame);
 }
 
 function doSquashBounce() {
@@ -158,7 +118,8 @@ export function whipPet() {
   setTimeout(() => { reactionState.whip = null; }, 4500);
 
   stateMachine.transition(ACTION_STATES.WHIP);
-  petNeeds.energy = Math.max(0, petNeeds.energy - 30);
+  // energy 在行为引擎中表示疲劳/困意；受惊会稍微消耗体力，但避免大幅推高睡眠概率。
+  petNeeds.energy = Math.min(100, petNeeds.energy + 4);
   setTimeout(() => {
     let runTicks = 0;
     const runInterval = setInterval(() => {
@@ -314,13 +275,47 @@ let patResetTimer = null;
 // ===== 拖拽持有定时器 =====
 let dragHoldTimer = null;
 
+function isPointerInsideInteractiveArea(event) {
+  if (!event) return false;
+  const target = document.elementFromPoint(event.clientX, event.clientY);
+  return Boolean(target && (target === canvas || target === feedBtn || feedBtn.contains(target)));
+}
+
+function updateMousePassthrough(event) {
+  window.petApi.setIgnoreMouse(!isPointerInsideInteractiveArea(event));
+}
+
+function cleanupDragInteraction(event, { forcePassthrough = false } = {}) {
+  const hadDragState = Boolean(state.dragState || reactionState.drag || stateMachine.isDragging);
+
+  state.dragState = null;
+  reactionState.drag = null;
+  clearTimeout(dragHoldTimer);
+
+  if (stateMachine.isDragging) {
+    stateMachine.transition(ACTION_STATES.IDLE);
+  }
+
+  canvas.style.transition = 'transform 0.1s ease-out';
+  canvas.style.transform = 'translateX(-50%)';
+
+  if (forcePassthrough) {
+    window.petApi.setIgnoreMouse(true);
+  } else if (event) {
+    updateMousePassthrough(event);
+  }
+
+  return hadDragState;
+}
+
 // ===== 初始化交互事件 =====
 export function initInteraction() {
   // 单击 vs 拖拽判定
   canvas.addEventListener('pointerdown', async (event) => {
+    if (event.button !== 0) return;
     resetInteraction();
     if (stateMachine.isDropping) return;
-    canvas.setPointerCapture(event.pointerId);
+    try { canvas.setPointerCapture(event.pointerId); } catch { /* pointer capture may fail if pointer is gone */ }
     state.pointerDownTime = Date.now();
     state.pointerDownPos = { x: event.screenX, y: event.screenY };
     stateMachine.transition(ACTION_STATES.DRAGGING);
@@ -358,28 +353,21 @@ export function initInteraction() {
     }
   });
 
-  canvas.addEventListener('pointerup', async () => {
+  canvas.addEventListener('pointerup', async (event) => {
     if (!state.dragState) return;
     const dist = Math.sqrt(
       Math.pow(state.dragState.x - state.pointerDownPos.x, 2) +
       Math.pow(state.dragState.y - state.pointerDownPos.y, 2)
     );
     const elapsed = Date.now() - state.pointerDownTime;
-    stateMachine.transition(ACTION_STATES.IDLE);
-    state.dragState = null;
+    const wasShaken = Boolean(reactionState.drag?.hasShaken);
+    try { canvas.releasePointerCapture(event.pointerId); } catch { /* already released */ }
+    cleanupDragInteraction(event);
 
     // 拖拽结束反应
-    clearTimeout(dragHoldTimer);
-    if (reactionState.drag) {
-      const wasShaken = reactionState.drag.hasShaken;
-      if (dist >= CLICK_MAX_DIST || elapsed >= CLICK_MAX_TIME) {
-        say(wasShaken ? '呜…头好晕好晕…' : '安全着陆～嘿嘿！', 2500);
-      }
-      reactionState.drag = null;
+    if (dist >= CLICK_MAX_DIST || elapsed >= CLICK_MAX_TIME) {
+      say(wasShaken ? '呜…头好晕好晕…' : '安全着陆～嘿嘿！', 2500);
     }
-
-    canvas.style.transition = 'transform 0.1s ease-out';
-    canvas.style.transform = 'translateX(-50%)';
 
     if (dist < CLICK_MAX_DIST && elapsed < CLICK_MAX_TIME) {
       petNeeds.boredom = Math.max(0, petNeeds.boredom - 15);
@@ -425,19 +413,22 @@ export function initInteraction() {
       setState('idle');
       say('妈妈把Yoyo放这里啦～嘿嘿！');
       trackGrowthStat('interactionCount');
-      try {
-        const pos = await window.petApi.getPosition();
-        const { bounds, workArea } = await window.petApi.getBounds();
-        const targetY = workArea.y + workArea.height - bounds.height;
-        if (pos.y < targetY - 5) {
-          startDropAnimation(pos.x, pos.y, targetY);
-        } else {
-          doSquashBounce();
-        }
-      } catch (e) {
-        // 获取位置失败，跳过动画
-      }
+      // 以前这里会模拟重力把 Yoyo 掉到屏幕底部，导致“拖到哪都放不住”。
+      // 现在松手后保留当前窗口位置，只做一个轻微落地反馈。
+      doSquashBounce();
     }
+  });
+
+  canvas.addEventListener('pointercancel', (event) => {
+    cleanupDragInteraction(event, { forcePassthrough: true });
+  });
+
+  canvas.addEventListener('lostpointercapture', (event) => {
+    if (state.dragState) cleanupDragInteraction(event, { forcePassthrough: true });
+  });
+
+  window.addEventListener('blur', () => {
+    cleanupDragInteraction(null, { forcePassthrough: true });
   });
 
   // 喂食按钮
@@ -490,22 +481,21 @@ export function initInteraction() {
   // 鼠标穿透
   window.petApi.setIgnoreMouse(true);
 
-  canvas.addEventListener('mouseenter', () => {
-    window.petApi.setIgnoreMouse(false);
+  canvas.addEventListener('mouseenter', (event) => {
+    updateMousePassthrough(event);
   });
 
-  canvas.addEventListener('mouseleave', () => {
-    if (!feedBtn.classList.contains('show')) {
-      window.petApi.setIgnoreMouse(true);
-    }
+  canvas.addEventListener('mouseleave', (event) => {
+    if (state.dragState) return;
+    updateMousePassthrough(event);
   });
 
-  feedBtn.addEventListener('mouseenter', () => {
-    window.petApi.setIgnoreMouse(false);
+  feedBtn.addEventListener('mouseenter', (event) => {
+    updateMousePassthrough(event);
   });
 
-  feedBtn.addEventListener('mouseleave', () => {
-    window.petApi.setIgnoreMouse(true);
+  feedBtn.addEventListener('mouseleave', (event) => {
+    updateMousePassthrough(event);
   });
 
   // 右键菜单
@@ -665,6 +655,8 @@ export async function choosePet(id) {
   if (!state.currentPet) return;
   state.sprite = new Image();
   state.sprite.onload = () => {
+    state.activeSpritesheetPath = state.currentPet.spritesheetPath;
+    applyFaceSpritesheet();
     setState('waving');
     say(`Yoyo来陪妈妈啦～`);
   };

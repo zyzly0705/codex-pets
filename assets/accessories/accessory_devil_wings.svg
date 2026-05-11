@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="56" viewBox="0 0 96 56">
+  <defs>
+    <linearGradient id="devilWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(126,52,91,0.82)" />
+      <stop offset="58%" stop-color="rgba(206,70,106,0.82)" />
+      <stop offset="100%" stop-color="rgba(84,40,78,0.65)" />
+    </linearGradient>
+    <linearGradient id="devilRib" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(255,144,157,0.62)" />
+      <stop offset="100%" stop-color="rgba(73,33,68,0.64)" />
+    </linearGradient>
+  </defs>
+  <path d="M45 25 C31 4 13 2 7 15 C18 17 19 24 14 33 C23 29 28 35 27 47 C34 42 39 34 45 28 Z" fill="url(#devilWing)" stroke="rgba(74,32,70,0.72)" stroke-width="1.5"/>
+  <path d="M51 25 C65 4 83 2 89 15 C78 17 77 24 82 33 C73 29 68 35 69 47 C62 42 57 34 51 28 Z" fill="url(#devilWing)" stroke="rgba(74,32,70,0.72)" stroke-width="1.5"/>
+  <path d="M44 27 C31 19 21 17 8 15 M43 29 C33 28 25 35 27 47 M52 27 C65 19 75 17 88 15 M53 29 C63 28 71 35 69 47" fill="none" stroke="url(#devilRib)" stroke-width="1.15" stroke-linecap="round"/>
+  <path d="M48 23 C45 28 45 34 48 39 C51 34 51 28 48 23 Z" fill="rgba(255,105,128,0.38)"/>
+  <path d="M33 8 L27 1 L29 11 Z M63 8 L69 1 L67 11 Z" fill="rgba(255,114,133,0.72)"/>
+</svg>

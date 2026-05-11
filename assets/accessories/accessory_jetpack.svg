@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="86" viewBox="0 0 72 86">
+  <defs>
+    <linearGradient id="jetMetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(235,241,255,0.92)" />
+      <stop offset="55%" stop-color="rgba(132,154,190,0.86)" />
+      <stop offset="100%" stop-color="rgba(83,100,136,0.82)" />
+    </linearGradient>
+    <linearGradient id="jetFire" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,180,0.95)" />
+      <stop offset="55%" stop-color="rgba(255,132,38,0.86)" />
+      <stop offset="100%" stop-color="rgba(255,58,92,0)" />
+    </linearGradient>
+  </defs>
+  <rect x="18" y="16" width="15" height="42" rx="7" fill="url(#jetMetal)" stroke="rgba(74,90,128,0.75)" stroke-width="1.3"/>
+  <rect x="39" y="16" width="15" height="42" rx="7" fill="url(#jetMetal)" stroke="rgba(74,90,128,0.75)" stroke-width="1.3"/>
+  <rect x="26" y="24" width="20" height="26" rx="8" fill="rgba(122,151,214,0.72)" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+  <path d="M25 58 C18 66 19 76 26 84 C33 74 32 66 27 58 Z" fill="url(#jetFire)"/>
+  <path d="M47 58 C40 66 41 76 48 84 C55 74 54 66 49 58 Z" fill="url(#jetFire)"/>
+  <path d="M29 8 C31 5 41 5 43 8 L46 17 L26 17 Z" fill="rgba(255,120,145,0.82)" stroke="rgba(143,70,105,0.45)" stroke-width="1"/>
+  <path d="M23 25 H49 M23 39 H49" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-linecap="round"/>
+  <circle cx="36" cy="35" r="5" fill="rgba(105,229,255,0.65)" stroke="rgba(255,255,255,0.55)" stroke-width="1"/>
+</svg>

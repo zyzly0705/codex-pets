@@ -78,6 +78,7 @@ export function getUsualStartHour() {
 export function getBusiestHours() {
   return yoyoMemory.hourlyActivity
     .map((count, hour) => ({ hour, count }))
+    .filter(h => h.count > 0)
     .sort((a, b) => b.count - a.count)
     .slice(0, 3)
     .map(h => h.hour);
@@ -85,8 +86,16 @@ export function getBusiestHours() {
 
 export function isInBusyHour() {
   const currentHour = new Date().getHours();
+  const hourly = yoyoMemory.hourlyActivity || [];
+  const totalSamples = hourly.reduce((sum, count) => sum + count, 0);
+  // 样本太少时不要把“当前小时”误判为忙碌时段，否则新用户几乎一直被加阈值/降活跃。
+  if (totalSamples < 8) return false;
+
+  const currentCount = hourly[currentHour] || 0;
+  const activeHours = hourly.filter(count => count > 0).length || 1;
+  const avgActiveCount = totalSamples / activeHours;
   const busiestHours = getBusiestHours();
-  return busiestHours.includes(currentHour);
+  return busiestHours.includes(currentHour) && currentCount >= Math.max(2, avgActiveCount * 1.25);
 }
 
 export function daysSinceLastPet() {
@@ -245,6 +254,7 @@ export function trackGrowthStat(stat, amount) {
   if (amount === undefined) amount = 1;
   if (!yoyoGrowth.pathStats) yoyoGrowth.pathStats = { interactionCount: 0, companionTime: 0, workTime: 0 };
   yoyoGrowth.pathStats[stat] = (yoyoGrowth.pathStats[stat] || 0) + amount;
+  saveGrowth();
 }
 
 function determineEvolutionPath() {

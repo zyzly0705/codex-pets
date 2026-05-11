@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="60" viewBox="0 0 96 60">
+  <defs>
+    <radialGradient id="butterflyPink" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.92)" />
+      <stop offset="45%" stop-color="rgba(255,178,222,0.86)" />
+      <stop offset="100%" stop-color="rgba(168,205,255,0.62)" />
+    </radialGradient>
+    <linearGradient id="butterflyEdge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(255,136,205,0.72)" />
+      <stop offset="100%" stop-color="rgba(116,169,255,0.62)" />
+    </linearGradient>
+  </defs>
+  <path d="M45 28 C24 0 4 7 9 27 C13 45 31 43 45 31 Z" fill="url(#butterflyPink)" stroke="url(#butterflyEdge)" stroke-width="1.4"/>
+  <path d="M51 28 C72 0 92 7 87 27 C83 45 65 43 51 31 Z" fill="url(#butterflyPink)" stroke="url(#butterflyEdge)" stroke-width="1.4"/>
+  <path d="M44 31 C25 32 17 44 25 54 C35 61 43 47 47 34 Z" fill="rgba(255,198,230,0.72)" stroke="rgba(255,136,205,0.55)" stroke-width="1.1"/>
+  <path d="M52 31 C71 32 79 44 71 54 C61 61 53 47 49 34 Z" fill="rgba(199,221,255,0.68)" stroke="rgba(116,169,255,0.55)" stroke-width="1.1"/>
+  <path d="M48 21 C45 28 45 37 48 43 C51 37 51 28 48 21 Z" fill="rgba(255,255,255,0.55)"/>
+  <path d="M40 25 C27 18 18 20 13 27 M43 31 C31 33 27 39 25 49 M56 25 C69 18 78 20 83 27 M53 31 C65 33 69 39 71 49" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1" stroke-linecap="round"/>
+  <circle cx="31" cy="24" r="3" fill="rgba(255,255,255,0.55)"/>
+  <circle cx="65" cy="24" r="3" fill="rgba(255,255,255,0.55)"/>
+  <circle cx="35" cy="42" r="2.2" fill="rgba(255,255,255,0.48)"/>
+  <circle cx="61" cy="42" r="2.2" fill="rgba(255,255,255,0.48)"/>
+</svg>

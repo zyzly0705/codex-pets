@@ -36,7 +36,7 @@ export const STATES = {
   readBook: { row: 18, frames: 8, speed: 300 },
   watchTV: { row: 19, frames: 8, speed: 350 },
   sleeping: { row: 20, frames: 8, speed: 400 },
-  dancing: { row: 21, frames: 8, speed: 150 },
+  dancing: { row: 21, frames: 8, speed: 220 },
   crying: { row: 22, frames: 8, speed: 250 },
   gifting: { row: 23, frames: 8, speed: 200 },
   stretching: { row: 24, frames: 8, speed: 300 },
@@ -63,6 +63,8 @@ export const state = {
   pets: [],
   currentPet: null,
   sprite: new Image(),
+  activeSpritesheetPath: '',
+  outfitLayerImages: [],
 
   // 动画
   stateName: 'idle',
@@ -149,7 +151,7 @@ export const state = {
   lastMemoryHour: new Date().getHours(),
 
   // 换装
-  currentOutfit: { hat: 'ribbon', accessory: 'none', face: 'none' },  // 由 initCoreState() 填入
+  currentOutfit: { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' },  // 由 initCoreState() 填入
 
 };
 
@@ -304,7 +306,14 @@ export function toggleMute() {
 export function initCoreState() {
   state.isMuted       = get('muted')      ?? false;
   state.shownTips     = get('shownTips')  ?? [];
-  state.currentOutfit = get('outfit')     ?? { hat: 'ribbon', accessory: 'none', face: 'none' };
+  state.currentOutfit = {
+    hair: 'none',
+    hat: 'none',
+    accessory: 'none',
+    clothes: 'none',
+    face: 'none',
+    ...(get('outfit') ?? {}),
+  };
 }
 
 // ===== sprite状态 → StateMachine ACTION_STATE 映射 =====

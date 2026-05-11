@@ -74,6 +74,20 @@ export function getEmotionLabel() {
   return 'neutral';
 }
 
+// 情绪 → 表情的自动映射。表情不再作为“换装贴片”手动选择，而是由 PAD 情绪、行为和反应共同驱动。
+export function getEmotionExpression() {
+  const { valence, arousal, dominance } = yoyoEmotion;
+  if (valence > 82 && arousal > 68) return 'sparkle';
+  if (valence > 72 && dominance < 48) return 'heart';
+  if (valence > 58 && arousal > 45) return 'happy';
+  if (valence > 45 && arousal < 35) return 'sleepy';
+  if (valence < -58 && dominance < 42) return 'sad';
+  if (valence < -36 && dominance > 52) return 'angry';
+  if (arousal < 26) return 'sleepy';
+  if (arousal > 76 && valence > 40) return 'sparkle';
+  return 'neutral';
+}
+
 // 情感驱动文案选择器
 export function emotionSay(dialogueMap, fallback) {
   const mood = getEmotionLabel();

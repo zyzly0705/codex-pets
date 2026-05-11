@@ -100,6 +100,28 @@ npm start
 
 Yoyo 会出现在你的桌面右下角，开始她的冒险～
 
+### 可选：开启全局键盘响应
+
+默认情况下，全局键盘监听是关闭的，因为 `uiohook-napi` 是原生监听库，在部分 macOS / Electron / Node ABI 组合下可能启动崩溃。需要让 Yoyo 根据真实打字活动提醒休息时，可以显式开启：
+
+```bash
+npm run start:keyboard
+```
+
+Windows PowerShell 也可以使用：
+
+```powershell
+$env:YOYO_ENABLE_UIOHOOK='1'; npm start
+```
+
+或使用 npm 脚本：
+
+```bat
+npm run start:keyboard:win
+```
+
+macOS 如果没有键盘响应，请到“系统设置 → 隐私与安全性 → 辅助功能 / 输入监控”里允许当前终端或打包后的 Yoyo 应用。
+
 ---
 
 ## 📦 打包发布

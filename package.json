@@ -5,6 +5,10 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
+    "start:keyboard": "YOYO_ENABLE_UIOHOOK=1 electron .",
+    "start:keyboard:win": "set YOYO_ENABLE_UIOHOOK=1&& electron .",
+    "generate:faces": "node scripts/generate-face-spritesheets.js",
+    "generate:outfits": "node scripts/generate-outfit-spritesheets.js",
     "pack": "electron-builder --dir",
     "dist:win": "electron-builder --win nsis",
     "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\""

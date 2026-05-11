@@ -31,6 +31,7 @@
   const TOTAL_DURATION = 6000;
 
   const sprite = new Image();
+  let outfitLayers = [];
 
   // 宠物位置（由主进程注入）
   let petPos = { x: 0, y: 0 };
@@ -60,6 +61,34 @@
 
   function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
+  }
+
+  function loadOutfitLayers(layerSources) {
+    const sources = Array.isArray(layerSources) ? layerSources : [];
+    return Promise.all(sources.map(function(layer) {
+      return new Promise(function(resolve) {
+        if (!layer || !layer.src) return resolve(null);
+        const img = new Image();
+        img.onload = function() { resolve({ position: layer.position || 'front', image: img }); };
+        img.onerror = function() { resolve(null); };
+        img.src = layer.src;
+      });
+    })).then(function(layers) {
+      outfitLayers = layers.filter(Boolean);
+    });
+  }
+
+  function drawLayerSet(position, col, row, drawW, drawH) {
+    for (const layer of outfitLayers) {
+      if (layer.position !== position || !layer.image.complete) continue;
+      ctx.drawImage(
+        layer.image,
+        col * FRAME_W, row * FRAME_H,
+        FRAME_W, FRAME_H,
+        -drawW / 2, -drawH / 2,
+        drawW, drawH
+      );
+    }
   }
 
   // 初始化粒子
@@ -98,6 +127,7 @@
     ctx.save();
     ctx.translate(cx + offsetX, cy + offsetY);
     ctx.imageSmoothingEnabled = true; // 放大至6倍时开启双线性插值，避免像素块感
+    drawLayerSet('behind', col, row, drawW, drawH);
     ctx.drawImage(
       sprite,
       col * FRAME_W, row * FRAME_H,
@@ -105,6 +135,7 @@
       -drawW / 2, -drawH / 2,
       drawW, drawH
     );
+    drawLayerSet('front', col, row, drawW, drawH);
     ctx.restore();
   }
 
@@ -346,16 +377,23 @@
     const icy = window.petCharCenter ? window.petCharCenter.y : petPos.y + petSize.h / 2;
     initParticles(icx, icy);
 
+    let started = false;
     function beginAnim() {
+      if (started) return;
+      started = true;
       startTime = performance.now();
       animating = true;
       requestAnimationFrame(animate);
     }
 
-    sprite.onload = beginAnim;
+    function beginAfterLayers() {
+      loadOutfitLayers(window.outfitLayerSources).then(beginAnim);
+    }
+
+    sprite.onload = beginAfterLayers;
     sprite.src = window.spritesheetSrc || '../assets/xiao-hong/spritesheet.webp';
     // 如果图片已缓存直接开始
-    if (sprite.complete && sprite.naturalWidth) beginAnim();
+    if (sprite.complete && sprite.naturalWidth) beginAfterLayers();
   };
 
   // 图片加载失败保护

@@ -36,7 +36,7 @@ const DEFAULT_DATA = {
   lastGreetDate: null,
   muted:        false,
   shownTips:    [],
-  outfit:       { hat: 'ribbon', accessory: 'none', face: 'none' },
+  outfit:       { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' },
   usedFeatures: [],
   hasSeenGuide: false,
   _migrated:    false,
@@ -97,20 +97,28 @@ try {
 }
 
 // ===== 全局键盘监听（uiohook-napi） =====
-try {
-  const { uIOhook } = require('uiohook-napi');
-  let lastKeyTime = 0;
-  uIOhook.on('keydown', () => {
-    const now = Date.now();
-    if (now - lastKeyTime < 500) return; // 节流 500ms
-    lastKeyTime = now;
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('keyboard:activity');
-    }
-  });
-  uIOhook.start();
-} catch (e) {
-  console.log('[uiohook] 不可用，键盘响应功能禁用:', e.message);
+// uiohook 是原生全局监听库，部分 macOS/Electron/Node ABI 组合会在启动阶段崩溃。
+// 默认关闭；需要真实全局打字检测时用 YOYO_ENABLE_UIOHOOK=1 显式开启。
+function initGlobalKeyboardHook() {
+  if (process.env.YOYO_ENABLE_UIOHOOK !== '1') {
+    console.log('[uiohook] 默认禁用；设置 YOYO_ENABLE_UIOHOOK=1 可尝试开启全局键盘监听');
+    return;
+  }
+  try {
+    const { uIOhook } = require('uiohook-napi');
+    let lastKeyTime = 0;
+    uIOhook.on('keydown', () => {
+      const now = Date.now();
+      if (now - lastKeyTime < 500) return; // 节流 500ms
+      lastKeyTime = now;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('keyboard:activity');
+      }
+    });
+    uIOhook.start();
+  } catch (e) {
+    console.log('[uiohook] 不可用，键盘响应功能禁用:', e.message);
+  }
 }
 
 // 窗口扫描缓存
@@ -204,9 +212,42 @@ function bundledPetDir() {
 function ensureDefaultPet() {
   const target = path.join(userPetsDir(), 'xiao-hong');
   fs.mkdirSync(target, { recursive: true });
-  for (const file of ['pet.json', 'spritesheet.webp']) {
+  const defaultPetFiles = [
+    'pet.json',
+    'spritesheet.webp',
+    'spritesheet_face_happy.webp',
+    'spritesheet_face_shy.webp',
+    'spritesheet_face_sparkle.webp',
+    'spritesheet_face_heart.webp',
+    'spritesheet_face_sleepy.webp',
+    'spritesheet_hair_flower.webp',
+    'spritesheet_hair_starclip.webp',
+    'spritesheet_hair_pearlpin.webp',
+    'spritesheet_hat_ribbon.webp',
+    'spritesheet_hat_crown.webp',
+    'spritesheet_hat_catears.webp',
+    'spritesheet_hat_santa.webp',
+    'spritesheet_hat_halo.webp',
+    'spritesheet_clothes_hoodie.webp',
+    'spritesheet_clothes_dress.webp',
+    'spritesheet_clothes_cape.webp',
+    'spritesheet_clothes_sweater.webp',
+    'spritesheet_accessory_scarf.webp',
+    'spritesheet_accessory_wings.webp',
+    'spritesheet_accessory_butterfly_wings.webp',
+    'spritesheet_accessory_devil_wings.webp',
+    'spritesheet_accessory_jetpack.webp',
+    'spritesheet_accessory_star_backpack.webp',
+    'spritesheet_accessory_bow.webp',
+    'spritesheet_party.webp',
+    'spritesheet_party_behind.webp',
+    'spritesheet_angel.webp',
+    'spritesheet_angel_behind.webp',
+  ];
+  for (const file of defaultPetFiles) {
     const source = path.join(bundledPetDir(), file);
     const dest = path.join(target, file);
+    if (!fs.existsSync(source)) continue;
     if (!fs.existsSync(dest)) {
       fs.copyFileSync(source, dest);
     } else {
@@ -332,6 +373,105 @@ function createTray() {
 // ===== 当前激活的 spritesheet 路径（由 renderer 切换宠物时更新）=====
 let activeSpritesheetPath = null;
 
+const OUTFIT_DEFAULTS_FOR_EFFECTS = { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' };
+const EFFECT_FACE_SPRITESHEETS = {
+  none: 'spritesheet.webp',
+  happy: 'spritesheet_face_happy.webp',
+  shy: 'spritesheet_face_shy.webp',
+  sparkle: 'spritesheet_face_sparkle.webp',
+  heart: 'spritesheet_face_heart.webp',
+  sleepy: 'spritesheet_face_sleepy.webp',
+};
+const EFFECT_LAYER_SPRITESHEETS = {
+  hair: {
+    flower: 'spritesheet_hair_flower.webp',
+    starclip: 'spritesheet_hair_starclip.webp',
+    pearlpin: 'spritesheet_hair_pearlpin.webp',
+  },
+  hat: {
+    ribbon: 'spritesheet_hat_ribbon.webp',
+    crown: 'spritesheet_hat_crown.webp',
+    catears: 'spritesheet_hat_catears.webp',
+    santa: 'spritesheet_hat_santa.webp',
+    halo: 'spritesheet_hat_halo.webp',
+  },
+  accessory: {
+    bow: 'spritesheet_accessory_bow.webp',
+    scarf: 'spritesheet_accessory_scarf.webp',
+    wings: 'spritesheet_accessory_wings.webp',
+    butterfly_wings: 'spritesheet_accessory_butterfly_wings.webp',
+    devil_wings: 'spritesheet_accessory_devil_wings.webp',
+    jetpack: 'spritesheet_accessory_jetpack.webp',
+    star_backpack: 'spritesheet_accessory_star_backpack.webp',
+  },
+  clothes: {
+    hoodie: 'spritesheet_clothes_hoodie.webp',
+    dress: 'spritesheet_clothes_dress.webp',
+    cape: 'spritesheet_clothes_cape.webp',
+    sweater: 'spritesheet_clothes_sweater.webp',
+    party: 'spritesheet_party.webp',
+    angel: 'spritesheet_angel.webp',
+  },
+};
+const EFFECT_BEHIND_LAYER_SPRITESHEETS = {
+  accessory: {
+    wings: 'spritesheet_accessory_wings.webp',
+    butterfly_wings: 'spritesheet_accessory_butterfly_wings.webp',
+    devil_wings: 'spritesheet_accessory_devil_wings.webp',
+    jetpack: 'spritesheet_accessory_jetpack.webp',
+    star_backpack: 'spritesheet_accessory_star_backpack.webp',
+  },
+  clothes: {
+    party: 'spritesheet_party_behind.webp',
+    angel: 'spritesheet_angel_behind.webp',
+  },
+};
+const EFFECT_LAYER_DRAW_ORDER = [
+  { category: 'accessory', position: 'behind' },
+  { category: 'clothes', position: 'behind' },
+  { category: 'clothes', position: 'front' },
+  { category: 'accessory', position: 'front' },
+  { category: 'hat', position: 'front' },
+  { category: 'hair', position: 'front' },
+];
+
+function toFileUrl(filePath) {
+  return 'file://' + filePath.replaceAll('\\', '/');
+}
+
+function defaultSpritesheetPath() {
+  return path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
+}
+
+function getActiveSpritesheetPath() {
+  return activeSpritesheetPath || defaultSpritesheetPath();
+}
+
+function getActiveEffectLayers() {
+  const outfit = { ...OUTFIT_DEFAULTS_FOR_EFFECTS, ...(petData.outfit || {}) };
+  const baseDir = path.dirname(getActiveSpritesheetPath());
+  const layers = [];
+  for (const entry of EFFECT_LAYER_DRAW_ORDER) {
+    const itemId = outfit[entry.category];
+    if (!itemId || itemId === 'none') continue;
+    const file = entry.position === 'behind'
+      ? EFFECT_BEHIND_LAYER_SPRITESHEETS[entry.category]?.[itemId]
+      : EFFECT_LAYER_SPRITESHEETS[entry.category]?.[itemId];
+    if (!file) continue;
+    const layerPath = path.join(baseDir, file);
+    layers.push({ position: entry.position, src: toFileUrl(layerPath) });
+  }
+  return layers;
+}
+
+function getEffectFaceSources() {
+  const baseDir = path.dirname(getActiveSpritesheetPath());
+  return Object.entries(EFFECT_FACE_SPRITESHEETS).map(([id, file]) => ({
+    id,
+    src: toFileUrl(path.join(baseDir, file)),
+  }));
+}
+
 // ===== 窗口关闭行为：隐藏到托盘 =====
 app.isQuitting = false;
 
@@ -346,6 +486,7 @@ app.whenReady().then(() => {
   activeSpritesheetPath = path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
   createWindow();
   createTray();
+  initGlobalKeyboardHook();
 
   // 开机自启（默认开启）
   app.setLoginItemSettings({
@@ -573,6 +714,40 @@ ipcMain.handle('context-menu:show', (event) => {
       label: '👗 换装',
       submenu: [
         {
+          label: '发饰',
+          submenu: [
+            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'none'); } },
+            { label: '🌸 小花发夹', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'flower'); } },
+            { label: '⭐ 星星发卡', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'starclip'); } },
+            { label: '🫧 珍珠发针', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'pearlpin'); } },
+          ]
+        },
+        {
+          label: '衣服',
+          submenu: [
+            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'none'); } },
+            { label: '💙 蓝色卫衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'hoodie'); } },
+            { label: '👗 粉色裙子', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'dress'); } },
+            { label: '🦸 小披风', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'cape'); } },
+            { label: '🧶 暖暖毛衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'sweater'); } },
+            { label: '🎉 派对套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'party'); } },
+            { label: '👼 天使套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'angel'); } },
+          ]
+        },
+        {
+          label: '首饰/大件',
+          submenu: [
+            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'none'); } },
+            { label: '🎀 红领结', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'bow'); } },
+            { label: '🧣 彩虹围巾', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'scarf'); } },
+            { label: '🪽 小翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'wings'); } },
+            { label: '🦋 蝴蝶翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'butterfly_wings'); } },
+            { label: '😈 小恶魔翼', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'devil_wings'); } },
+            { label: '🚀 喷气背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'jetpack'); } },
+            { label: '🎒 星星背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'star_backpack'); } },
+          ]
+        },
+        {
           label: '帽子',
           submenu: [
             { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'none'); } },
@@ -583,27 +758,7 @@ ipcMain.handle('context-menu:show', (event) => {
             { label: '😇 光环', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'halo'); } },
           ]
         },
-        {
-          label: '配饰',
-          submenu: [
-            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'none'); } },
-            { label: '🧣 围巾', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'scarf'); } },
-            { label: '👓 眼镜', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'glasses'); } },
-            { label: '🪽 翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'wings'); } },
-            { label: '🎀 领结', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'bow'); } },
-          ]
-        },
-        {
-          label: '表情',
-          submenu: [
-            { label: '❌ 默认', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'none'); } },
-            { label: '😊 开心', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'happy'); } },
-            { label: '😳 害羞', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'shy'); } },
-            { label: '🤩 星星眼', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'sparkle'); } },
-            { label: '😍 爱心眼', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'heart'); } },
-            { label: '😴 困困', click: () => { mainWindow.webContents.send('outfit:change', 'face', 'sleepy'); } },
-          ]
-        },
+        { label: '表情：自动情绪驱动', enabled: false },
         { type: 'separator' },
         { label: '🔄 随机搭配', click: () => { mainWindow.webContents.send('outfit:random'); } },
         { label: '🚫 全部卸下', click: () => { mainWindow.webContents.send('outfit:reset'); } },
@@ -798,10 +953,12 @@ function triggerCloneEffect() {
   cloneWin.setAlwaysOnTop(true, 'screen-saver');
   cloneWin.loadFile(path.join(__dirname, 'clone-effect.html'));
 
-  const spritePath = activeSpritesheetPath || path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
-  const spriteUrl = 'file://' + spritePath.replaceAll('\\', '/');
+  const spritePath = getActiveSpritesheetPath();
+  const spriteUrl = toFileUrl(spritePath);
+  const outfitLayerSources = getActiveEffectLayers();
+  const faceSources = getEffectFaceSources();
   cloneWin.webContents.once('did-finish-load', () => {
-    cloneWin.webContents.executeJavaScript(`startCloneEffect(${JSON.stringify(spriteUrl)});`);
+    cloneWin.webContents.executeJavaScript(`startCloneEffect(${JSON.stringify(spriteUrl)}, ${JSON.stringify(outfitLayerSources)}, ${JSON.stringify({ faceSources })});`);
   });
 
   // 7秒保险关闭
@@ -837,14 +994,16 @@ function triggerGiantEffect() {
   // 所以角色中心 Y = 120 + 81.25 ≈ 201，X = window.width/2 = 100
   const charCenterX = mainBounds.x + 100;
   const charCenterY = mainBounds.y + 201;
-  const giantSpritePath = activeSpritesheetPath || path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
-  const giantSpriteUrl = 'file://' + giantSpritePath.replaceAll('\\', '/');
+  const giantSpritePath = getActiveSpritesheetPath();
+  const giantSpriteUrl = toFileUrl(giantSpritePath);
+  const outfitLayerSources = getActiveEffectLayers();
   giantWin.webContents.once('did-finish-load', () => {
     giantWin.webContents.executeJavaScript(`
       window.petPosition = { x: ${mainBounds.x}, y: ${mainBounds.y} };
       window.petSize = { w: ${mainBounds.width}, h: ${mainBounds.height} };
       window.petCharCenter = { x: ${charCenterX}, y: ${charCenterY} };
       window.spritesheetSrc = ${JSON.stringify(giantSpriteUrl)};
+      window.outfitLayerSources = ${JSON.stringify(outfitLayerSources)};
       startGiantEffect();
     `);
   });
