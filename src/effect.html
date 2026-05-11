@@ -11,13 +11,18 @@
       overflow: hidden;
       background: transparent;
     }
-    .particle {
+    /* 外层包裹：负责水平摇摆 */
+    .particle-wrap {
       position: fixed;
       top: -60px;
-      font-size: 30px;
       pointer-events: none;
-      animation: fall linear forwards;
       z-index: 99999;
+      animation: sway ease-in-out infinite;
+    }
+    /* 内层：负责垂直下落 */
+    .particle {
+      display: block;
+      animation: fall linear forwards;
     }
     @keyframes fall {
       0% {
@@ -33,9 +38,9 @@
       }
     }
     @keyframes sway {
-      0%, 100% { margin-left: 0; }
-      25% { margin-left: 15px; }
-      75% { margin-left: -15px; }
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(var(--sway-amt, 15px)); }
+      75% { transform: translateX(calc(var(--sway-amt, 15px) * -1)); }
     }
   </style>
 </head>
@@ -54,7 +59,10 @@
   const COUNT = 45;
 
   function createParticle(delay) {
-    const el = document.createElement('div');
+    const wrap = document.createElement('div');
+    wrap.className = 'particle-wrap';
+
+    const el = document.createElement('span');
     el.className = 'particle';
     el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
 
@@ -62,14 +70,19 @@
     const size = 20 + Math.random() * 24;
     const duration = 2.5 + Math.random() * 3;
     const swayDuration = 1.5 + Math.random() * 2;
+    const swayAmt = Math.round(10 + Math.random() * 20);
 
-    el.style.left = x + 'vw';
+    wrap.style.left = x + 'vw';
+    wrap.style.setProperty('--sway-amt', swayAmt + 'px');
+    wrap.style.animationDuration = swayDuration + 's';
+    wrap.style.animationDelay = delay + 's';
+
     el.style.fontSize = size + 'px';
     el.style.animationDuration = duration + 's';
     el.style.animationDelay = delay + 's';
-    el.style.animation = `fall ${duration}s linear ${delay}s forwards, sway ${swayDuration}s ease-in-out ${delay}s infinite`;
 
-    document.body.appendChild(el);
+    wrap.appendChild(el);
+    document.body.appendChild(wrap);
   }
 
   for (let i = 0; i < COUNT; i++) {

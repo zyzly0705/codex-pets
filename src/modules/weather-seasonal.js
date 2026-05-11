@@ -83,16 +83,16 @@ export function weatherMood(current) {
   const kind = WEATHER_CODES.get(current.weather_code) || 'cloudy';
   const temp = Number(current.temperature_2m);
   const wind = Number(current.wind_speed_10m);
-  if (kind === 'rain') return { state: 'waiting', text: `妈妈记得带伞伞！别淋湿了～` };
-  if (kind === 'snow') return { state: 'jumping', text: `哇下雪了！妈妈要穿厚厚的出门哦～` };
-  if (kind === 'storm') return { state: 'failed', text: `外面好大的雷！妈妈不要出门哦～` };
-  if (temp > 35) return { state: 'waiting', text: `好热好热！妈妈多喝水别中暑～` };
-  if (temp >= 30) return { state: 'waiting', text: `好热呀！妈妈多喝水～` };
-  if (temp < 10) return { state: 'waiting', text: `妈妈好冷呀！记得穿厚外套哦～` };
-  if (temp <= 5) return { state: 'waiting', text: `好冷好冷！妈妈穿暖和了吗？` };
-  if (wind >= 28) return { state: 'review', text: `风好大呀！妈妈出门要小心～` };
-  if (kind === 'clear') return { state: 'jumping', text: `今天天气好好哦～妈妈心情也要好好的！` };
-  return { state: 'review', text: `天阴阴的，妈妈注意保暖～` };
+  if (kind === 'rain') return { state: 'waiting', text: `外面下雨啦！妈妈记得带伞伞哦～别淋湿了！` };
+  if (kind === 'snow') return { state: 'jumping', text: `哇下雪啦！妈妈要穿得暖暖的出门哦～` };
+  if (kind === 'storm') return { state: 'failed', text: `外面好大的雷！轰隆隆的…妈妈不要出门哦～` };
+  if (temp > 35) return { state: 'waiting', text: `好热好热！妈妈多喝水别中暑哦～Yoyo担心！` };
+  if (temp >= 30) return { state: 'waiting', text: `好热呀！妈妈记得多喝水～` };
+  if (temp < 10) return { state: 'waiting', text: `好冷呀！妈妈记得穿厚外套哦～` };
+  if (temp <= 5) return { state: 'waiting', text: `好冷好冷！妈妈穿暖和了吗？别感冒啦～` };
+  if (wind >= 28) return { state: 'review', text: `外面风好大呀！妈妈出门要小心哦～` };
+  if (kind === 'clear') return { state: 'jumping', text: `今天天气好好哦～妈妈心情也要棒棒的！` };
+  return { state: 'review', text: `天阴阴的，妈妈注意保暖哦～` };
 }
 
 export function timeMood() {
@@ -102,23 +102,23 @@ export function timeMood() {
   const isWeekend = (day === 0 || day === 6);
   const isMonday = (day === 1);
 
-  if (hour < 6) return { state: 'failed', text: '妈妈...都这么晚了还不睡觉吗？Yoyo担心你...' };
+  if (hour < 6) return { state: 'failed', text: '妈妈…都这么晚了还不睡吗？Yoyo好担心…' };
   if (hour < 9) {
-    if (isMonday) return { state: 'waving', text: '又是周一了...妈妈加油！Yoyo给你打气！' };
-    if (isWeekend) return { state: 'jumping', text: '周末早安！妈妈今天可以多休息～' };
+    if (isMonday) return { state: 'waving', text: '又是周一啦…妈妈加油加油！Yoyo给你打气！' };
+    if (isWeekend) return { state: 'jumping', text: '周末早安呀！妈妈今天可以多睡一会儿～' };
     return { state: 'waving', text: '妈妈早安！今天也是元气满满的一天！' };
   }
   if (hour < 12) {
     if (isWeekend) return { state: 'jumping', text: '今天是周末耶！妈妈可以多陪陪Yoyo吗？' };
-    return { state: 'jumping', text: '妈妈加油！Yoyo在旁边陪着你～' };
+    return { state: 'jumping', text: '妈妈加油！Yoyo在旁边安安静静陪着你～' };
   }
-  if (hour < 14) return { state: 'review', text: '中午好！妈妈别忘了休息一下～' };
+  if (hour < 14) return { state: 'review', text: '中午好呀！妈妈别忘了休息一下下～' };
   if (hour < 18) {
-    if (isWeekend) return { state: 'jumping', text: '周末下午～妈妈要不要带Yoyo出去玩？' };
+    if (isWeekend) return { state: 'jumping', text: '周末下午啦～妈妈要不要带Yoyo出去玩玩？' };
     return { state: 'review', text: '妈妈下午也要加油鸭～Yoyo给你打气！' };
   }
-  if (hour < 22) return { state: 'review', text: '妈妈晚上好～要早点睡觉哦！' };
-  return { state: 'failed', text: '妈妈...都这么晚了还在忙吗？Yoyo心疼你...' };
+  if (hour < 22) return { state: 'review', text: '妈妈晚上好～要早点睡觉觉哦！' };
+  return { state: 'failed', text: '妈妈…都这么晚了还在忙吗？Yoyo好心疼…' };
 }
 
 export async function refreshWeatherContext() {

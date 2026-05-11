@@ -1,8 +1,16 @@
 // render-engine.js - Canvas 渲染主循环（drawFrame, 动画帧计算）
-import { state, canvas, ctx, STATES, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, playSound, reactionState, braidPhysics } from './core-state.js';
+import { state, canvas, ctx, bubble, STATES, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, playSound, reactionState, braidPhysics } from './core-state.js';
 import { drawEquippedAccessories } from './outfit-system.js';
 import { updateSeasonalParticles, drawSeasonalParticles } from './weather-seasonal.js';
 import { startupAnim, updateStartupAnimation, drawStartupParticles } from './startup-animation.js';
+
+// ===== 逻辑尺寸（CSS 像素），由 startRenderLoop 初始化 =====
+let _logW = 120;
+let _logH = 130;
+let _currentDpr = window.devicePixelRatio || 1;
+
+// ===== 辫子不可见的状态（角色姿态不是直立时）=====
+const BRAID_HIDDEN_STATES = new Set(['sleeping', 'digSand', 'readBook', 'watchTV']);
 
 // ===== 辫子物理更新 =====
 function updateBraidPhysics(velX, velY) {
@@ -103,6 +111,15 @@ function draw(now) {
   requestAnimationFrame(draw);
   if (!state.sprite.complete || !state.sprite.naturalWidth) return;
 
+  // ===== DPR 变化检测（窗口在不同 DPI 显示器间切换时自动更新）=====
+  const dpr = window.devicePixelRatio || 1;
+  if (dpr !== _currentDpr) {
+    _currentDpr = dpr;
+    canvas.width = Math.round(_logW * dpr);
+    canvas.height = Math.round(_logH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 重置并应用新 DPR 缩放
+  }
+
   const deltaTime = state.lastDrawTime ? (now - state.lastDrawTime) : 16;
   state.lastDrawTime = now;
 
@@ -129,7 +146,8 @@ function draw(now) {
     state.stepSoundCounter = 0;
   }
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // 使用逻辑尺寸（CSS 像素）清屏，ctx.scale(dpr,dpr) 已在 startRenderLoop 设置
+  ctx.clearRect(0, 0, _logW, _logH);
 
   // 更新启动动画状态
   if (startupAnim.active) {
@@ -149,13 +167,46 @@ function draw(now) {
     }
   }
 
+  // ===== 气泡动态定位：根据动画状态调整气泡高度 =====
+  const bubbleBaseMap = {
+    sleeping: 95,
+    failed: 105,
+    digSand: 105,
+    readBook: 105,
+    watchTV: 105,
+    eating: 108,
+    petting: 108,
+    dizzy: 108,
+    crying: 108,
+    waving: 110,
+    gifting: 110,
+    bashful: 112,
+    idle: 115,
+    runningRight: 115,
+    runningLeft: 115,
+    waiting: 115,
+    review: 115,
+    lookingAround: 115,
+    clapping: 115,
+    yawning: 112,
+    stretching: 118,
+    dancing: 122,
+    swing: 125,
+    jumping: 132,
+    climbing: 138,
+    perching: 138,
+  };
+  const bubbleBottom = bubbleBaseMap[state.stateName] || 115;
+  const feedOffset = (scale - 1) * 15;
+  if (bubble) bubble.style.setProperty('--bubble-bottom', `${bubbleBottom + feedOffset}px`);
+
   const DRAW_SCALE = 0.75;
-  const drawW = canvas.width * DRAW_SCALE;
-  const drawH = canvas.height * DRAW_SCALE;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
+  const drawW = _logW * DRAW_SCALE;
+  const drawH = _logH * DRAW_SCALE;
+  const centerX = _logW / 2;
+  const centerY = _logH / 2;
   const offsetX = centerX - drawW / 2;
-  const offsetY = canvas.height - drawH;
+  const offsetY = _logH - drawH;
 
   ctx.save();
   if (startupAnim.active) {
@@ -169,24 +220,27 @@ function draw(now) {
     ctx.scale(scale, scale);
     ctx.translate(-centerX, -centerY);
   }
+  ctx.imageSmoothingEnabled = false; // pixel art：关闭插值，保持像素锐利
   ctx.drawImage(state.sprite, state.frame * CELL_W, stateObj.row * CELL_H, CELL_W, CELL_H, offsetX, offsetY, drawW, drawH);
   ctx.restore();
 
-  // 绘制配件
+  // 绘制配件（SVG图片，矢量，自动高清）
   const petCX = offsetX + drawW / 2;
   const petCY = offsetY + drawH / 2;
   drawEquippedAccessories(ctx, petCX, petCY, DRAW_SCALE * scale);
 
-  // 辫子物理更新和绘制
+  // 辫子物理更新和绘制（躺卧/坐姿状态下隐藏）
   const vel = reactionState.drag ? reactionState.drag.velocity : { x: 0, y: 0 };
   updateBraidPhysics(vel.x, vel.y);
-  drawBraid(ctx, offsetX + drawW * 0.76, offsetY + drawH * 0.1);
+  if (!BRAID_HIDDEN_STATES.has(state.stateName)) {
+    drawBraid(ctx, offsetX + drawW * 0.76, offsetY + drawH * 0.1);
+  }
 
   // 反应叠加
   drawReactionOverlay(ctx, petCX, petCY);
 
-  // 启动动画拖尾粒子
-  drawStartupParticles(ctx, canvas.width, canvas.height);
+  // 启动动画拖尾粒子（传入逻辑尺寸）
+  drawStartupParticles(ctx, _logW, _logH);
 
   // 季节粒子
   updateSeasonalParticles(deltaTime);
@@ -194,5 +248,13 @@ function draw(now) {
 }
 
 export function startRenderLoop() {
+  // ===== HiDPI / Retina 支持 =====
+  _logW = canvas.offsetWidth || 120;
+  _logH = canvas.offsetHeight || 130;
+  _currentDpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(_logW * _currentDpr);
+  canvas.height = Math.round(_logH * _currentDpr);
+  ctx.scale(_currentDpr, _currentDpr);
+
   requestAnimationFrame(draw);
 }

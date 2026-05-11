@@ -8,7 +8,13 @@
   </head>
   <body>
     <main id="app">
-      <section id="bubble" class="bubble" aria-live="polite"></section>
+      <div id="bubble" class="bubble" aria-live="polite">
+        <div class="bubble-avatar"></div>
+        <div class="bubble-body">
+          <span class="bubble-text"></span>
+        </div>
+        <div class="bubble-tail"></div>
+      </div>
       <canvas id="petCanvas" width="120" height="130"></canvas>
       <button id="feed-btn" class="feed-btn">🍪</button>
     </main>

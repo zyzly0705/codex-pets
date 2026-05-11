@@ -1,9 +1,9 @@
 // growth-system.js - 成长等级 + XP + 进化路线 + 签到 + 成就 + 记忆系统
-import { state, randomFrom, say, speechQueue, setState, playSound, SPEECH_PRIORITY } from './core-state.js';
+import { state, randomFrom, say, speechQueue, setState, playSound, SPEECH_PRIORITY, hasDailyFlag, setDailyFlag } from './core-state.js';
 import { applyEmotionEvent } from './emotion-system.js';
+import { get, set } from './store-client.js';
 
 // ===== Yoyo 记忆系统 =====
-const MEMORY_KEY = 'yoyo_memory';
 
 function createDefaultMemory() {
   return {
@@ -22,52 +22,49 @@ function createDefaultMemory() {
   };
 }
 
-function loadMemory() {
-  const saved = localStorage.getItem(MEMORY_KEY);
+export let yoyoMemory = createDefaultMemory();
+
+/** 在 initStore() 完成后调用，用存储数据覆盖默认值 */
+export function initMemory() {
+  const saved = get('memory');
   if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (!parsed.hourlyActivity || parsed.hourlyActivity.length !== 24) {
-        parsed.hourlyActivity = new Array(24).fill(0);
-      }
-      return parsed;
-    } catch { return createDefaultMemory(); }
+    yoyoMemory = { ...createDefaultMemory(), ...saved };
+    if (!yoyoMemory.hourlyActivity || yoyoMemory.hourlyActivity.length !== 24) {
+      yoyoMemory.hourlyActivity = new Array(24).fill(0);
+    }
   }
-  return createDefaultMemory();
 }
 
-export let yoyoMemory = loadMemory();
-
 export function saveMemory() {
-  localStorage.setItem(MEMORY_KEY, JSON.stringify(yoyoMemory));
+  set('memory', yoyoMemory);
 }
 
 export const MEMORY_LINES = {
   missedDays: [
-    '妈妈昨天没来看Yoyo...Yoyo好想你呀！',
-    '妈妈！你终于来了！Yoyo以为你忘了Yoyo...',
+    '妈妈昨天没来看Yoyo…Yoyo好想好想你呀！',
+    '妈妈！你终于来啦！Yoyo还以为你不要Yoyo了…',
   ],
   longNoPet: [
-    '妈妈...好久没摸摸Yoyo了...',
-    '妈妈是不是不爱Yoyo了...（委屈脸）',
-    '人家想要妈妈摸摸头嘛～',
+    '妈妈…好久好久没摸摸Yoyo了…',
+    '妈妈是不是不爱Yoyo了…（委屈巴巴）',
+    '人家想要妈妈摸摸头嘛～求求你啦～',
   ],
   rememberWhip: [
-    '妈妈...今天不要打Yoyo好不好...',
-    '哼！Yoyo还记得上次的事呢！',
-    '妈妈上次打Yoyo好疼的...（揉揉）',
+    '妈妈…今天不要再打Yoyo了好不好…',
+    '哼！Yoyo还记得上次的事呢！（叉腰）',
+    '妈妈上次打Yoyo好疼的…（揉揉小屁股）',
   ],
   lateArrival: [
-    '妈妈今天来晚了～Yoyo等了好久呢！',
-    '妈妈！你可算来了！Yoyo还以为你不来了...',
+    '妈妈今天来晚啦～Yoyo等了好久好久呢！',
+    '妈妈！你可算来了！Yoyo还以为你不来了…',
   ],
   petMilestone: [
-    '妈妈已经摸了Yoyo{count}次了！Yoyo好幸福～',
-    '第{count}次摸摸！妈妈的手好温暖～',
+    '妈妈已经摸了Yoyo{count}次啦！Yoyo好幸福好幸福～',
+    '第{count}次摸摸！妈妈的手好温暖呀～',
   ],
   consecutiveMilestone: [
-    '妈妈连续{days}天来看Yoyo了！好开心！',
-    'Yoyo和妈妈已经连续{days}天在一起了！',
+    '妈妈连续{days}天都来看Yoyo了！好开心好开心！',
+    'Yoyo和妈妈已经连续{days}天在一起啦！耶～',
   ],
 };
 
@@ -159,8 +156,8 @@ export function memoryDrivenGreeting() {
   const consMilestones = [7, 14, 30, 50, 100, 200, 365];
   if (consMilestones.includes(yoyoMemory.consecutiveDays)) {
     const milestoneKey = `cons_milestone_${yoyoMemory.consecutiveDays}`;
-    if (!localStorage.getItem(milestoneKey)) {
-      localStorage.setItem(milestoneKey, 'true');
+    if (!hasDailyFlag(milestoneKey)) {
+      setDailyFlag(milestoneKey);
       const line = randomFrom(MEMORY_LINES.consecutiveMilestone)
         .replace('{days}', yoyoMemory.consecutiveDays);
       say(line, 7000);
@@ -181,7 +178,6 @@ export function memoryDrivenGreeting() {
 }
 
 // ===== 成长等级系统 =====
-const GROWTH_KEY = 'yoyo_growth';
 
 export const LEVELS = [
   { name: '小豆芽', minXP: 0 },
@@ -211,30 +207,28 @@ export function getLevelName(level, path) {
   return LEVELS[level - 1]?.name || '小豆芽';
 }
 
-function loadGrowth() {
-  try {
-    const saved = localStorage.getItem(GROWTH_KEY);
-    if (saved) {
-      const data = JSON.parse(saved);
-      if (!data.pathStats) {
-        data.pathStats = { interactionCount: 0, companionTime: 0, workTime: 0 };
-      }
-      if (!data.path) {
-        data.path = null;
-        if (getLevel(data.xp) >= 3) {
-          data.path = 'energy';
-        }
-      }
-      return data;
-    }
-  } catch {}
+function createDefaultGrowth() {
   return { xp: 0, level: 1, lastLoginDate: '', pathStats: { interactionCount: 0, companionTime: 0, workTime: 0 }, path: null };
 }
 
-export let yoyoGrowth = loadGrowth();
+export let yoyoGrowth = createDefaultGrowth();
+
+/** 在 initStore() 完成后调用，用存储数据覆盖默认值 */
+export function initGrowth() {
+  const saved = get('growth');
+  if (saved) {
+    yoyoGrowth = { ...createDefaultGrowth(), ...saved };
+    if (!yoyoGrowth.pathStats) {
+      yoyoGrowth.pathStats = { interactionCount: 0, companionTime: 0, workTime: 0 };
+    }
+    if (!yoyoGrowth.path && getLevel(yoyoGrowth.xp) >= 3) {
+      yoyoGrowth.path = 'energy';
+    }
+  }
+}
 
 export function saveGrowth() {
-  localStorage.setItem(GROWTH_KEY, JSON.stringify(yoyoGrowth));
+  set('growth', yoyoGrowth);
 }
 
 export function addXP(amount) {
@@ -316,7 +310,7 @@ export const CHECKIN_REWARDS = [
 
 export function initCheckinSystem() {
   try {
-    const data = JSON.parse(localStorage.getItem('yoyo_checkin') || '{"streak":0,"lastDate":"","totalDays":0}');
+    const data = get('checkin') || { streak: 0, lastDate: '', totalDays: 0 };
     const today = new Date().toISOString().slice(0, 10);
 
     if (data.lastDate === today) return;
@@ -354,8 +348,8 @@ export function initCheckinSystem() {
       checkAchievements('checkin', data);
     }, 3000);
 
-    localStorage.setItem('yoyo_checkin', JSON.stringify(data));
-  } catch (e) { /* localStorage 异常保护 */ }
+    set('checkin', data);
+  } catch (e) { /* store 异常保护 */ }
 }
 
 // ===== 成就徽章系统 =====
@@ -377,17 +371,14 @@ export const ACHIEVEMENTS = [
 ];
 
 export function loadAchievementProgress() {
-  try {
-    return JSON.parse(localStorage.getItem('yoyo_achievements') || '{"unlocked":[],"stats":{"petCount":0,"overtimeCount":0,"cloneTriggered":false,"weatherRemindCount":0,"featuresUsed":0,"totalHours":0,"danceCount":0,"climbCount":0}}');
-  } catch (e) {
-    return { unlocked: [], stats: { petCount: 0, overtimeCount: 0, cloneTriggered: false, weatherRemindCount: 0, featuresUsed: 0, totalHours: 0, danceCount: 0, climbCount: 0 } };
-  }
+  return get('achievements') || {
+    unlocked: [],
+    stats: { petCount: 0, overtimeCount: 0, cloneTriggered: false, weatherRemindCount: 0, featuresUsed: 0, totalHours: 0, danceCount: 0, climbCount: 0 }
+  };
 }
 
 export function saveAchievementProgress(progress) {
-  try {
-    localStorage.setItem('yoyo_achievements', JSON.stringify(progress));
-  } catch (e) { /* quota 满保护 */ }
+  set('achievements', progress);
 }
 
 export function incrementAchievementStat(statName, amount = 1) {
@@ -401,27 +392,25 @@ export function incrementAchievementStat(statName, amount = 1) {
   checkAchievements('stat_update', null);
 }
 
-const _usedFeaturesKey = 'yoyo_used_features';
+const _usedFeaturesKey = 'usedFeatures';
 export function trackFeatureUsed(featureId) {
-  try {
-    const used = JSON.parse(localStorage.getItem(_usedFeaturesKey) || '[]');
-    if (!used.includes(featureId)) {
-      used.push(featureId);
-      localStorage.setItem(_usedFeaturesKey, JSON.stringify(used));
-      const progress = loadAchievementProgress();
-      progress.stats.featuresUsed = used.length;
-      saveAchievementProgress(progress);
-      checkAchievements('stat_update', null);
-    }
-  } catch (e) { /* ignore */ }
+  const used = get(_usedFeaturesKey) || [];
+  if (!used.includes(featureId)) {
+    used.push(featureId);
+    set(_usedFeaturesKey, used);
+    const progress = loadAchievementProgress();
+    progress.stats.featuresUsed = used.length;
+    saveAchievementProgress(progress);
+    checkAchievements('stat_update', null);
+  }
 }
 
 export function checkAchievements(trigger, extraData) {
   const progress = loadAchievementProgress();
   const ctx = {
     ...progress.stats,
-    checkin: extraData || (function() { try { return JSON.parse(localStorage.getItem('yoyo_checkin') || '{}'); } catch(e) { return {}; } })(),
-    level: (function() { try { return (JSON.parse(localStorage.getItem('yoyo_growth') || '{}')).level || 1; } catch(e) { return 1; } })(),
+    checkin: extraData || (get('checkin') || {}),
+    level: getLevel(yoyoGrowth.xp),
   };
 
   let newUnlock = false;

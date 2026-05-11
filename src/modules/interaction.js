@@ -8,24 +8,24 @@ import { petNeeds, behaviorEngineTick, HUNGER_MESSAGES } from './behavior-engine
 
 // ===== 喂食相关消息 =====
 const DISMISS_MESSAGES = [
-  '算了…Yoyo忍忍…',
-  '哼，妈妈不给吃…Yoyo好委屈～',
-  '好吧…Yoyo自己饿着…'
+  '算了…Yoyo忍一忍…',
+  '哼，妈妈不给吃…Yoyo好委屈…',
+  '好吧…Yoyo自己饿着吧…（蹲角落）',
 ];
 
 const FEED_MESSAGES = [
   '好吃好吃！谢谢妈妈～',
-  '吃饱饱了！Yoyo好满足～',
-  '嗯嗯真香！妈妈最好了！',
-  '谢谢妈妈投喂！Yoyo圆滚滚了～',
-  '好幸福呀！妈妈给的最好吃！',
-  '这个零食太棒了！妈妈还有吗？'
+  '吃饱饱啦！Yoyo好满足～',
+  '嗯嗯好香！妈妈最好了！',
+  '谢谢妈妈投喂！Yoyo变得圆滚滚啦～',
+  '好幸福呀！妈妈给的零食最好吃了！',
+  '这个好好吃！妈妈还有吗还有吗？',
 ];
 
 // ===== 重置闲置 =====
 export function resetInteraction() {
   state.lastInteractionTime = Date.now();
-  if (state.isClimbing) {
+  if (stateMachine.isClimbing) {
     cancelClimb();
   }
 }
@@ -33,9 +33,9 @@ export function resetInteraction() {
 // ===== 同步菜单状态 =====
 export function syncMenuState() {
   window.petApi.syncMenuState({
-    dancing: state.isDancing,
-    following: state.isFollowing,
-    sleeping: state.isSleeping
+    dancing: stateMachine.isDancing,
+    following: stateMachine.isFollowing,
+    sleeping: stateMachine.isSleeping
   });
 }
 
@@ -59,9 +59,8 @@ export function showHungerUI() {
 
 // ===== 下落物理动画 =====
 function startDropAnimation(posX, startY, targetY) {
-  if (state.isDropping) return;
+  if (stateMachine.isDropping) return;
   stateMachine.transition(ACTION_STATES.DROPPING);
-  state.isDropping = true;
   let velocity = 0;
   const gravity = 1.5;
   let currentY = startY;
@@ -86,7 +85,6 @@ function startDropAnimation(posX, startY, targetY) {
         }, 100);
       } else {
         stateMachine.transition(ACTION_STATES.IDLE);
-        state.isDropping = false;
         canvas.style.transition = '';
         canvas.style.transform = 'translateX(-50%)';
         return;
@@ -115,7 +113,7 @@ function doSquashBounce() {
 
 // ===== 鞭打 =====
 export function whipPet() {
-  if (state.isWhipRunning) return;
+  if (stateMachine.isWhipping) return;
 
   state.whipCount++;
   clearTimeout(state.whipResetTimeout);
@@ -137,17 +135,17 @@ export function whipPet() {
   if (state.whipCount >= 5) {
     setState('crying');
     playSound('cry');
-    say('呜呜呜…妈妈你打了Yoyo好多次了…Yoyo好委屈…', 6000);
+    say('呜呜呜…妈妈打了Yoyo好多次…Yoyo好委屈…', 6000);
   } else {
     setState('dizzy');
-    say('呜…疼…', 2000);
+    say('呜…好疼…', 2000);
   }
 
   // 1.5秒后揉屁股
   setTimeout(() => {
     if (reactionState.whip) {
       reactionState.whip.phase = 'rub';
-      say('不要打了嘛…', 2500);
+      say('不要打了嘛…疼疼…', 2500);
     }
   }, 1500);
 
@@ -160,7 +158,6 @@ export function whipPet() {
   setTimeout(() => { reactionState.whip = null; }, 4500);
 
   stateMachine.transition(ACTION_STATES.WHIP);
-  state.isWhipRunning = true;
   petNeeds.energy = Math.max(0, petNeeds.energy - 30);
   setTimeout(() => {
     let runTicks = 0;
@@ -171,7 +168,6 @@ export function whipPet() {
         clearInterval(runInterval);
         setState('idle');
         stateMachine.transition(ACTION_STATES.IDLE);
-        state.isWhipRunning = false;
       }
     }, 500);
   }, 500);
@@ -179,20 +175,19 @@ export function whipPet() {
 
 // ===== 跳舞模式 =====
 export function toggleDance() {
-  if (state.isDancing) {
+  if (stateMachine.isDancing) {
     stateMachine.transition(ACTION_STATES.IDLE);
-    state.isDancing = false;
     clearInterval(state.danceTimer);
     state.danceTimer = null;
     setState('failed');
     say('跳够啦～Yoyo休息一下～');
   } else {
+    const wasFollowing = stateMachine.isFollowing;
+    const wasClimbing = stateMachine.isClimbing;
     if (!stateMachine.transition(ACTION_STATES.DANCING)) return;
-    state.isDancing = true;
-    state.isSleeping = false;
-    if (state.isFollowing) toggleFollowMouse();
-    if (state.isClimbing) {
-      state.isClimbing = false;
+
+    if (wasFollowing) stopFollowing();
+    if (wasClimbing) {
       state.climbPhase = 'idle';
       canvas.style.transform = 'translateX(-50%)';
       if (state.climbOriginPos) {
@@ -208,7 +203,7 @@ export function toggleDance() {
     trackGrowthStat('interactionCount');
     setCooldown('dance', 300000);
     state.danceTimer = setInterval(() => {
-      if (!state.isDancing) return;
+      if (!stateMachine.isDancing) return;
       setState('dancing');
     }, 3000);
   }
@@ -217,21 +212,20 @@ export function toggleDance() {
 
 // ===== 睡眠模式 =====
 export function toggleSleep() {
-  if (state.isSleeping) {
+  if (stateMachine.isSleeping) {
     stateMachine.setGlobalMode(GLOBAL_MODES.INTERACTIVE);
-    state.isSleeping = false;
     STATES.idle.fps = 4;
     setState('waving');
     say('唔...妈妈...再睡五分钟嘛...');
   } else {
+    const wasDancing = stateMachine.isDancing;
+    const wasFollowing = stateMachine.isFollowing;
     stateMachine.setGlobalMode(GLOBAL_MODES.SLEEP);
-    state.isSleeping = true;
-    state.isDancing = false;
-    if (state.danceTimer) {
+    if (wasDancing) {
       clearInterval(state.danceTimer);
       state.danceTimer = null;
     }
-    if (state.isFollowing) toggleFollowMouse();
+    if (wasFollowing) stopFollowing();
     clearTimeout(state.dismissTimeout);
     feedBtn.classList.remove('show');
     setState('sleeping');
@@ -244,16 +238,16 @@ export function toggleSleep() {
 
 // ===== 跟随鼠标模式 =====
 export function toggleFollowMouse() {
-  state.isFollowing = !state.isFollowing;
-  if (state.isFollowing) {
-    if (!stateMachine.transition(ACTION_STATES.FOLLOWING)) {
-      state.isFollowing = false;
-      return;
+  if (!stateMachine.isFollowing) {
+    const wasDancing = stateMachine.isDancing;
+    const wasClimbing = stateMachine.isClimbing;
+    if (!stateMachine.transition(ACTION_STATES.FOLLOWING)) return;
+
+    if (wasDancing) {
+      clearInterval(state.danceTimer);
+      state.danceTimer = null;
     }
-    if (state.isDancing) toggleDance();
-    if (state.isSleeping) toggleSleep();
-    if (state.isClimbing) {
-      state.isClimbing = false;
+    if (wasClimbing) {
       state.climbPhase = 'idle';
       canvas.style.transform = 'translateX(-50%)';
       if (state.climbOriginPos) {
@@ -276,7 +270,7 @@ export function toggleFollowMouse() {
 
 function startFollowing() {
   state.followInterval = setInterval(async () => {
-    if (!state.isFollowing) return;
+    if (!stateMachine.isFollowing) return;
 
     const mousePos = await window.petApi.getMousePosition();
     const { bounds } = await window.petApi.getBounds();
@@ -325,7 +319,7 @@ export function initInteraction() {
   // 单击 vs 拖拽判定
   canvas.addEventListener('pointerdown', async (event) => {
     resetInteraction();
-    if (state.isDropping) return;
+    if (stateMachine.isDropping) return;
     canvas.setPointerCapture(event.pointerId);
     state.pointerDownTime = Date.now();
     state.pointerDownPos = { x: event.screenX, y: event.screenY };
@@ -340,7 +334,7 @@ export function initInteraction() {
     reactionState.drag = { velocity: { x: 0, y: 0 }, holdStart: Date.now(), hasShaken: false };
     clearTimeout(dragHoldTimer);
     dragHoldTimer = setTimeout(() => {
-      if (state.dragState) say('放我下来嘛～', 3000);
+      if (state.dragState) say('妈妈放Yoyo下来嘛～', 3000);
     }, 5000);
   });
 
@@ -359,7 +353,7 @@ export function initInteraction() {
       reactionState.drag.velocity = { x: dx, y: dy };
       if (speed > 25 && !reactionState.drag.hasShaken) {
         reactionState.drag.hasShaken = true;
-        say('好晕～别甩了啦', 2000);
+        say('呀！好晕好晕～别甩了啦！', 2000);
       }
     }
   });
@@ -379,7 +373,7 @@ export function initInteraction() {
     if (reactionState.drag) {
       const wasShaken = reactionState.drag.hasShaken;
       if (dist >= CLICK_MAX_DIST || elapsed >= CLICK_MAX_TIME) {
-        say(wasShaken ? '呜…头好晕' : '安全着陆～', 2500);
+        say(wasShaken ? '呜…头好晕好晕…' : '安全着陆～嘿嘿！', 2500);
       }
       reactionState.drag = null;
     }
@@ -429,7 +423,7 @@ export function initInteraction() {
       setTimeout(() => setState('idle'), 2000);
     } else {
       setState('idle');
-      say('妈妈把Yoyo放这里啦～');
+      say('妈妈把Yoyo放这里啦～嘿嘿！');
       trackGrowthStat('interactionCount');
       try {
         const pos = await window.petApi.getPosition();
@@ -601,9 +595,9 @@ export function initInteraction() {
         say('Yoyo舞累了，休息一下～', 3000, SPEECH_PRIORITY.CASUAL);
         return;
       }
-      if (!state.isDancing) toggleDance();
+      if (!stateMachine.isDancing) toggleDance();
     } else {
-      if (state.isDancing) toggleDance();
+      if (stateMachine.isDancing) toggleDance();
     }
     syncMenuState();
   });
@@ -615,9 +609,9 @@ export function initInteraction() {
         say('Yoyo跑累了，歇会儿～', 3000, SPEECH_PRIORITY.CASUAL);
         return;
       }
-      if (!state.isFollowing) toggleFollowMouse();
+      if (!stateMachine.isFollowing) toggleFollowMouse();
     } else {
-      if (state.isFollowing) toggleFollowMouse();
+      if (stateMachine.isFollowing) toggleFollowMouse();
     }
     syncMenuState();
   });
@@ -625,9 +619,9 @@ export function initInteraction() {
   window.petApi.onSleep((checked) => {
     resetInteraction();
     if (checked) {
-      if (!state.isSleeping) toggleSleep();
+      if (!stateMachine.isSleeping) toggleSleep();
     } else {
-      if (state.isSleeping) toggleSleep();
+      if (stateMachine.isSleeping) toggleSleep();
     }
     syncMenuState();
   });
@@ -648,7 +642,7 @@ export function initInteraction() {
 
     if (!state.typingReminderSent && now - state.continuousTypingStart > 30 * 60 * 1000) {
       state.typingReminderSent = true;
-      say(randomFrom(['打字好久了，手指休息一下吧~', '键盘都被你敲热了！站起来活动活动~', '写了这么久，眨眨眼休息一下吧~']));
+      say(randomFrom(['打字好久啦，手指休息一下吧～', '键盘都被敲热啦！站起来活动活动嘛～', '写了这么久，眨眨眼休息一下下吧～']));
     }
 
     if (state.stateName === 'idle' || state.stateName === 'waiting' || state.stateName === 'lookingAround') {
@@ -675,4 +669,6 @@ export async function choosePet(id) {
     say(`Yoyo来陪妈妈啦～`);
   };
   state.sprite.src = localFileUrl(state.currentPet.spritesheetPath);
+  // 通知主进程更新当前 spritesheet 路径（供特效窗口使用）
+  window.petApi.setActiveSpritesheet(state.currentPet.spritesheetPath);
 }

@@ -15,8 +15,13 @@
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
 
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  // HiDPI 支持：缓冲区用物理像素，绘制坐标用逻辑像素
+  const dpr = window.devicePixelRatio || 1;
+  const logW = window.innerWidth;
+  const logH = window.innerHeight;
+  canvas.width = Math.round(logW * dpr);
+  canvas.height = Math.round(logH * dpr);
+  ctx.scale(dpr, dpr);
 
   // Spritesheet 配置
   const COLS = 8;
@@ -26,7 +31,6 @@
   const TOTAL_DURATION = 6000;
 
   const sprite = new Image();
-  sprite.src = '../assets/xiao-hong/spritesheet.webp';
 
   // 宠物位置（由主进程注入）
   let petPos = { x: 0, y: 0 };
@@ -84,8 +88,8 @@
 
   // 绘制宠物帧
   function drawPet(cx, cy, scale, shake) {
-    const row = 0; // idle 第一行
-    const col = Math.floor((performance.now() / 200) % 3); // 简单帧动画
+    const row = 0; // idle 第一行（共6帧）
+    const col = Math.floor((performance.now() / 200) % 6); // idle 行只有6帧，避免越界出现透明帧
     const drawW = FRAME_W * scale;
     const drawH = FRAME_H * scale;
     const offsetX = shake ? (Math.random() - 0.5) * 4 : 0;
@@ -93,6 +97,7 @@
 
     ctx.save();
     ctx.translate(cx + offsetX, cy + offsetY);
+    ctx.imageSmoothingEnabled = true; // 放大至6倍时开启双线性插值，避免像素块感
     ctx.drawImage(
       sprite,
       col * FRAME_W, row * FRAME_H,
@@ -199,10 +204,10 @@
       return;
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logW, logH);
 
-    const cx = petPos.x + petSize.w / 2;
-    const cy = petPos.y + petSize.h / 2;
+    const cx = window.petCharCenter ? window.petCharCenter.x : petPos.x + petSize.w / 2;
+    const cy = window.petCharCenter ? window.petCharCenter.y : petPos.y + petSize.h / 2;
     const baseScale = petSize.w / FRAME_W; // 正常大小约 ~1.04
 
     if (elapsed < 1000) {
@@ -234,7 +239,7 @@
       ctx.save();
       ctx.filter = `blur(${Math.min(t * 2, 1.5)}px)`;
       ctx.fillStyle = `rgba(0, 0, 0, ${t * 0.08})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logW, logH);
       ctx.restore();
 
       // 金色光晕扩大
@@ -262,7 +267,7 @@
       // 背景
       ctx.save();
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logW, logH);
       ctx.restore();
 
       // 金色光环脉冲
@@ -300,7 +305,7 @@
       // 背景渐隐
       ctx.save();
       ctx.fillStyle = `rgba(0, 0, 0, ${0.08 * (1 - t)})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logW, logH);
       ctx.restore();
 
       // 光晕收缩
@@ -337,14 +342,20 @@
       petSize.w = window.petSize.w;
       petSize.h = window.petSize.h;
     }
-    initParticles(petPos.x + petSize.w / 2, petPos.y + petSize.h / 2);
-    startTime = performance.now();
-    animating = true;
-    requestAnimationFrame(animate);
-  };
+    const icx = window.petCharCenter ? window.petCharCenter.x : petPos.x + petSize.w / 2;
+    const icy = window.petCharCenter ? window.petCharCenter.y : petPos.y + petSize.h / 2;
+    initParticles(icx, icy);
 
-  sprite.onload = function() {
-    // 等待主进程注入位置后调用 startGiantEffect
+    function beginAnim() {
+      startTime = performance.now();
+      animating = true;
+      requestAnimationFrame(animate);
+    }
+
+    sprite.onload = beginAnim;
+    sprite.src = window.spritesheetSrc || '../assets/xiao-hong/spritesheet.webp';
+    // 如果图片已缓存直接开始
+    if (sprite.complete && sprite.naturalWidth) beginAnim();
   };
 
   // 图片加载失败保护

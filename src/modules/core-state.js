@@ -1,10 +1,13 @@
 // core-state.js - 共享状态、常量、工具函数、音频、SpeechQueue
 // 所有模块的基础层，不 import 任何其他模块
+import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
+import { get, set } from './store-client.js';
 
 // ===== DOM 引用 =====
 export const canvas = document.getElementById('petCanvas');
-export const ctx = canvas.getContext('2d');
+export const ctx = canvas ? canvas.getContext('2d') : null;
 export const bubble = document.getElementById('bubble');
+export const bubbleText = bubble ? bubble.querySelector('.bubble-text') : null;
 export const feedBtn = document.getElementById('feed-btn');
 
 // ===== 常量 =====
@@ -19,6 +22,7 @@ export const STATES = {
   jumping: { row: 4, frames: 5, fps: 7 },
   failed: { row: 5, frames: 8, fps: 4 },
   waiting: { row: 6, frames: 6, fps: 3 },
+  bashful: { row: 7, frames: 6, speed: 250 },
   review: { row: 8, frames: 6, fps: 4 },
   climbing: { row: 9, frames: 6, fps: 5 },
   perching: { row: 10, frames: 4, fps: 3 },
@@ -77,27 +81,21 @@ export const state = {
   // 喂食缩放
   feedScaleStart: 0,
 
-  // 下落
-  isDropping: false,
-
   // 音频
   audioCtx: null,
-  isMuted: localStorage.getItem('yoyo_muted') === 'true',
+  isMuted: false,   // 由 initCoreState() 从 store 填入
   stepSoundCounter: 0,
 
   // 菜单模式
-  isDancing: false,
   danceTimer: null,
-  isSleeping: false,
-  isFollowing: false,
   followInterval: null,
 
   // 闲置追踪
   lastInteractionTime: Date.now(),
 
   // 攀爬
-  isClimbing: false,
   climbPhase: 'idle',
+  climbEdgeType: null,
   climbTarget: null,
   climbOriginPos: null,
   climbAnimTimer: null,
@@ -108,7 +106,6 @@ export const state = {
   // 鞭打
   whipCount: 0,
   whipResetTimeout: null,
-  isWhipRunning: false,
 
   // 键盘
   keyboardActiveUntil: 0,
@@ -145,14 +142,14 @@ export const state = {
   lastMemoryTriggerTime: 0,
 
   // 功能引导
-  shownTips: JSON.parse(localStorage.getItem('yoyo_shown_tips') || '[]'),
+  shownTips: [],   // 由 initCoreState() 填入
   lastTipTime: Date.now(),
 
   // 记忆小时
   lastMemoryHour: new Date().getHours(),
 
   // 换装
-  currentOutfit: JSON.parse(localStorage.getItem('yoyo_outfit') || '{"hat":"ribbon","accessory":"none","face":"none"}'),
+  currentOutfit: { hat: 'ribbon', accessory: 'none', face: 'none' },  // 由 initCoreState() 填入
 
 };
 
@@ -210,6 +207,23 @@ export function lerp(a, b, t) {
 
 export function localFileUrl(filePath) {
   return `file://${filePath.replaceAll('\\', '/')}`;
+}
+
+// ===== 每日标记系统 =====
+
+export function hasDailyFlag(key) {
+  const flags = get('dailyFlags') || {};
+  return !!flags[key];
+}
+
+export function setDailyFlag(key) {
+  const flags = get('dailyFlags') || {};
+  flags[key] = Date.now();
+  const cutoff = Date.now() - 60 * 86400000;
+  for (const k of Object.keys(flags)) {
+    if (typeof flags[k] === 'number' && flags[k] < cutoff) delete flags[k];
+  }
+  set('dailyFlags', flags);
 }
 
 // ===== 音频系统 =====
@@ -283,36 +297,65 @@ export function playSound(type) {
 
 export function toggleMute() {
   state.isMuted = !state.isMuted;
-  localStorage.setItem('yoyo_muted', state.isMuted.toString());
+  set('muted', state.isMuted);
 }
+
+// ===== store 初始化（在 initStore() 完成后调用）=====
+export function initCoreState() {
+  state.isMuted       = get('muted')      ?? false;
+  state.shownTips     = get('shownTips')  ?? [];
+  state.currentOutfit = get('outfit')     ?? { hat: 'ribbon', accessory: 'none', face: 'none' };
+}
+
+// ===== sprite状态 → StateMachine ACTION_STATE 映射 =====
+const SPRITE_TO_ACTION = {
+  runningRight: ACTION_STATES.WALKING,
+  runningLeft:  ACTION_STATES.WALKING,
+  dancing:      ACTION_STATES.DANCING,
+  climbing:     ACTION_STATES.CLIMBING,
+  perching:     ACTION_STATES.CLIMBING,
+  eating:       ACTION_STATES.FEEDING,
+};
 
 // ===== setState =====
 export function setState(next) {
   if (!STATES[next]) return;
+  // 尊重 FROZEN 全局模式（例如特殊动画播放中）
+  if (stateMachine.globalMode === GLOBAL_MODES.FROZEN) return;
   if (state.stateName !== next) {
     state.stateName = next;
     state.frame = 0;
     state.lastFrameAt = 0;
   }
+  // 同步 StateMachine actionState，保持两套系统一致
+  const actionState = SPRITE_TO_ACTION[next] ?? ACTION_STATES.IDLE;
+  if (stateMachine.actionState !== actionState) {
+    stateMachine.actionState = actionState;
+  }
 }
 
-// ===== 气泡排队系统 =====
+// ===== 气泡排队系统（打字机效果） =====
 export const SPEECH_PRIORITY = { CRITICAL: 100, IMPORTANT: 80, BEHAVIOR: 50, CASUAL: 20 };
+const TYPEWRITER_BASE_SPEED = 60; // 每字基础速度（ms）
+const TYPEWRITER_FAST_SPEED = 30;  // 短消息快速模式
 
 export class SpeechQueue {
   constructor(maxSize = 5) {
     this.queue = [];
     this.maxSize = maxSize;
     this.isDisplaying = false;
-    this.currentTimer = null;
+    this._hideTimer = null;
+    this._typeTimer = null;
   }
 
   enqueue(text, duration = 5200, priority = SPEECH_PRIORITY.BEHAVIOR) {
     const now = Date.now();
+    // 去重：2秒内相同消息不重复入队
     if (this.queue.length > 0) {
       const last = this.queue[this.queue.length - 1];
       if (last.text === text && now - last.time < 2000) return;
     }
+    // 队列满时，踢掉优先级最低的（但不踢 IMPORTANT 及以上）
     if (this.queue.length >= this.maxSize) {
       let minIdx = -1, minPri = Infinity;
       for (let i = 0; i < this.queue.length; i++) {
@@ -325,27 +368,108 @@ export class SpeechQueue {
   }
 
   priorityEnqueue(text, duration = 5200) {
+    // CRITICAL 优先级：打断当前显示
+    if (this.isDisplaying) {
+      this._stopTyping();
+      bubble.classList.add('hiding');
+      // 把当前消息塞回队首
+      if (this._currentMsg) {
+        this.queue.unshift(this._currentMsg);
+        this._currentMsg = null;
+      }
+      setTimeout(() => {
+        bubble.classList.remove('hiding', 'visible');
+        bubbleText.textContent = '';
+        bubbleText.classList.remove('typing');
+        this._displayNext();
+      }, 180);
+    }
     this.enqueue(text, duration, SPEECH_PRIORITY.CRITICAL);
   }
 
   _displayNext() {
-    if (this.queue.length === 0) { this.isDisplaying = false; return; }
+    if (this.queue.length === 0) {
+      this.isDisplaying = false;
+      return;
+    }
     this.isDisplaying = true;
     const msg = this.queue.shift();
-    bubble.textContent = msg.text;
+    this._currentMsg = null;
+
+    // 显示气泡（降级：如果 DOM 结构不完整则用旧方式）
+    if (!bubbleText) {
+      bubble.textContent = msg.text;
+      bubble.classList.add('visible');
+      this._hideTimer = setTimeout(() => {
+        bubble.classList.remove('visible');
+        this._hideTimer = setTimeout(() => this._displayNext(), 300);
+      }, msg.duration);
+      return;
+    }
+
+    bubble.classList.remove('hiding');
     bubble.classList.add('visible');
-    clearTimeout(this.currentTimer);
-    this.currentTimer = setTimeout(() => {
-      bubble.classList.remove('visible');
-      setTimeout(() => this._displayNext(), 300);
-    }, msg.duration);
+    bubbleText.textContent = '';
+
+    // 打字机逐字显示
+    this._typewrite(msg);
+  }
+
+  _typewrite(msg) {
+    if (!bubbleText) return;
+    const text = msg.text;
+    // 短消息用快速模式
+    const speed = text.length <= 12 ? TYPEWRITER_FAST_SPEED : TYPEWRITER_BASE_SPEED;
+    let charIndex = 0;
+    bubbleText.classList.add('typing');
+
+    this._stopTyping();
+    this._currentMsg = msg;
+
+    this._typeTimer = setInterval(() => {
+      if (charIndex < text.length) {
+        bubbleText.textContent = text.slice(0, charIndex + 1);
+        charIndex++;
+      } else {
+        // 打完，去掉光标
+        clearInterval(this._typeTimer);
+        this._typeTimer = null;
+        bubbleText.classList.remove('typing');
+        bubbleText.textContent = text;
+
+        // 设置隐藏定时器
+        clearTimeout(this._hideTimer);
+        this._hideTimer = setTimeout(() => {
+          bubble.classList.add('hiding');
+          this._hideTimer = setTimeout(() => {
+            bubble.classList.remove('visible', 'hiding');
+            bubbleText.textContent = '';
+            bubbleText.classList.remove('typing');
+            this._currentMsg = null;
+            this._displayNext();
+          }, 180);
+        }, msg.duration);
+      }
+    }, speed);
+  }
+
+  _stopTyping() {
+    if (this._typeTimer) {
+      clearInterval(this._typeTimer);
+      this._typeTimer = null;
+    }
+    clearTimeout(this._hideTimer);
   }
 
   clear() {
     this.queue = [];
     this.isDisplaying = false;
-    clearTimeout(this.currentTimer);
-    bubble.classList.remove('visible');
+    this._stopTyping();
+    clearTimeout(this._hideTimer);
+    bubble.classList.remove('visible', 'hiding');
+    bubbleText.textContent = '';
+    bubbleText.classList.remove('typing');
+    this._currentMsg = null;
   }
 }
 

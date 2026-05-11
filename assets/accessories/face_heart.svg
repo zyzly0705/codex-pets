@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="44" viewBox="0 0 64 44">
+  <!-- Left heart eye -->
+  <path d="M20 22 C20 16 12 14 12 20 C12 24 20 30 20 30 C20 30 28 24 28 20 C28 14 20 16 20 22 Z" fill="#ff3366" stroke="#cc0044" stroke-width="1"/>
+  <circle cx="15" cy="17" r="2" fill="rgba(255,255,255,0.5)"/>
+  <!-- Right heart eye -->
+  <path d="M44 22 C44 16 36 14 36 20 C36 24 44 30 44 30 C44 30 52 24 52 20 C52 14 44 16 44 22 Z" fill="#ff3366" stroke="#cc0044" stroke-width="1"/>
+  <circle cx="39" cy="17" r="2" fill="rgba(255,255,255,0.5)"/>
+  <!-- Loving smile -->
+  <path d="M22 36 Q32 44 42 36" fill="none" stroke="#2d1a2e" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Left blush -->
+  <ellipse cx="10" cy="30" rx="7" ry="4" fill="#ffb3c8" opacity="0.55"/>
+  <!-- Right blush -->
+  <ellipse cx="54" cy="30" rx="7" ry="4" fill="#ffb3c8" opacity="0.55"/>
+  <!-- Tiny hearts floating -->
+  <path d="M6 14 C6 12 4 11.5 4 13 C4 14.5 6 16 6 16 C6 16 8 14.5 8 13 C8 11.5 6 12 6 14 Z" fill="#ff6688" opacity="0.7"/>
+  <path d="M58 14 C58 12 56 11.5 56 13 C56 14.5 58 16 58 16 C58 16 60 14.5 60 13 C60 11.5 58 12 58 14 Z" fill="#ff6688" opacity="0.7"/>
+</svg>

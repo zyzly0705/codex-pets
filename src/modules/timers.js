@@ -1,34 +1,44 @@
 // timers.js - 所有定时器统一管理（dailyReminders, weather refresh 等）
-import { state, STATES, globalTimers, say, setState, playSound, randomFrom } from './core-state.js';
+import { state, STATES, globalTimers, say, setState, playSound, randomFrom, hasDailyFlag, setDailyFlag } from './core-state.js';
+import { stateMachine } from './state-machine.js';
 import { yoyoMemory, saveMemory, addXP, incrementAchievementStat, trackGrowthStat } from './growth-system.js';
 import { updateEmotion } from './emotion-system.js';
 import { refreshWeatherContext } from './weather-seasonal.js';
 import { resetInteraction } from './interaction.js';
 import { behaviorEngineTick, SPECIAL_DATES, getMothersDay } from './behavior-engine.js';
+import { get, set } from './store-client.js';
 
 // ===== 定时提醒系统 =====
-const DAILY_REMINDERS = [
-  { id: 'work-start', hour: 8, minute: 50, state: 'waving', messages: ['妈妈早上好！今天也要加油鸭～', '新的一天开始啦！妈妈冲鸭！', '妈妈出发上班啦～Yoyo等你回来！'] },
-  { id: 'drink-10', hour: 10, minute: 0, state: 'review', messages: ['妈妈该喝水啦～身体要棒棒的！', '妈妈！水杯空了吧，快去接水！', '喝口水吧～Yoyo提醒妈妈补充水分！', '妈妈别忘了喝水哦～'] },
-  { id: 'lunch', hour: 12, minute: 0, state: 'waving', messages: ['妈妈！该吃饭啦，Yoyo也饿了～', '午饭时间！妈妈吃点好的犒劳自己～', '中午啦，妈妈快去吃饭！不许饿着！'] },
-  { id: 'drink-14', hour: 14, minute: 0, state: 'review', messages: ['妈妈该喝水啦～身体要棒棒的！', '妈妈！水杯空了吧，快去接水！', '下午啦～妈妈喝口水提提神！', '妈妈别忘了喝水哦～'] },
-  { id: 'drink-16', hour: 16, minute: 0, state: 'review', messages: ['妈妈该喝水啦～身体要棒棒的！', '妈妈！Yoyo又来提醒喝水了！', '喝口水吧～妈妈辛苦了～', '妈妈别忘了喝水哦～'] },
-  { id: 'work-end', hour: 18, minute: 0, state: 'jumping', messages: ['妈妈辛苦了～该收工回家陪Yoyo啦！', '下班啦下班啦！妈妈快回来～', '妈妈别加班了！Yoyo想你了～'] },
-  { id: 'dinner', hour: 19, minute: 0, state: 'waving', messages: ['妈妈该吃晚饭了，不许饿肚子哦！', '晚饭时间到！妈妈吃点热乎的～', '妈妈～Yoyo肚子又饿了，一起吃饭吧！'] },
-  { id: 'drink-20', hour: 20, minute: 0, state: 'review', messages: ['妈妈该喝水啦～晚上也要补水哦！', '妈妈！睡前也要喝口水～', '喝口水吧～妈妈今天辛苦了！', '妈妈别忘了喝水哦～Yoyo乖乖提醒！'] }
-];
+// 根据设置动态生成提醒列表（上下班时间可配置）
+function buildDailyReminders() {
+  const s = state.yoyoSettings || {};
+  const startH = s.workStartHour ?? 9;
+  const endH   = s.workEndHour   ?? 18;
+  // 上班提醒提前 10 分钟
+  const startRemindH = startH === 0 ? 23 : startH - 1;
+  const startRemindM = 50;
+  return [
+    { id: 'work-start', hour: startRemindH, minute: startRemindM, state: 'waving', messages: ['妈妈早上好呀！今天也要加油鸭～', '新的一天开始啦！妈妈冲鸭冲鸭！', '妈妈出发上班啦～Yoyo在家乖乖等你回来！'] },
+    { id: 'drink-10',   hour: 10, minute: 0, state: 'review',  messages: ['妈妈该喝水啦～身体要棒棒的！', '妈妈！水杯是不是空了呀？快去接水！', '喝口水吧～Yoyo提醒妈妈补充水分！'] },
+    { id: 'lunch',      hour: 12, minute: 0, state: 'waving',  messages: ['妈妈妈妈！该吃饭啦，Yoyo也饿了～', '午饭时间到！妈妈吃点好的犒劳自己～', '中午啦！妈妈快去吃饭！不许饿着肚子哦！'] },
+    { id: 'drink-14',   hour: 14, minute: 0, state: 'review',  messages: ['下午啦～妈妈喝口水提提神吧！', '妈妈！Yoyo又来提醒喝水啦～', '喝口水嘛～妈妈下午也要元气满满！'] },
+    { id: 'drink-16',   hour: 16, minute: 0, state: 'review',  messages: ['妈妈！Yoyo又来啦～该喝水咯！', '快下班了！喝口水坚持一下下～', '妈妈别忘了喝水哦～Yoyo很认真的在提醒！'] },
+    { id: 'work-end',   hour: endH, minute: 0, state: 'jumping', messages: ['妈妈辛苦啦～该收工回家陪Yoyo啦！', '下班啦下班啦！妈妈快回来快回来～', '妈妈别加班了！Yoyo想你想你～'] },
+    { id: 'dinner',     hour: 19, minute: 0, state: 'waving',  messages: ['妈妈该吃晚饭啦，不许饿肚子哦！', '晚饭时间到！妈妈吃点热乎乎的～', '妈妈～Yoyo肚子又饿了，一起吃饭饭吧！'] },
+    { id: 'drink-20',   hour: 20, minute: 0, state: 'review',  messages: ['妈妈该喝水啦～晚上也要补水哦！', '妈妈！睡前喝口水～对身体好！', '喝口水吧～妈妈今天辛苦啦！'] },
+  ];
+}
 
 // ===== 晚安检测 =====
 export function checkGoodNight() {
   const hour = new Date().getHours();
-  const today = new Date().toDateString();
-  const nightKey = `goodnight_${today}`;
-  if (hour >= 23 && !localStorage.getItem(nightKey)) {
-    localStorage.setItem(nightKey, 'true');
+  const nightKey = `goodnight_${new Date().toDateString()}`;
+  if (hour >= 23 && !hasDailyFlag(nightKey)) {
+    setDailyFlag(nightKey);
     setState('yawning');
     say('妈妈晚安～做个好梦，明天见！', 8000);
     setTimeout(() => {
-      if (!state.isDancing && !state.isFollowing) {
+      if (!stateMachine.isDancing && !stateMachine.isFollowing) {
         setState('idle');
         STATES.idle.fps = 1;
         setTimeout(() => { STATES.idle.fps = 4; }, 30000);
@@ -39,7 +49,7 @@ export function checkGoodNight() {
 
 // ===== 每日提醒检查 =====
 function checkDailyReminders() {
-  if (state.isSleeping) return;
+  if (stateMachine.isSleeping) return;
   const now = new Date();
   const today = now.toDateString();
 
@@ -53,7 +63,7 @@ function checkDailyReminders() {
 
   checkGoodNight();
 
-  for (const reminder of DAILY_REMINDERS) {
+  for (const reminder of buildDailyReminders()) {
     if (currentHour === reminder.hour && currentMinute === reminder.minute && !state.triggeredReminders.has(reminder.id)) {
       if (state.yoyoSettings.reminderFreq === 'low') {
         if (!['work-start', 'lunch', 'work-end'].includes(reminder.id)) continue;
@@ -77,10 +87,11 @@ function checkDailyReminders() {
 // ===== 早安检测 =====
 export function checkGoodMorning() {
   const today = new Date().toDateString();
-  const lastActive = localStorage.getItem('yoyo_last_active_date');
+  // 用 store 的 lastGreetDate 而非旧的 yoyo_last_active_date
+  const lastActive = get('lastGreetDate');
   if (lastActive !== today) {
-    localStorage.setItem('yoyo_last_active_date', today);
-    if (lastActive) {
+    set('lastGreetDate', today);
+    if (lastActive) {   // 不是第一次启动
       setTimeout(() => {
         setState('stretching');
         say('妈妈早安！新的一天开始啦！Yoyo陪你！', 6000);
@@ -97,7 +108,7 @@ export function checkSpecialDate() {
   const year = now.getFullYear();
   const todayKey = `special_date_${year}_${month}_${day}`;
 
-  if (localStorage.getItem(todayKey)) return;
+  if (hasDailyFlag(todayKey)) return;
 
   for (const sd of SPECIAL_DATES) {
     let targetDay = sd.day;
@@ -105,7 +116,7 @@ export function checkSpecialDate() {
       targetDay = getMothersDay(year);
     }
     if (sd.month === month && targetDay === day) {
-      localStorage.setItem(todayKey, 'true');
+      setDailyFlag(todayKey);
       const msg = sd.messages[Math.floor(Math.random() * sd.messages.length)];
       setState('jumping');
       say(msg, 8000);
@@ -133,18 +144,17 @@ export function checkSpecialDate() {
 const MILESTONES = [7, 30, 50, 100, 200, 365, 500, 730, 1000];
 
 export function checkCompanionMilestone() {
-  if (!localStorage.getItem('yoyo_first_day')) {
-    localStorage.setItem('yoyo_first_day', Date.now().toString());
+  if (!get('firstDay')) {
+    set('firstDay', Date.now());
   }
-  const firstDay = parseInt(localStorage.getItem('yoyo_first_day'));
+  const firstDay = get('firstDay');
   const companionDays = Math.floor((Date.now() - firstDay) / 86400000);
-  const today = new Date().toDateString();
-  const milestoneKey = `milestone_${today}`;
+  const milestoneKey = `milestone_${new Date().toDateString()}`;
 
-  if (localStorage.getItem(milestoneKey)) return;
+  if (hasDailyFlag(milestoneKey)) return;
 
   if (MILESTONES.includes(companionDays)) {
-    localStorage.setItem(milestoneKey, 'true');
+    setDailyFlag(milestoneKey);
     setState('clapping');
     playSound('clap');
     say(`Yoyo已经陪妈妈${companionDays}天啦！好开心～`, 8000);
@@ -164,8 +174,8 @@ export function checkCompanionMilestone() {
 // ===== 初始化所有定时器 =====
 export function initTimers() {
   // 陪伴天数初始化
-  if (!localStorage.getItem('yoyo_first_day')) {
-    localStorage.setItem('yoyo_first_day', Date.now().toString());
+  if (!get('firstDay')) {
+    set('firstDay', Date.now());
   }
 
   // 每日提醒检查（立即+延迟5秒启动）

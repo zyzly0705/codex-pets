@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40" viewBox="0 0 64 40">
+  <!-- Vine stem arc -->
+  <path d="M8 26 Q32 10 56 26" fill="none" stroke="#4a8c3f" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Leaves -->
+  <ellipse cx="18" cy="20" rx="5" ry="3" fill="#5aad52" transform="rotate(-30 18 20)"/>
+  <ellipse cx="46" cy="20" rx="5" ry="3" fill="#5aad52" transform="rotate(30 46 20)"/>
+  <ellipse cx="32" cy="14" rx="4" ry="2.5" fill="#5aad52" transform="rotate(-5 32 14)"/>
+  <!-- Flower 1 (left) -->
+  <circle cx="12" cy="24" r="3.5" fill="#ffb3d9" stroke="#d94f8a" stroke-width="1"/>
+  <circle cx="12" cy="24" r="1.5" fill="#ffd700"/>
+  <circle cx="8.5" cy="21" r="2.5" fill="#ffb3d9"/>
+  <circle cx="15.5" cy="21" r="2.5" fill="#ffb3d9"/>
+  <circle cx="8.5" cy="27" r="2.5" fill="#ffb3d9"/>
+  <circle cx="15.5" cy="27" r="2.5" fill="#ffb3d9"/>
+  <circle cx="12" cy="24" r="2" fill="#ff6bac" stroke="#d94f8a" stroke-width="0.8"/>
+  <circle cx="12" cy="24" r="0.8" fill="#ffd700"/>
+  <!-- Flower 2 (center) -->
+  <circle cx="32" cy="12" r="4" fill="#c9aaee" stroke="#8b5fcf" stroke-width="1"/>
+  <circle cx="27.5" cy="12" r="3" fill="#c9aaee"/>
+  <circle cx="36.5" cy="12" r="3" fill="#c9aaee"/>
+  <circle cx="32" cy="7.5" r="3" fill="#c9aaee"/>
+  <circle cx="32" cy="16.5" r="3" fill="#c9aaee"/>
+  <circle cx="32" cy="12" r="2.5" fill="#a87de0" stroke="#8b5fcf" stroke-width="0.8"/>
+  <circle cx="32" cy="12" r="1" fill="#ffd700"/>
+  <!-- Flower 3 (right) -->
+  <circle cx="52" cy="24" r="3.5" fill="#ffb3d9" stroke="#d94f8a" stroke-width="1"/>
+  <circle cx="48.5" cy="21" r="2.5" fill="#ffb3d9"/>
+  <circle cx="55.5" cy="21" r="2.5" fill="#ffb3d9"/>
+  <circle cx="48.5" cy="27" r="2.5" fill="#ffb3d9"/>
+  <circle cx="55.5" cy="27" r="2.5" fill="#ffb3d9"/>
+  <circle cx="52" cy="24" r="2" fill="#ff6bac" stroke="#d94f8a" stroke-width="0.8"/>
+  <circle cx="52" cy="24" r="0.8" fill="#ffd700"/>
+  <!-- Small accent flowers -->
+  <circle cx="22" cy="17" r="2" fill="#87ceeb"/>
+  <circle cx="22" cy="17" r="0.7" fill="#fff"/>
+  <circle cx="42" cy="17" r="2" fill="#87ceeb"/>
+  <circle cx="42" cy="17" r="0.7" fill="#fff"/>
+</svg>

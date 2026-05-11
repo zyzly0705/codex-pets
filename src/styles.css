@@ -27,43 +27,120 @@ body {
   cursor: pointer;
 }
 
-/* 漫画式对话气泡 - 带小三角 */
+/* ===== 漫画式对话气泡 ===== */
 .bubble {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 138px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #2c3444;
-  font-size: 12px;
-  line-height: 1.4;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  left: 50%;
+  bottom: var(--bubble-bottom, 115px);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff5f9 0%, #ffffff 40%, #fff0f5 100%);
+  color: #4a3548;
+  font-size: 11.5px;
+  line-height: 1.5;
+  box-shadow:
+    0 3px 16px rgba(180, 120, 150, 0.18),
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1.5px solid rgba(255, 180, 200, 0.5);
   opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 200ms ease, transform 200ms ease;
+  transform: translateX(-50%) translateY(6px) scale(0.92);
+  transition: opacity 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              bottom 0.3s ease-out;
   pointer-events: none;
   word-break: break-word;
+  min-height: 40px;
+  max-width: calc(100% - 16px);
+  min-width: 140px;
+  white-space: normal;
 }
 
 .bubble.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 
-/* 气泡下方小三角 */
-.bubble::after {
+/* 头像区域 */
+.bubble-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 7px 0 0 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffb6c1 0%, #ff9ab5 100%);
+  box-shadow: 0 1px 4px rgba(200, 120, 150, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 头像上的小表情 */
+.bubble-avatar::after {
   content: '';
   position: absolute;
-  bottom: -6px;
+  top: 5px;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  background:
+    /* 左眼 */
+    radial-gradient(circle at 5px 5px, #4a3548 1.5px, transparent 1.5px),
+    /* 右眼 */
+    radial-gradient(circle at 11px 5px, #4a3548 1.5px, transparent 1.5px),
+    /* 微笑嘴巴 */
+    radial-gradient(ellipse at 8px 11px, #ff6b8a 2px, transparent 2px);
+  border-radius: 50%;
+}
+
+/* 气泡主体 */
+.bubble-body {
+  flex: 1;
+  padding: 8px 10px 8px 4px;
+  min-width: 0;
+}
+
+.bubble-text {
+  display: inline;
+  letter-spacing: 0.02em;
+}
+
+/* 打字机光标 */
+.bubble-text.typing::after {
+  content: '|';
+  display: inline;
+  animation: cursor-blink 0.6s step-end infinite;
+  color: #ff8fab;
+  font-weight: 300;
+  margin-left: 1px;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* 气泡尾巴 - 指向下方角色 */
+.bubble-tail {
+  position: absolute;
+  bottom: -7px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 6px solid rgba(255, 255, 255, 0.95);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid #fff5f9;
+  filter: drop-shadow(0 1px 1px rgba(180, 120, 150, 0.15));
+}
+
+/* 消失动画 */
+.bubble.hiding {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-4px) scale(0.95);
+  transition: opacity 0.18s ease-in, transform 0.18s ease-in;
 }
 
 /* 食物按钮 - 默认隐藏，饥饿时才出现 */

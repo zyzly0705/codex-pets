@@ -4,6 +4,90 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { autoUpdater } = require('electron-updater');
 
+// ===== 统一文件 Store =====
+const dataPath = path.join(app.getPath('userData'), 'yoyo-data.json');
+
+const DEFAULT_DATA = {
+  settings: {
+    autoStart: true, soundEnabled: true, reminderFreq: 'medium',
+    activity: 'normal', workStartHour: 9, workEndHour: 18,
+  },
+  growth: {
+    xp: 0, level: 1, path: null, lastLoginDate: '',
+    pathStats: { interactionCount: 0, companionTime: 0, workTime: 0 },
+  },
+  memory: {
+    startTimes: [], endTimes: [], lastPetTime: null, lastFedTime: null,
+    lastWhipTime: null, totalPetCount: 0, totalFedCount: 0, totalWhipCount: 0,
+    hourlyActivity: Array(24).fill(0), totalActiveDays: 0,
+    consecutiveDays: 0, lastActiveDate: null,
+  },
+  checkin: { streak: 0, lastDate: '', totalDays: 0 },
+  achievements: {
+    unlocked: [],
+    stats: {
+      petCount: 0, overtimeCount: 0, cloneTriggered: false,
+      weatherRemindCount: 0, featuresUsed: 0, totalHours: 0,
+      danceCount: 0, climbCount: 0,
+    },
+  },
+  dailyFlags:   {},
+  firstDay:     null,
+  lastGreetDate: null,
+  muted:        false,
+  shownTips:    [],
+  outfit:       { hat: 'ribbon', accessory: 'none', face: 'none' },
+  usedFeatures: [],
+  hasSeenGuide: false,
+  _migrated:    false,
+};
+
+let petData = { ...DEFAULT_DATA };
+
+function mergeDeep(target, source) {
+  const result = { ...target };
+  for (const key of Object.keys(source)) {
+    if (
+      source[key] !== null &&
+      typeof source[key] === 'object' &&
+      !Array.isArray(source[key]) &&
+      target[key] !== null &&
+      typeof target[key] === 'object'
+    ) {
+      result[key] = mergeDeep(target[key], source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
+function loadData() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    petData = mergeDeep(DEFAULT_DATA, raw);
+    // hourlyActivity 长度校验
+    if (!Array.isArray(petData.memory.hourlyActivity) || petData.memory.hourlyActivity.length !== 24) {
+      petData.memory.hourlyActivity = Array(24).fill(0);
+    }
+  } catch {
+    // 首次启动或文件损坏：尝试读旧 settings 文件做向前兼容
+    petData = { ...DEFAULT_DATA };
+    try {
+      const oldSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+      petData.settings = { ...petData.settings, ...oldSettings };
+    } catch { /* 没有旧文件，用默认值 */ }
+  }
+}
+
+function saveData() {
+  try {
+    fs.writeFileSync(dataPath, JSON.stringify(petData, null, 2));
+  } catch (e) {
+    console.error('[Store] 保存失败:', e.message);
+  }
+}
+
 // ===== 窗口扫描模块 =====
 let windowManager = null;
 try {
@@ -245,6 +329,9 @@ function createTray() {
   });
 }
 
+// ===== 当前激活的 spritesheet 路径（由 renderer 切换宠物时更新）=====
+let activeSpritesheetPath = null;
+
 // ===== 窗口关闭行为：隐藏到托盘 =====
 app.isQuitting = false;
 
@@ -253,7 +340,10 @@ app.on('before-quit', () => {
 });
 
 app.whenReady().then(() => {
+  loadData();  // 从文件加载持久化数据
   ensureDefaultPet();
+  // 初始化默认 spritesheet 路径
+  activeSpritesheetPath = path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
   createWindow();
   createTray();
 
@@ -328,6 +418,11 @@ autoUpdater.on('update-downloaded', (info) => {
 
 ipcMain.handle('pets:list', () => listPets());
 
+// 渲染进程切换宠物时通知主进程更新 spritesheet 路径
+ipcMain.handle('pet:setActiveSpritesheet', (_, spritesheetPath) => {
+  activeSpritesheetPath = spritesheetPath;
+});
+
 ipcMain.handle('window:get-bounds', () => {
   const workArea = screen.getPrimaryDisplay().workArea;
   const bounds = mainWindow.getBounds();
@@ -377,19 +472,8 @@ let menuState = { dancing: false, following: false, sleeping: false };
 // ===== 设置窗口 =====
 let settingsWindow = null;
 
+// 旧 settings 文件路径（仅供 loadData 向前兼容读取，不再写入）
 const settingsPath = path.join(app.getPath('userData'), 'yoyo-settings.json');
-
-function loadSettings() {
-  try {
-    return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-  } catch {
-    return { autoStart: true, soundEnabled: true, reminderFreq: 'medium', activity: 'normal' };
-  }
-}
-
-function saveSettings(settings) {
-  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-}
 
 function openSettings() {
   if (settingsWindow) {
@@ -411,24 +495,51 @@ function openSettings() {
 }
 
 ipcMain.handle('settings:load', () => {
-  return loadSettings();
+  return petData.settings;
 });
 
 ipcMain.handle('settings:save', (_, settings) => {
-  saveSettings(settings);
-  // 应用开机自启设置
+  petData.settings = settings;
+  saveData();
   app.setLoginItemSettings({ openAtLogin: settings.autoStart !== false });
-  // 通知 renderer 更新
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('settings-changed', settings);
   }
 });
 
 ipcMain.handle('settings:reset', () => {
-  // 通知 renderer 清除 localStorage
+  petData = { ...DEFAULT_DATA };
+  saveData();
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('settings-reset');
   }
+});
+
+// stats:get 现在直接读 petData，不再 executeJavaScript 跨窗口读 localStorage
+ipcMain.handle('stats:get', () => {
+  const growth  = petData.growth;
+  const memory  = petData.memory;
+  const firstDay = petData.firstDay || Date.now();
+  return {
+    xp:             growth.xp  || 0,
+    level:          growth.level || 1,
+    path:           growth.path  || null,
+    consecutiveDays: memory.consecutiveDays || 0,
+    companionDays:  Math.floor((Date.now() - firstDay) / 86400000),
+  };
+});
+
+// ===== 统一 Store IPC =====
+ipcMain.handle('store:load', () => petData);
+
+ipcMain.handle('store:set', (_, key, value) => {
+  petData[key] = value;
+  saveData();
+});
+
+ipcMain.handle('store:batch', (_, updates) => {
+  Object.assign(petData, updates);
+  saveData();
 });
 
 // 监听 renderer 发来的状态同步
@@ -686,6 +797,13 @@ function triggerCloneEffect() {
   cloneWin.setIgnoreMouseEvents(true);
   cloneWin.setAlwaysOnTop(true, 'screen-saver');
   cloneWin.loadFile(path.join(__dirname, 'clone-effect.html'));
+
+  const spritePath = activeSpritesheetPath || path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
+  const spriteUrl = 'file://' + spritePath.replaceAll('\\', '/');
+  cloneWin.webContents.once('did-finish-load', () => {
+    cloneWin.webContents.executeJavaScript(`startCloneEffect(${JSON.stringify(spriteUrl)});`);
+  });
+
   // 7秒保险关闭
   setTimeout(() => {
     if (!cloneWin.isDestroyed()) cloneWin.close();
@@ -713,10 +831,20 @@ function triggerGiantEffect() {
   giantWin.loadFile(path.join(__dirname, 'giant-effect.html'));
 
   const mainBounds = mainWindow.getBounds();
+  // 角色视觉中心在窗口内的实际偏移量：
+  // canvas 在窗口 bottom:10px，高130px → canvas顶部 = 260-10-130 = 120
+  // canvas 内绘制：DRAW_SCALE=0.75，drawH=97.5，offsetY=32.5，角色中心=81.25
+  // 所以角色中心 Y = 120 + 81.25 ≈ 201，X = window.width/2 = 100
+  const charCenterX = mainBounds.x + 100;
+  const charCenterY = mainBounds.y + 201;
+  const giantSpritePath = activeSpritesheetPath || path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
+  const giantSpriteUrl = 'file://' + giantSpritePath.replaceAll('\\', '/');
   giantWin.webContents.once('did-finish-load', () => {
     giantWin.webContents.executeJavaScript(`
       window.petPosition = { x: ${mainBounds.x}, y: ${mainBounds.y} };
       window.petSize = { w: ${mainBounds.width}, h: ${mainBounds.height} };
+      window.petCharCenter = { x: ${charCenterX}, y: ${charCenterY} };
+      window.spritesheetSrc = ${JSON.stringify(giantSpriteUrl)};
       startGiantEffect();
     `);
   });

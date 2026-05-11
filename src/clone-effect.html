@@ -15,9 +15,13 @@
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
 
-  // 全屏 canvas
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  // HiDPI 支持：缓冲区用物理像素，绘制坐标用逻辑像素
+  const dpr = window.devicePixelRatio || 1;
+  const logW = window.innerWidth;
+  const logH = window.innerHeight;
+  canvas.width = Math.round(logW * dpr);
+  canvas.height = Math.round(logH * dpr);
+  ctx.scale(dpr, dpr);
 
   // Spritesheet 配置
   const COLS = 8;
@@ -27,7 +31,6 @@
   const TOTAL_DURATION = 6000; // 6秒总时长
 
   const sprite = new Image();
-  sprite.src = '../assets/xiao-hong/spritesheet.webp';
 
   // 分身数据
   let clones = [];
@@ -76,21 +79,18 @@
     return positions;
   }
 
-  sprite.onload = function() {
-    initClones();
-    startTime = performance.now();
-    animating = true;
-    requestAnimationFrame(animate);
-  };
-
   function initClones() {
     const count = 12 + Math.floor(Math.random() * 5); // 12-16个
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+    const cx = logW / 2;
+    const cy = logH / 2;
 
-    // 随机选择不同的行来取帧
-    const availableRows = [];
-    for (let r = 0; r < ROWS; r++) availableRows.push(r);
+    // 仅使用视觉效果好的行（活泼/欢快动作），及其各自的实际帧数
+    const ROW_FRAMES = {
+      0:6, 1:8, 2:8, 3:4, 4:5, 6:6, 7:6, 8:6,
+      11:4, 12:5, 15:5, 16:8, 17:8, 18:8, 19:8,
+      21:8, 23:8, 24:8, 25:8
+    };
+    const availableRows = Object.keys(ROW_FRAMES).map(Number);
     // 打乱
     for (let i = availableRows.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -101,7 +101,7 @@
 
     for (let i = 0; i < count; i++) {
       const row = availableRows[i % availableRows.length];
-      const col = Math.floor(Math.random() * 3); // 取前3帧随机
+      const col = Math.floor(Math.random() * ROW_FRAMES[row]); // 用该行实际帧数，避免越界出现透明帧
 
       // 爆炸散开的目标位置（屏幕随机位置）
       const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
@@ -147,10 +147,10 @@
       return;
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logW, logH);
 
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+    const cx = logW / 2;
+    const cy = logH / 2;
 
     if (elapsed < 1000) {
       // 阶段1：爆炸散开（0-1s）
@@ -209,6 +209,7 @@
       ctx.translate(c.x, c.y);
       ctx.rotate(c.rotation);
       ctx.scale(c.scale, c.scale);
+      ctx.imageSmoothingEnabled = false;
       // 从 spritesheet 裁剪对应帧
       ctx.drawImage(
         sprite,
@@ -223,10 +224,27 @@
     requestAnimationFrame(animate);
   }
 
-  // 若图片加载失败，5秒后关闭
-  sprite.onerror = function() {
-    setTimeout(function() { try { window.close(); } catch(e) {} }, 5000);
+  // 启动入口（由主进程调用）
+  window.startCloneEffect = function(spriteSrc) {
+    sprite.onload = function() {
+      clones = [];
+      initClones();
+      startTime = performance.now();
+      animating = true;
+      requestAnimationFrame(animate);
+    };
+    sprite.onerror = function() {
+      setTimeout(function() { try { window.close(); } catch(e) {} }, 5000);
+    };
+    sprite.src = spriteSrc;
   };
+
+  // 若5秒内未收到启动信号，自动关闭
+  setTimeout(function() {
+    if (!animating) {
+      try { window.close(); } catch(e) {}
+    }
+  }, 5000);
 })();
 </script>
 </body>

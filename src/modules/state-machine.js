@@ -74,9 +74,15 @@ export class StateMachine {
     return this.locks.size > 0;
   }
 
-  get isIdle() {
-    return this.actionState === ACTION_STATES.IDLE && this.globalMode === GLOBAL_MODES.INTERACTIVE;
-  }
+  get isIdle()      { return this.actionState === ACTION_STATES.IDLE && this.globalMode === GLOBAL_MODES.INTERACTIVE; }
+  get isDancing()   { return this.actionState === ACTION_STATES.DANCING; }
+  get isFollowing() { return this.actionState === ACTION_STATES.FOLLOWING; }
+  get isSleeping()  { return this.globalMode === GLOBAL_MODES.SLEEP; }
+  get isWhipping()  { return this.actionState === ACTION_STATES.WHIP; }
+  get isDropping()  { return this.actionState === ACTION_STATES.DROPPING; }
+  get isDragging()  { return this.actionState === ACTION_STATES.DRAGGING; }
+  get isClimbing()  { return this.actionState === ACTION_STATES.CLIMBING; }
+  get isFeeding()   { return this.actionState === ACTION_STATES.FEEDING; }
 
   isInGroup(groupName) {
     const group = this.exclusiveGroups[groupName];

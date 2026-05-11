@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="44" viewBox="0 0 80 44">
+  <defs>
+    <linearGradient id="wingL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(255,255,255,0)" />
+      <stop offset="70%" stop-color="rgba(220,240,255,0.85)" />
+      <stop offset="100%" stop-color="rgba(200,220,255,0.7)" />
+    </linearGradient>
+    <linearGradient id="wingR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="rgba(255,255,255,0)" />
+      <stop offset="70%" stop-color="rgba(220,240,255,0.85)" />
+      <stop offset="100%" stop-color="rgba(200,220,255,0.7)" />
+    </linearGradient>
+  </defs>
+  <!-- Left wing (back layer) -->
+  <path d="M36 22 Q22 6 4 10 Q14 20 36 26 Z" fill="url(#wingL)" stroke="rgba(180,210,255,0.6)" stroke-width="1"/>
+  <!-- Left wing feather lines -->
+  <path d="M34 24 Q20 14 8 14" fill="none" stroke="rgba(180,210,255,0.5)" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M34 26 Q22 20 12 22" fill="none" stroke="rgba(180,210,255,0.5)" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M35 28 Q24 26 16 30" fill="none" stroke="rgba(180,210,255,0.5)" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Left wing main shape -->
+  <path d="M36 22 Q18 10 4 16 Q12 28 30 32 Q34 30 36 26 Z" fill="url(#wingL)" stroke="rgba(160,200,255,0.7)" stroke-width="1.2"/>
+  <!-- Right wing (back layer) -->
+  <path d="M44 22 Q58 6 76 10 Q66 20 44 26 Z" fill="url(#wingR)" stroke="rgba(180,210,255,0.6)" stroke-width="1"/>
+  <!-- Right wing feather lines -->
+  <path d="M46 24 Q60 14 72 14" fill="none" stroke="rgba(180,210,255,0.5)" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M46 26 Q58 20 68 22" fill="none" stroke="rgba(180,210,255,0.5)" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M45 28 Q56 26 64 30" fill="none" stroke="rgba(180,210,255,0.5)" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Right wing main shape -->
+  <path d="M44 22 Q62 10 76 16 Q68 28 50 32 Q46 30 44 26 Z" fill="url(#wingR)" stroke="rgba(160,200,255,0.7)" stroke-width="1.2"/>
+  <!-- Wing base glow -->
+  <ellipse cx="40" cy="24" rx="6" ry="4" fill="rgba(255,255,255,0.4)"/>
+</svg>

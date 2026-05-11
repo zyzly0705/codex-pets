@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40" viewBox="0 0 64 40">
+  <!-- Left ear outer -->
+  <path d="M12 36 L6 10 L24 28 Z" fill="#f0e0e0" stroke="#333" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- Left ear inner -->
+  <path d="M13 32 L9 16 L21 27 Z" fill="#ffb3cc"/>
+  <!-- Left ear highlight -->
+  <path d="M10 18 L8 22" stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linecap="round"/>
+  <!-- Right ear outer -->
+  <path d="M52 36 L58 10 L40 28 Z" fill="#f0e0e0" stroke="#333" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- Right ear inner -->
+  <path d="M51 32 L55 16 L43 27 Z" fill="#ffb3cc"/>
+  <!-- Right ear highlight -->
+  <path d="M54 18 L56 22" stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linecap="round"/>
+  <!-- Small tuft inside left ear -->
+  <path d="M13 28 Q11 24 10 22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <!-- Small tuft inside right ear -->
+  <path d="M51 28 Q53 24 54 22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+</svg>

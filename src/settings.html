@@ -4,63 +4,120 @@
   <meta charset="utf-8">
   <title>Yoyo 设置</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; background: #fff5f5; }
-    h2 { color: #e91e63; margin-bottom: 20px; }
-    .setting-group { margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .setting-group label { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-    .setting-group .desc { font-size: 12px; color: #888; margin-top: 4px; }
-    select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; }
-    .toggle { position: relative; width: 40px; height: 22px; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; background: #fff5f5; margin: 0; }
+    h2 { color: #e91e63; margin: 0 0 14px; font-size: 18px; }
+
+    .card { margin-bottom: 10px; padding: 12px 14px; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .card-title { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+
+    .row { display: flex; align-items: center; justify-content: space-between; min-height: 28px; }
+    .row + .row { margin-top: 8px; }
+    .label { font-size: 13px; color: #333; }
+    .desc { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+    /* toggle */
+    .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle .slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 22px; transition: 0.3s; }
-    .toggle .slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle .slider { position: absolute; inset: 0; background: #ccc; border-radius: 20px; transition: .25s; }
+    .toggle .slider:before { content: ''; position: absolute; width: 16px; height: 16px; left: 2px; top: 2px; background: white; border-radius: 50%; transition: .25s; }
     .toggle input:checked + .slider { background: #e91e63; }
-    .toggle input:checked + .slider:before { transform: translateX(18px); }
-    .danger-btn { margin-top: 20px; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .toggle input:checked + .slider:before { transform: translateX(16px); }
+
+    select { padding: 3px 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px; color: #333; background: white; }
+
+    /* work hours */
+    .time-row { display: flex; align-items: center; gap: 6px; }
+    .time-row span { font-size: 12px; color: #888; }
+    .time-sel { padding: 3px 5px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px; background: white; color: #333; }
+
+    /* stats */
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-box { background: #fff5f5; border-radius: 8px; padding: 8px 10px; text-align: center; }
+    .stat-num { font-size: 20px; font-weight: 700; color: #e91e63; line-height: 1; }
+    .stat-label { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .level-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .level-badge { background: linear-gradient(135deg, #e91e63, #ff6090); color: white; border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 600; }
+    .xp-bar-wrap { flex: 1; background: #f0f0f0; border-radius: 6px; height: 8px; overflow: hidden; }
+    .xp-bar-fill { height: 100%; background: linear-gradient(90deg, #e91e63, #ff6090); border-radius: 6px; transition: width .4s; }
+    .xp-text { font-size: 11px; color: #aaa; text-align: right; margin-top: 2px; }
+
+    /* danger */
+    .danger-btn { width: 100%; padding: 9px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 4px; }
     .danger-btn:hover { background: #d32f2f; }
   </style>
 </head>
 <body>
   <h2>🌸 Yoyo 设置</h2>
 
-  <div class="setting-group">
-    <label>
-      <span>开机自启</span>
-      <span class="toggle"><input type="checkbox" id="autoStart" checked><span class="slider"></span></span>
-    </label>
-    <div class="desc">开机时自动启动 Yoyo</div>
+  <!-- 成长数据 -->
+  <div class="card">
+    <div class="card-title">Yoyo 成长</div>
+    <div class="level-row">
+      <div class="level-badge" id="levelBadge">Lv.1 小豆芽</div>
+      <div style="flex:1">
+        <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
+        <div class="xp-text" id="xpText">0 / 50 XP</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num" id="statDays">—</div><div class="stat-label">陪伴天数</div></div>
+      <div class="stat-box"><div class="stat-num" id="statStreak">—</div><div class="stat-label">连续签到</div></div>
+    </div>
   </div>
 
-  <div class="setting-group">
-    <label>
-      <span>音效</span>
-      <span class="toggle"><input type="checkbox" id="soundEnabled" checked><span class="slider"></span></span>
-    </label>
-    <div class="desc">Yoyo 的脚步声、笑声等</div>
+  <!-- 基础设置 -->
+  <div class="card">
+    <div class="card-title">基础</div>
+    <div class="row">
+      <div><div class="label">开机自启</div><div class="desc">开机时自动启动 Yoyo</div></div>
+      <label class="toggle"><input type="checkbox" id="autoStart" checked><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div><div class="label">音效</div><div class="desc">脚步声、笑声等</div></div>
+      <label class="toggle"><input type="checkbox" id="soundEnabled" checked><span class="slider"></span></label>
+    </div>
   </div>
 
-  <div class="setting-group">
-    <label>
-      <span>提醒频率</span>
+  <!-- 提醒设置 -->
+  <div class="card">
+    <div class="card-title">提醒</div>
+    <div class="row">
+      <div class="label">提醒频率</div>
       <select id="reminderFreq">
-        <option value="high">高（全部提醒）</option>
-        <option value="medium" selected>中（主要提醒）</option>
-        <option value="low">低（仅重要提醒）</option>
+        <option value="high">高（全部）</option>
+        <option value="medium" selected>中（主要）</option>
+        <option value="low">低（重要）</option>
       </select>
-    </label>
-    <div class="desc">喝水、吃饭等生活提醒的频率</div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <div class="label">上班时间</div>
+      <div class="time-row">
+        <select class="time-sel" id="workStartHour"></select>
+        <span>:00</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">下班时间</div>
+      <div class="time-row">
+        <select class="time-sel" id="workEndHour"></select>
+        <span>:00</span>
+      </div>
+    </div>
+    <div class="desc" style="margin-top:6px;">Yoyo 会在上班前 10 分钟和下班时提醒你</div>
   </div>
 
-  <div class="setting-group">
-    <label>
-      <span>Yoyo 活跃度</span>
+  <!-- 行为设置 -->
+  <div class="card">
+    <div class="card-title">行为</div>
+    <div class="row">
+      <div><div class="label">Yoyo 活跃度</div><div class="desc">主动说话和行动的频率</div></div>
       <select id="activity">
         <option value="quiet">安静</option>
         <option value="normal" selected>正常</option>
         <option value="active">活泼</option>
       </select>
-    </label>
-    <div class="desc">影响 Yoyo 主动说话和行动的频率</div>
+    </div>
   </div>
 
   <button class="danger-btn" id="resetBtn">重置所有数据</button>
@@ -68,29 +125,68 @@
   <script>
     const { ipcRenderer } = require('electron');
 
-    // 加载设置
-    ipcRenderer.invoke('settings:load').then(settings => {
-      document.getElementById('autoStart').checked = settings.autoStart !== false;
-      document.getElementById('soundEnabled').checked = settings.soundEnabled !== false;
-      document.getElementById('reminderFreq').value = settings.reminderFreq || 'medium';
-      document.getElementById('activity').value = settings.activity || 'normal';
-    });
-
-    // 保存设置
-    function save() {
-      const settings = {
-        autoStart: document.getElementById('autoStart').checked,
-        soundEnabled: document.getElementById('soundEnabled').checked,
-        reminderFreq: document.getElementById('reminderFreq').value,
-        activity: document.getElementById('activity').value
-      };
-      ipcRenderer.invoke('settings:save', settings);
+    // ===== 填充小时选项 =====
+    function fillHourSelect(id, defaultVal) {
+      const sel = document.getElementById(id);
+      for (let h = 6; h <= 23; h++) {
+        const opt = document.createElement('option');
+        opt.value = h;
+        opt.textContent = `${h}:00`;
+        if (h === defaultVal) opt.selected = true;
+        sel.appendChild(opt);
+      }
     }
+    fillHourSelect('workStartHour', 9);
+    fillHourSelect('workEndHour', 18);
 
-    document.querySelectorAll('input, select').forEach(el => {
-      el.addEventListener('change', save);
+    // ===== 直接从统一 Store 加载所有数据 =====
+    ipcRenderer.invoke('store:load').then(data => {
+      const s = data.settings || {};
+      document.getElementById('autoStart').checked    = s.autoStart !== false;
+      document.getElementById('soundEnabled').checked = s.soundEnabled !== false;
+      document.getElementById('reminderFreq').value   = s.reminderFreq || 'medium';
+      document.getElementById('activity').value       = s.activity || 'normal';
+      document.getElementById('workStartHour').value  = s.workStartHour ?? 9;
+      document.getElementById('workEndHour').value    = s.workEndHour ?? 18;
+
+      // ===== 成长数据（直接从 store 读，无需 executeJavaScript）=====
+      const LEVEL_NAMES = ['小豆芽', '小花苞', '小蝴蝶', '小公主', '小天使'];
+      const LEVEL_XP    = [0, 50, 150, 350, 700];
+
+      const growth  = data.growth  || { xp: 0, level: 1 };
+      const memory  = data.memory  || { consecutiveDays: 0 };
+      const firstDay = data.firstDay || Date.now();
+      const companionDays = Math.floor((Date.now() - firstDay) / 86400000);
+
+      const lv = Math.min(growth.level || 1, 5);
+      const lvName = LEVEL_NAMES[lv - 1] || '小豆芽';
+      document.getElementById('levelBadge').textContent = `Lv.${lv} ${lvName}`;
+      const curXP  = growth.xp || 0;
+      const minXP  = LEVEL_XP[lv - 1] || 0;
+      const nextXP = LEVEL_XP[lv] || LEVEL_XP[LEVEL_XP.length - 1];
+      const pct = lv >= 5 ? 100 : Math.min(100, Math.round((curXP - minXP) / (nextXP - minXP) * 100));
+      document.getElementById('xpBar').style.width = pct + '%';
+      document.getElementById('xpText').textContent = lv >= 5
+        ? `${curXP} XP（满级）`
+        : `${curXP - minXP} / ${nextXP - minXP} XP`;
+      document.getElementById('statDays').textContent   = `${companionDays}`;
+      document.getElementById('statStreak').textContent = `${memory.consecutiveDays ?? 0}`;
     });
 
+    // ===== 保存设置 =====
+    function save() {
+      ipcRenderer.invoke('settings:save', {
+        autoStart:      document.getElementById('autoStart').checked,
+        soundEnabled:   document.getElementById('soundEnabled').checked,
+        reminderFreq:   document.getElementById('reminderFreq').value,
+        activity:       document.getElementById('activity').value,
+        workStartHour:  parseInt(document.getElementById('workStartHour').value),
+        workEndHour:    parseInt(document.getElementById('workEndHour').value),
+      });
+    }
+    document.querySelectorAll('input, select').forEach(el => el.addEventListener('change', save));
+
+    // ===== 重置 =====
     document.getElementById('resetBtn').addEventListener('click', () => {
       if (confirm('确定要重置所有数据吗？Yoyo 的记忆和成长都会消失...')) {
         ipcRenderer.invoke('settings:reset');

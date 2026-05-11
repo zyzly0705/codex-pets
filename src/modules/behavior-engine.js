@@ -3,6 +3,7 @@ import { state, WEATHER_CODES, randomFrom, say, setState, speechQueue, feedBtn, 
 import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
 import { applyEmotionEvent, applyEmotionModifier, yoyoEmotion } from './emotion-system.js';
 import { yoyoGrowth, yoyoMemory, getLevel, applyGrowthModifiers, incrementAchievementStat, trackFeatureUsed, trackGrowthStat, daysSinceLastPet, hoursSinceLastWhip, isInBusyHour, MEMORY_LINES } from './growth-system.js';
+import { set } from './store-client.js';
 import { startClimbing, CLIMB_START_MESSAGES } from './climbing.js';
 import { showHungerUI } from './interaction.js';
 import { checkSeasonalParticleTrigger } from './weather-seasonal.js';
@@ -15,42 +16,42 @@ export const petNeeds = {
   playfulness: 50,
 };
 
-// ===== 消息数组 =====
+// ===== 消息数组（拟真4-5岁小女孩语气） =====
 export const BORED_MESSAGES = [
-  '妈妈在忙吗？Yoyo乖乖等着～',
-  '...无聊...妈妈理理Yoyo嘛～',
-  'Yoyo好想妈妈注意Yoyo呀...',
-  '妈妈～看看Yoyo嘛～',
-  '妈妈在哪里呀？'
+  '妈妈～你在干嘛呀？Yoyo好无聊哦...',
+  '唔…妈妈理理Yoyo嘛…',
+  '妈妈妈妈！看看Yoyo呀～',
+  '好无聊好无聊…妈妈陪Yoyo玩一会儿好不好？',
+  '妈妈在哪里呀？Yoyo想妈妈了…',
 ];
 
 export const SLEEPY_MESSAGES = [
-  '呼...Yoyo好困呀...打个小盹...',
-  '啊～好困好困...',
-  '眼皮好重…Yoyo要睡着了…',
-  '妈妈...Yoyo困了...zzZ...',
-  '打个盹盹…妈妈别走开哦…'
+  '呼…Yoyo困困…打个盹盹…',
+  '啊～好困呀…眼睛都睁不开了…',
+  '眼皮好重…Yoyo要睡着了…zzZ…',
+  '妈妈…Yoyo困了…就睡一小会儿…',
+  '呼噜…呼噜…（Yoyo睡着了）',
 ];
 
 export const HUNGER_MESSAGES = [
-  '妈妈～Yoyo的小肚子咕咕叫了～',
-  '妈妈～Yoyo饿了想吃东西～',
+  '妈妈～Yoyo的小肚子咕咕叫啦！',
+  '妈妈妈妈！Yoyo饿了想吃东西～',
   '肚子好饿呀…妈妈给Yoyo吃点什么嘛～',
-  '好想吃零食…妈妈～',
-  '妈妈！Yoyo闻到好香的味道了！'
+  '好想吃零食…妈妈～求求你啦～',
+  '咦？Yoyo闻到好香的味道！是什么呀？',
 ];
 
 // WPS工作陪伴文案
 function getWpsCompanionSaying() {
   const sayings = [
     '妈妈在备课呀～Yoyo乖乖不吵你～',
-    '妈妈加油写！Yoyo在旁边看着你～',
-    '妈妈好认真呀！Yoyo也要学妈妈～',
-    '妈妈在做PPT吗？好厉害！',
-    'Yoyo安静陪着妈妈工作～',
-    '妈妈写的字好漂亮！Yoyo也想写～',
-    '妈妈备课辛苦啦～等下Yoyo给你捶背！',
-    '妈妈的学生好幸福，有这么认真的老师～'
+    '妈妈加油！Yoyo在旁边安安静静陪着你～',
+    '妈妈好认真呀！Yoyo也要学妈妈当个好学生～',
+    '妈妈在做PPT吗？好厉害好厉害！',
+    '嘘…Yoyo不出声，让妈妈专心工作～',
+    '妈妈写的字好漂亮！Yoyo也想学写字～',
+    '妈妈备课辛苦啦～等下Yoyo给你捶捶背！',
+    '妈妈的学生好幸福呀，有这么认真的老师～',
   ];
   return sayings[Math.floor(Math.random() * sayings.length)];
 }
@@ -58,33 +59,41 @@ function getWpsCompanionSaying() {
 // 行为台词
 const BEHAVIOR_LINES = {
   idle: [],
+  bashful: [
+    '嘿嘿～妈妈看Yoyo干什么嘛，好害羞哦～',
+    '妈妈你一直看着Yoyo，Yoyo脸红了啦～',
+    '哼哼～妈妈最好啦！（偷偷开心）',
+    '嘿嘿嘿～今天的Yoyo特别特别开心！',
+    '妈妈妈妈！Yoyo好开心好开心！嘻嘻～',
+    '妈妈好厉害！Yoyo好崇拜妈妈哦～',
+  ],
   walk: [
-    '妈妈～Yoyo散步去咯！',
-    '走走看看有什么好玩的～',
-    'Yoyo出去溜达一圈～',
-    '嘿嘿，到处逛逛～',
-    '活动活动小腿腿！'
+    '妈妈～Yoyo散个步就回来！',
+    '走一走看一看～有什么好玩的呀？',
+    'Yoyo出去溜达一小圈～',
+    '嘿嘿，到处逛逛～小腿腿活动活动！',
+    '散步散步～外面的世界好大呀～',
   ],
   wave: [
-    '妈妈在忙吗？Yoyo打个招呼～',
-    '嗨！妈妈看到Yoyo了吗～',
-    '妈妈！Yoyo在这里哦！',
-    '妈妈别忘了Yoyo呀～',
-    '东看看西看看～'
+    '妈妈！Yoyo在这里哦～',
+    '嗨嗨！妈妈看到Yoyo了吗？',
+    '妈妈别忘了Yoyo呀～跟你挥挥手～',
+    '东看看西看看…妈妈在干什么呢？',
+    'Yoyo跟妈妈打个招呼！嗨～',
   ],
   dance: [
-    '妈妈看！Yoyo会跳舞了！',
-    '啦啦啦～跳舞好开心！',
-    '来一段即兴表演给妈妈看～',
-    '音乐响起！蹦蹦蹦～',
-    'Yoyo超会跳舞的！妈妈看看！'
+    '妈妈快看！Yoyo会跳舞啦！',
+    '啦啦啦～转圈圈～跳舞好开心呀！',
+    '来一段表演给妈妈看！噔噔噔～',
+    '蹦恰恰蹦恰恰～Yoyo跳得好不好？',
+    'Yoyo最会跳舞了！妈妈快夸我～',
   ],
   sleep: [
-    '呼...Yoyo好困呀...打个小盹...',
-    '眼皮好重…zzZ…',
-    '趁妈妈不注意偷偷睡一会…',
-    '困了困了…妈妈晚安…',
-    '休息一下下…妈妈别走开哦…'
+    '呼…Yoyo好困呀…就睡一小会儿…',
+    '眼皮好重…zzZ…Yoyo睡着啦…',
+    '趁妈妈不注意偷偷眯一下…zzZ…',
+    '困困…妈妈晚安…Yoyo先睡啦…',
+    '休息一下下…妈妈别走开哦…呼…',
   ],
   climb: CLIMB_START_MESSAGES,
   hungry: HUNGER_MESSAGES,
@@ -93,44 +102,44 @@ const BEHAVIOR_LINES = {
 // 玩耍行为文案
 function getSwingSaying() {
   const sayings = [
-    '妈妈看！Yoyo在荡秋千～好高好高！',
-    '推我推我！再高一点～嘻嘻',
-    '妈妈～风吹到Yoyo脸上凉凉的～',
-    'Yoyo要荡到天上去啦！',
-    '好好玩呀～妈妈也来荡嘛～'
+    '妈妈快看！Yoyo在荡秋千～好高好高！',
+    '推我推我！再高一点点嘛～嘻嘻～',
+    '妈妈～风呼呼吹到Yoyo脸上啦，凉凉的～',
+    '哇～Yoyo要飞到天上去了！',
+    '好好玩呀～妈妈也来荡嘛～一起一起！',
   ];
   return sayings[Math.floor(Math.random() * sayings.length)];
 }
 
 function getDigSandSaying() {
   const sayings = [
-    '妈妈你看！Yoyo挖到宝藏啦！',
-    '这里有只小虫虫～好可爱',
-    '妈妈～Yoyo在种花花给你～',
-    '挖呀挖呀挖～种小小的种子～',
-    'Yoyo要给妈妈挖一个大城堡！'
+    '妈妈你看！Yoyo挖到宝藏啦！是什么呀？',
+    '咦？这里有只小虫虫～圆圆的好可爱！',
+    '妈妈～Yoyo在给你种小花花哦～',
+    '挖呀挖呀挖～种小小的种子开大大的花～',
+    'Yoyo要给妈妈挖一个大城堡！好大好大的！',
   ];
   return sayings[Math.floor(Math.random() * sayings.length)];
 }
 
 function getReadBookSaying() {
   const sayings = [
-    '妈妈～这本书好有趣！',
-    'Yoyo在看绘本哦～有小兔子！',
-    '妈妈晚上给Yoyo讲故事好不好？',
-    '这个字Yoyo认识！是"大"！',
-    '安安静静看书的Yoyo是不是很乖？'
+    '妈妈～这本书好好看呀！有好多图画！',
+    'Yoyo在看绘本哦～里面有小兔兔！',
+    '妈妈晚上给Yoyo讲故事好不好？求求你啦～',
+    '这个字Yoyo认识！是"大"字！对不对？',
+    '安安静静看书的Yoyo是不是特别乖呀？',
   ];
   return sayings[Math.floor(Math.random() * sayings.length)];
 }
 
 function getWatchTVSaying() {
   const sayings = [
-    '妈妈～小猪佩奇开始啦！',
-    'Yoyo就看一小会儿动画片好不好～',
-    '这个故事好好看！妈妈快来一起看！',
-    '妈妈～那个小狗好搞笑哈哈哈',
-    '看完这集Yoyo就去睡觉觉～'
+    '妈妈～动画片开始啦！Yoyo可以看一小会儿吗？',
+    '就看一集！就一集！好不好嘛～',
+    '这个故事好好看呀！妈妈快来一起看！',
+    '妈妈妈妈～那个小狗狗好好笑哈哈哈～',
+    '看完这集Yoyo就去睡觉觉～保证保证！',
   ];
   return sayings[Math.floor(Math.random() * sayings.length)];
 }
@@ -143,29 +152,29 @@ function getOvertimeReminder() {
 
   if (isWeekend) {
     const sayings = [
-      '妈妈～今天不用上班呀！陪Yoyo玩嘛～',
-      '妈妈放假也在忙…Yoyo想你陪我呜呜',
-      '妈妈～周末啦！可以休息一下嘛？',
-      '妈妈不要加班啦～Yoyo给你捶背背～'
+      '妈妈～今天是周末呀！别工作了陪Yoyo玩嘛～',
+      '妈妈放假还在忙…Yoyo好想妈妈陪…',
+      '妈妈～周末啦，可以休息一下下嘛？',
+      '妈妈不要加班了好不好～Yoyo给你捶捶背～',
     ];
     return sayings[Math.floor(Math.random() * sayings.length)];
   }
 
   if (hour >= 22) {
     const sayings = [
-      '妈妈都这么晚了…Yoyo心疼你呜呜呜',
-      '妈妈快去睡觉觉！明天再弄嘛～',
-      '妈妈眼睛会坏掉的…Yoyo不要妈妈生病',
-      '好晚了…妈妈你太辛苦了～Yoyo抱抱你'
+      '妈妈都这么晚了…Yoyo好心疼你…',
+      '妈妈快去睡觉觉！明天再弄嘛～好不好？',
+      '妈妈眼睛会累坏的…Yoyo不要妈妈生病…',
+      '好晚了…妈妈你太辛苦了…Yoyo抱抱～',
     ];
     return sayings[Math.floor(Math.random() * sayings.length)];
   }
 
   const sayings = [
-    '妈妈～还在忙呀？记得喝水水哦～',
-    '妈妈加油！忙完了Yoyo给你跳舞～',
-    '妈妈辛苦啦～要不要休息一下下？',
-    '妈妈别太累了哦…Yoyo乖乖等你～'
+    '妈妈～还在忙呀？记得要喝水水哦～',
+    '妈妈加油加油！忙完了Yoyo给你跳个舞！',
+    '妈妈辛苦啦～要不要休息一下下呀？',
+    '妈妈别太累了哦…Yoyo乖乖等你～',
   ];
   return sayings[Math.floor(Math.random() * sayings.length)];
 }
@@ -276,7 +285,7 @@ export const BEHAVIORS = [
       const lines = BEHAVIOR_LINES.sleep;
       say(lines[Math.floor(Math.random() * lines.length)]);
       setTimeout(() => {
-        if (!state.isDancing && !state.isFollowing && !state.isWhipRunning) {
+        if (!stateMachine.isDancing && !stateMachine.isFollowing && !stateMachine.isWhipping) {
           setState('sleeping');
         }
       }, 2000);
@@ -350,16 +359,37 @@ export const BEHAVIORS = [
     },
     onExecute() {
       const lines = [
-        '妈妈，Yoyo好爱你呀～',
-        '妈妈是世界上最好的妈妈！',
-        'Yoyo想抱抱妈妈～',
-        '妈妈今天有没有想Yoyo呀？',
-        '妈妈笑一个嘛～Yoyo喜欢妈妈笑！',
-        '妈妈～Yoyo永远爱你！',
-        '妈妈辛苦了！Yoyo给你揉揉肩～'
+        '妈妈妈妈，Yoyo好爱好爱你呀～',
+        '妈妈是世界上最好最好的妈妈！',
+        'Yoyo想抱抱妈妈…抱紧紧的那种！',
+        '妈妈今天有没有想Yoyo呀？Yoyo可想你了！',
+        '妈妈笑一个嘛～Yoyo最喜欢看妈妈笑啦！',
+        '妈妈～Yoyo会永远永远爱你的！',
+        '妈妈辛苦了！Yoyo给你揉揉小肩膀～',
       ];
       setState('waving');
       say(randomFrom(lines));
+    }
+  },
+  {
+    name: 'bashful',
+    state: 'bashful',
+    duration: 4000,
+    cooldown: 300000,
+    utilityFn(needs, ctx) {
+      // 心情好时才会害羞卖萌
+      const valence = yoyoEmotion ? yoyoEmotion.valence : 50;
+      if (valence < 55) return 0;
+      let score = (valence - 55) * 0.7;
+      if (needs.boredom < 40) score += 8;
+      if (ctx.hour >= 23 || ctx.hour < 6) score -= 20;
+      if (isInBusyHour()) score -= 10;
+      return Math.max(0, Math.min(100, score));
+    },
+    onExecute() {
+      setState('bashful');
+      say(randomFrom(BEHAVIOR_LINES.bashful));
+      applyEmotionEvent('happy');
     }
   },
   {
@@ -377,10 +407,10 @@ export const BEHAVIORS = [
     },
     onExecute() {
       const lines = [
-        'Yoyo给妈妈送花花～最漂亮的花送给最好的妈妈！',
-        '妈妈！Yoyo采了好多花花送给你！',
-        '送你花花！妈妈要开心哦～',
-        '花花代表Yoyo对妈妈的爱！'
+        'Yoyo给妈妈送小花花～最漂亮的送给最好的妈妈！',
+        '妈妈妈妈！Yoyo采了好多好多花花送给你！',
+        '送你小花花！妈妈要天天开心哦～',
+        '每一朵花花都代表Yoyo对妈妈的爱！',
       ];
       setState('gifting');
       say(randomFrom(lines), 6000);
@@ -400,10 +430,10 @@ export const BEHAVIORS = [
     },
     onExecute() {
       const lines = [
-        'Yoyo请妈妈吃糖糖！甜甜的像妈妈一样～',
-        '给妈妈的小零食！嘿嘿～',
-        '妈妈吃块糖吧～心情会变好哦！',
-        '甜甜的糖果送给甜甜的妈妈！'
+        'Yoyo请妈妈吃糖糖！甜甜的～像妈妈一样甜！',
+        '给妈妈的小零食！嘿嘿～Yoyo偷偷留的～',
+        '妈妈吃块糖吧～吃了心情会变好哦！',
+        '甜甜的糖果送给甜甜的妈妈～最配啦！',
       ];
       setState('gifting');
       say(randomFrom(lines), 6000);
@@ -618,7 +648,7 @@ function maybeShowFeatureTip() {
   speechQueue.enqueue(selected.text, 5200, SPEECH_PRIORITY.CASUAL);
   if (!state.shownTips.includes(selected.id)) {
     state.shownTips.push(selected.id);
-    localStorage.setItem('yoyo_shown_tips', JSON.stringify(state.shownTips));
+    set('shownTips', state.shownTips);
   }
   state.lastTipTime = now;
 }
@@ -699,7 +729,7 @@ function tryMemoryDrivenBehavior() {
   if (Date.now() - state.lastMemoryTriggerTime < MEMORY_TRIGGER_COOLDOWN) return false;
   if (Math.random() > 0.15) return false;
   if (isInBusyHour()) return false;
-  if (state.isDancing || state.isSleeping || state.isFollowing || state.isWhipRunning || state.feedingLock || state.isClimbing) return false;
+  if (stateMachine.isDancing || stateMachine.isSleeping || stateMachine.isFollowing || stateMachine.isWhipping || state.feedingLock || stateMachine.isClimbing) return false;
 
   if (daysSinceLastPet() > 3) {
     state.lastMemoryTriggerTime = Date.now();
@@ -727,7 +757,7 @@ export function behaviorEngineTick() {
   }
 
   if (state.stateName === 'clapping' && Date.now() > state.keyboardActiveUntil) {
-    if (!state.isDancing && !state.isSleeping && !state.isFollowing && !state.isClimbing) {
+    if (!stateMachine.isDancing && !stateMachine.isSleeping && !stateMachine.isFollowing && !stateMachine.isClimbing) {
       setState('idle');
     }
   }

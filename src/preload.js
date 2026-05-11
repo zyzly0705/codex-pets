@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('petApi', {
   triggerEffect: (type) => ipcRenderer.invoke('effect:fullscreen', type),
   triggerCloneEffect: () => ipcRenderer.invoke('effect:clone'),
   triggerGiantEffect: () => ipcRenderer.invoke('effect:giant'),
+  setActiveSpritesheet: (p) => ipcRenderer.invoke('pet:setActiveSpritesheet', p),
   onMenuAction: (callback) => ipcRenderer.on('menu-action', (_e, action) => callback(action)),
   // 新增：右键菜单动作监听
   onAction: (callback) => ipcRenderer.on('action:pet', () => callback()),
@@ -39,4 +40,8 @@ contextBridge.exposeInMainWorld('petApi', {
   onOutfitChange: (cb) => ipcRenderer.on('outfit:change', (e, category, itemId) => cb(category, itemId)),
   onOutfitRandom: (cb) => ipcRenderer.on('outfit:random', () => cb()),
   onOutfitReset: (cb) => ipcRenderer.on('outfit:reset', () => cb()),
+  // ===== 统一 Store API =====
+  storeLoad:  ()          => ipcRenderer.invoke('store:load'),
+  storeSet:   (key, val)  => ipcRenderer.invoke('store:set', key, val),
+  storeBatch: (updates)   => ipcRenderer.invoke('store:batch', updates),
 });
