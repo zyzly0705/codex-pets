@@ -15,10 +15,6 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci
-      - run: npm run dist:win -- --publish never
-      - uses: ncipollo/release-action@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          artifacts: 'dist/*.exe'
-          generateReleaseNotes: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

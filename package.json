@@ -1,6 +1,6 @@
 {
   "name": "codex-desktop-pet",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A small Windows desktop pet app for Codex pet spritesheets.",
   "main": "src/main.js",
   "scripts": {
@@ -60,7 +60,7 @@
     },
     "publish": [{
       "provider": "github",
-      "owner": "ZyzYyy",
+      "owner": "zyzly0705",
       "repo": "codex-pets"
     }]
   },
