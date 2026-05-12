@@ -766,6 +766,295 @@ function tryMemoryDrivenBehavior() {
   return false;
 }
 
+// ===== 行为决策优化 =====
+const DECISION_CONFIG = {
+  scoreSmoothing: 0.55,
+  topBand: 14,
+  temperature: 18,
+  maxRecent: 5,
+  repeatPenalty: 18,
+  categoryPenalty: 8,
+};
+
+const DEFAULT_BEHAVIOR_META = {
+  pool: 'ambient',
+  category: 'ambient',
+  rarity: 'common',
+  minLevel: 1,
+  growthPaths: null,
+};
+
+const BEHAVIOR_META = {
+  idle: { pool: 'ambient', category: 'idle' },
+  walk: { pool: 'ambient', category: 'movement', growthPaths: ['active'] },
+  lookAround: { pool: 'ambient', category: 'ambient' },
+
+  hungry: { pool: 'need', category: 'need', urgent: true },
+  sleep: { pool: 'need', category: 'rest', urgent: true },
+
+  wave: { pool: 'care', category: 'social', growthPaths: ['energy'] },
+  sweetTalk: { pool: 'care', category: 'social', growthPaths: ['gentle'] },
+  bashful: { pool: 'care', category: 'social', growthPaths: ['gentle'] },
+  overtimeReminder: { pool: 'care', category: 'care', urgent: true, growthPaths: ['energy'] },
+  wpsCompanion: { pool: 'care', category: 'care', growthPaths: ['energy'] },
+
+  dance: { pool: 'growth', category: 'play', growthPaths: ['active'] },
+  climb: { pool: 'growth', category: 'movement', growthPaths: ['active'] },
+  swing: { pool: 'growth', category: 'play', minLevel: 2, growthPaths: ['active'] },
+  digSand: { pool: 'growth', category: 'play', minLevel: 2, growthPaths: ['active'] },
+  readBook: { pool: 'growth', category: 'quiet', minLevel: 2, growthPaths: ['gentle'] },
+  watchTV: { pool: 'growth', category: 'quiet', minLevel: 2, growthPaths: ['gentle'] },
+
+  giftFlower: { pool: 'rare', category: 'gift', rarity: 'rare', minLevel: 2, growthPaths: ['gentle'] },
+  giftCandy: { pool: 'rare', category: 'gift', rarity: 'rare', minLevel: 2 },
+  giant: { pool: 'rare', category: 'special', rarity: 'legendary', minLevel: 4, growthPaths: ['active', 'energy'] },
+};
+
+const behaviorDecisionState = {
+  smoothedScores: new Map(),
+  recent: [],
+};
+
+let latestBehaviorDebugSnapshot = null;
+
+function clampScore(score) {
+  if (!Number.isFinite(score)) return 0;
+  return Math.max(0, Math.min(100, score));
+}
+
+function getBehaviorMeta(name) {
+  return { ...DEFAULT_BEHAVIOR_META, ...(BEHAVIOR_META[name] || {}) };
+}
+
+function getBehaviorCategory(name) {
+  return getBehaviorMeta(name).category;
+}
+
+function rememberBehavior(name) {
+  if (!name || name === 'idle') return;
+  behaviorDecisionState.recent.unshift({
+    name,
+    category: getBehaviorCategory(name),
+    time: Date.now(),
+  });
+  if (behaviorDecisionState.recent.length > DECISION_CONFIG.maxRecent) {
+    behaviorDecisionState.recent.length = DECISION_CONFIG.maxRecent;
+  }
+}
+
+function recentPenaltyFor(behavior) {
+  const meta = getBehaviorMeta(behavior.name);
+  if (meta.urgent) return 0;
+
+  const category = meta.category;
+  let penalty = 0;
+  for (let i = 0; i < behaviorDecisionState.recent.length; i++) {
+    const recent = behaviorDecisionState.recent[i];
+    const strength = 1 - i / DECISION_CONFIG.maxRecent;
+    if (recent.name === behavior.name) {
+      penalty += DECISION_CONFIG.repeatPenalty * strength;
+    } else if (recent.category === category) {
+      penalty += DECISION_CONFIG.categoryPenalty * strength;
+    }
+  }
+  return penalty;
+}
+
+function applyBehaviorMetaModifiers(behavior, score, ctx) {
+  const meta = getBehaviorMeta(behavior.name);
+  const level = getLevel(yoyoGrowth.xp);
+  if (level < meta.minLevel) return 0;
+
+  let nextScore = score;
+  if (meta.growthPaths?.includes(yoyoGrowth.path)) {
+    nextScore *= 1.12;
+  }
+  if (meta.rarity === 'rare' && !ctx.isSpecialDay) {
+    nextScore *= 0.82;
+  } else if (meta.rarity === 'legendary') {
+    nextScore *= 0.72;
+  }
+  return nextScore;
+}
+
+function scoreBehavior(behavior, ctx) {
+  let rawScore = behavior.utilityFn(petNeeds, ctx);
+  rawScore = applyEmotionModifier(behavior.name, rawScore);
+  rawScore = applyGrowthModifiers(rawScore, behavior.name);
+  rawScore = applyBehaviorMetaModifiers(behavior, rawScore, ctx);
+  rawScore = clampScore(rawScore);
+
+  if (getBehaviorMeta(behavior.name).urgent) {
+    behaviorDecisionState.smoothedScores.set(behavior.name, rawScore);
+    return rawScore;
+  }
+
+  const previous = behaviorDecisionState.smoothedScores.get(behavior.name);
+  const smoothed = previous === undefined
+    ? rawScore
+    : previous * (1 - DECISION_CONFIG.scoreSmoothing) + rawScore * DECISION_CONFIG.scoreSmoothing;
+  behaviorDecisionState.smoothedScores.set(behavior.name, smoothed);
+
+  return clampScore(smoothed - recentPenaltyFor(behavior));
+}
+
+function weightedPick(items, scoreFn, temperature = DECISION_CONFIG.temperature) {
+  if (items.length === 0) return null;
+  const bestScore = Math.max(...items.map(scoreFn));
+  const weights = items.map(item => Math.exp((scoreFn(item) - bestScore) / temperature));
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  let pick = Math.random() * total;
+  for (let i = 0; i < items.length; i++) {
+    pick -= weights[i];
+    if (pick <= 0) return items[i];
+  }
+  return items[0];
+}
+
+function chooseFromPool(candidates) {
+  const best = candidates[0];
+  const second = candidates[1];
+  if (!second || best.score - second.score >= 20) {
+    return { ...best, debugPool: getBehaviorMeta(best.behavior.name).pool };
+  }
+
+  const pool = candidates.filter(candidate => best.score - candidate.score <= DECISION_CONFIG.topBand);
+  const selected = weightedPick(pool, candidate => candidate.score);
+  return { ...selected, debugPool: getBehaviorMeta(selected.behavior.name).pool };
+}
+
+function poolScore(pool, bestScore, ctx) {
+  let score = bestScore;
+  if (pool === 'need') score += 12;
+  if (pool === 'care' && isInBusyHour()) score += 8;
+  if (pool === 'growth') score += (getLevel(yoyoGrowth.xp) - 1) * 1.5;
+  if (pool === 'rare' && !ctx.isSpecialDay) score -= 10;
+  return score;
+}
+
+function chooseBehavior(candidates, threshold, ctx) {
+  const runnable = candidates
+    .filter(candidate => candidate.behavior.name !== 'idle' && candidate.score >= threshold)
+    .sort((a, b) => b.score - a.score);
+
+  if (runnable.length === 0) return null;
+
+  const urgent = runnable.filter(candidate => getBehaviorMeta(candidate.behavior.name).urgent);
+  if (urgent.length > 0) {
+    const selectedUrgent = urgent.sort((a, b) => b.score - a.score)[0];
+    return { ...selectedUrgent, debugPool: getBehaviorMeta(selectedUrgent.behavior.name).pool };
+  }
+
+  const byPool = new Map();
+  for (const candidate of runnable) {
+    const pool = getBehaviorMeta(candidate.behavior.name).pool;
+    if (!byPool.has(pool)) byPool.set(pool, []);
+    byPool.get(pool).push(candidate);
+  }
+
+  const poolChoices = Array.from(byPool.entries()).map(([pool, poolCandidates]) => {
+    const sorted = poolCandidates.sort((a, b) => b.score - a.score);
+    return {
+      pool,
+      candidates: sorted,
+      score: poolScore(pool, sorted[0].score, ctx),
+    };
+  }).sort((a, b) => b.score - a.score);
+
+  const bestPool = poolChoices[0];
+  const poolBand = poolChoices.filter(choice => bestPool.score - choice.score <= DECISION_CONFIG.topBand);
+  const selectedPool = weightedPick(poolBand, choice => choice.score);
+  const selected = chooseFromPool(selectedPool.candidates);
+  return { ...selected, debugPool: selectedPool.pool, debugPoolChoices: poolChoices };
+}
+
+const NEED_EFFECTS = {
+  walk: { boredom: -10, playfulness: -5 },
+  wave: { boredom: -8 },
+  dance: { boredom: -25, energy: 5 },
+  sleep: { energy: -45 },
+  climb: { boredom: -30 },
+  lookAround: { boredom: -12 },
+  swing: { boredom: -20, playfulness: -10 },
+  digSand: { boredom: -18 },
+  readBook: { boredom: -15, energy: 5 },
+  watchTV: { boredom: -20 },
+  giant: { boredom: -30, energy: 10 },
+};
+
+function applyNeedEffects(behaviorName) {
+  const effects = NEED_EFFECTS[behaviorName];
+  if (!effects) return;
+  for (const [need, delta] of Object.entries(effects)) {
+    petNeeds[need] = clampScore((petNeeds[need] || 0) + delta);
+  }
+}
+
+function round1(value) {
+  return Math.round(value * 10) / 10;
+}
+
+function makeBehaviorDebugSnapshot(ctx, threshold, candidates, selected) {
+  const sortedCandidates = [...candidates]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 12)
+    .map(candidate => {
+      const meta = getBehaviorMeta(candidate.behavior.name);
+      return {
+        name: candidate.behavior.name,
+        score: round1(candidate.score),
+        pool: meta.pool,
+        category: meta.category,
+        rarity: meta.rarity,
+        minLevel: meta.minLevel,
+      };
+    });
+
+  latestBehaviorDebugSnapshot = {
+    at: new Date().toLocaleTimeString(),
+    threshold: round1(threshold),
+    selected: selected ? {
+      name: selected.behavior.name,
+      score: round1(selected.score),
+      pool: selected.debugPool || getBehaviorMeta(selected.behavior.name).pool,
+    } : null,
+    poolChoices: (selected?.debugPoolChoices || []).map(choice => ({
+      pool: choice.pool,
+      score: round1(choice.score),
+      best: choice.candidates[0]?.behavior.name || '',
+    })),
+    needs: {
+      energy: round1(petNeeds.energy),
+      boredom: round1(petNeeds.boredom),
+      hunger: round1(petNeeds.hunger),
+      playfulness: round1(petNeeds.playfulness),
+    },
+    state: {
+      stateName: state.stateName,
+      actionState: stateMachine.actionState,
+      currentBehavior: state.currentBehavior,
+      behaviorEndIn: Math.max(0, Math.ceil((state.behaviorEndTime - Date.now()) / 1000)),
+    },
+    growth: {
+      level: getLevel(yoyoGrowth.xp),
+      path: yoyoGrowth.path || 'none',
+      xp: yoyoGrowth.xp,
+    },
+    context: {
+      hour: ctx.hour,
+      weatherKind: ctx.weatherKind || 'none',
+      busyHour: isInBusyHour(),
+      idleMin: round1(ctx.idleTime / 60000),
+    },
+    recent: behaviorDecisionState.recent.map(item => item.name),
+    candidates: sortedCandidates,
+  };
+}
+
+export function getBehaviorDebugSnapshot() {
+  return latestBehaviorDebugSnapshot;
+}
+
 // ===== 决策引擎主循环 =====
 export function behaviorEngineTick() {
   checkSeasonalParticleTrigger();
@@ -814,21 +1103,18 @@ export function behaviorEngineTick() {
   else if (state.yoyoSettings.activity === 'active') threshold -= 10;
   threshold = Math.max(15, Math.min(60, threshold));
 
-  let bestBehavior = null;
-  let bestScore = -1;
-
+  const candidates = [];
   for (const behavior of BEHAVIORS) {
     if (isOnCooldown(behavior.name)) continue;
     if (behavior.name === 'hungry' && feedBtn.classList.contains('show')) continue;
 
-    let score = behavior.utilityFn(petNeeds, ctx);
-    score = applyEmotionModifier(behavior.name, score);
-    score = applyGrowthModifiers(score, behavior.name);
-    if (score > bestScore) {
-      bestScore = score;
-      bestBehavior = behavior;
-    }
+    candidates.push({ behavior, score: scoreBehavior(behavior, ctx) });
   }
+
+  const selected = chooseBehavior(candidates, threshold, ctx);
+  const bestBehavior = selected?.behavior;
+  const bestScore = selected?.score ?? -1;
+  makeBehaviorDebugSnapshot(ctx, threshold, candidates, selected);
 
   if (!bestBehavior || bestBehavior.name === 'idle' || bestScore < threshold) {
     if (state.stateName !== 'idle') setState('idle');
@@ -845,35 +1131,8 @@ export function behaviorEngineTick() {
   }
 
   bestBehavior.onExecute();
-
-  if (bestBehavior.name === 'walk') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 10);
-    petNeeds.playfulness = Math.max(0, petNeeds.playfulness - 5);
-  } else if (bestBehavior.name === 'wave') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 8);
-  } else if (bestBehavior.name === 'dance') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 25);
-    petNeeds.energy = Math.min(100, petNeeds.energy + 5);
-  } else if (bestBehavior.name === 'sleep') {
-    petNeeds.energy = Math.max(0, petNeeds.energy - 45);
-  } else if (bestBehavior.name === 'climb') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 30);
-  } else if (bestBehavior.name === 'lookAround') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 12);
-  } else if (bestBehavior.name === 'swing') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 20);
-    petNeeds.playfulness = Math.max(0, petNeeds.playfulness - 10);
-  } else if (bestBehavior.name === 'digSand') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 18);
-  } else if (bestBehavior.name === 'readBook') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 15);
-    petNeeds.energy = Math.min(100, petNeeds.energy + 5);
-  } else if (bestBehavior.name === 'watchTV') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 20);
-  } else if (bestBehavior.name === 'giant') {
-    petNeeds.boredom = Math.max(0, petNeeds.boredom - 30);
-    petNeeds.energy = Math.min(100, petNeeds.energy + 10);
-  }
+  rememberBehavior(bestBehavior.name);
+  applyNeedEffects(bestBehavior.name);
 }
 
 // ===== 启动行为决策引擎 =====

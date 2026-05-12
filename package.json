@@ -1,10 +1,11 @@
 {
   "name": "codex-desktop-pet",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A small Windows desktop pet app for Codex pet spritesheets.",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
+    "start:debug": "YOYO_BEHAVIOR_DEBUG=1 electron .",
     "start:keyboard": "YOYO_ENABLE_UIOHOOK=1 electron .",
     "start:keyboard:win": "set YOYO_ENABLE_UIOHOOK=1&& electron .",
     "generate:faces": "node scripts/generate-face-spritesheets.js",

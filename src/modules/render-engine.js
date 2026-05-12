@@ -24,20 +24,22 @@ function drawSmallStar(ctx, x, y, r) {
 }
 
 // ===== 跳舞专用演出效果 =====
-// spritesheet 里的 dancing 行本身只是有限帧，真正的“舞台感”在渲染时加：
-// 连续缓动的摆胯/弹跳/倾斜 + 舞台灯 + 音符粒子，这样角色和换装层能一起动。
-const DANCE_STEP_MS = 260;
+// spritesheet 里的 dancing 行本身只是有限帧，真正的“舞台感”在渲染时加。
+// 这里把动作节奏改成更明确的 let-go 风格编排：开肩、踩点、前冲、收拍。
+const DANCE_STEP_MS = 220;
 const DANCE_POSES = [
-  { x: 0,   y: 0,   rotation: 0,     scaleX: 1.02, scaleY: 0.99 },
-  { x: -6,  y: -5,  rotation: -0.10, scaleX: 1.04, scaleY: 0.98 },
-  { x: -11, y: -11, rotation: -0.20, scaleX: 0.98, scaleY: 1.05 },
-  { x: -4,  y: -8,  rotation: -0.06, scaleX: 1.07, scaleY: 0.96 },
-  { x: 0,   y: -15, rotation: 0.02,  scaleX: 0.96, scaleY: 1.08 },
-  { x: 6,   y: -6,  rotation: 0.10,  scaleX: 1.04, scaleY: 0.98 },
-  { x: 11,  y: -12, rotation: 0.20,  scaleX: 0.98, scaleY: 1.05 },
-  { x: 4,   y: -7,  rotation: 0.06,  scaleX: 1.07, scaleY: 0.96 },
-  { x: -3,  y: -3,  rotation: -0.04, scaleX: 1.03, scaleY: 0.99 },
-  { x: 3,   y: -4,  rotation: 0.04,  scaleX: 1.03, scaleY: 0.99 },
+  { x: 0,   y: -2,  rotation: 0.00, scaleX: 1.03, scaleY: 0.98 },
+  { x: -10, y: -8,  rotation: -0.18, scaleX: 1.09, scaleY: 0.95 },
+  { x: -15, y: -14, rotation: -0.26, scaleX: 0.96, scaleY: 1.08 },
+  { x: -6,  y: -6,  rotation: -0.08, scaleX: 1.10, scaleY: 0.94 },
+  { x: 0,   y: -18, rotation: 0.02, scaleX: 0.95, scaleY: 1.10 },
+  { x: 9,   y: -7,  rotation: 0.12, scaleX: 1.08, scaleY: 0.96 },
+  { x: 15,  y: -14, rotation: 0.26, scaleX: 0.96, scaleY: 1.08 },
+  { x: 7,   y: -6,  rotation: 0.08, scaleX: 1.10, scaleY: 0.94 },
+  { x: 0,   y: -20, rotation: 0.00, scaleX: 0.94, scaleY: 1.11 },
+  { x: -12, y: -10, rotation: -0.14, scaleX: 1.08, scaleY: 0.97 },
+  { x: 12,  y: -10, rotation: 0.14, scaleX: 1.08, scaleY: 0.97 },
+  { x: 0,   y: -4,  rotation: 0.00, scaleX: 1.02, scaleY: 1.00 },
 ];
 
 function smoothstep(t) {
@@ -126,6 +128,81 @@ function drawDanceForeground(ctx, cx, cy, now) {
     const alpha = 0.2 + 0.65 * (1 - ((phase * 0.3 + i * 0.17) % 1));
     drawMusicNote(ctx, x, y, 10 + (i % 3) * 2, alpha, notes[i % notes.length], colors[i % colors.length]);
   }
+  ctx.restore();
+}
+
+// ===== 秋千专用演出效果 =====
+const SWING_PERIOD_MS = 1680;
+const SWING_MAX_ANGLE = 0.34;
+
+function getSwingPose(now) {
+  const cycleIndex = Math.floor(now / SWING_PERIOD_MS) % 8;
+  const ramp = [0.42, 0.50, 0.58, 0.68, 0.80, 0.92, 1.0, 0.88][cycleIndex];
+  const cycleT = (now % SWING_PERIOD_MS) / SWING_PERIOD_MS;
+  const easedT = cycleT + 0.11 * Math.sin(cycleT * Math.PI * 2);
+  const phase = easedT * Math.PI * 2;
+  const angleWave = Math.sin(phase);
+  const angle = angleWave * SWING_MAX_ANGLE * ramp;
+  const lift = Math.abs(angleWave);
+  const bottomSpeed = Math.pow(Math.max(0, Math.cos(phase)), 1.6);
+  const kick = Math.max(0, Math.cos(phase * 2)) * (0.55 + ramp * 0.45);
+  return {
+    angle,
+    x: Math.sin(angle) * (10 + ramp * 8),
+    y: -8 - lift * (5 + ramp * 6) + bottomSpeed * 1.2,
+    scaleX: 1 + kick * 0.035 + bottomSpeed * 0.02,
+    scaleY: 1 - kick * 0.028 - bottomSpeed * 0.01,
+    ropeSway: angle * 0.25,
+    seatBounce: kick * 2.5 + bottomSpeed * 1.2,
+    ramp,
+  };
+}
+
+function drawSwingBackdrop(ctx, cx, topY, pose) {
+  const seatY = topY + 68 + pose.seatBounce;
+  const leftSeatX = cx - 19 + pose.x;
+  const rightSeatX = cx + 19 + pose.x;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+
+  const glow = ctx.createRadialGradient(cx, topY + 26, 8, cx, topY + 34, 88);
+  glow.addColorStop(0, 'rgba(255, 214, 120, 0.20)');
+  glow.addColorStop(0.55, 'rgba(255, 165, 210, 0.10)');
+  glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(cx, topY + 34, 78, 74, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(121, 86, 57, 0.82)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx - 34, topY + 2);
+  ctx.quadraticCurveTo(cx, topY - 8, cx + 34, topY + 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(244, 213, 150, 0.95)';
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 23, topY + 3);
+  ctx.lineTo(leftSeatX, seatY);
+  ctx.moveTo(cx + 23, topY + 3);
+  ctx.lineTo(rightSeatX, seatY);
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(cx + pose.x, seatY);
+  ctx.rotate(pose.angle * 0.18);
+  ctx.fillStyle = 'rgba(255, 201, 125, 0.96)';
+  ctx.strokeStyle = 'rgba(166, 108, 61, 0.75)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(-24, -4, 48, 8, 4);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
   ctx.restore();
 }
 
@@ -515,12 +592,19 @@ function draw(now) {
   const offsetX = centerX - drawW / 2;
   const offsetY = _logH - drawH;
   const isDancing = state.stateName === 'dancing';
+  const isSwinging = state.stateName === 'swing';
   const dancePose = isDancing ? getDancePose(now) : null;
+  const swingPose = isSwinging ? getSwingPose(now) : null;
   const dancePivotX = offsetX + drawW * 0.5;
   const dancePivotY = offsetY + drawH * 0.68;
+  const swingPivotX = offsetX + drawW * 0.5;
+  const swingPivotY = offsetY + drawH * 0.20;
 
   if (isDancing) {
     drawDanceBackdrop(ctx, dancePivotX, offsetY + drawH, now, _logW, _logH);
+  }
+  if (isSwinging) {
+    drawSwingBackdrop(ctx, swingPivotX, offsetY - 12, swingPose);
   }
 
   ctx.save();
@@ -540,6 +624,13 @@ function draw(now) {
     ctx.rotate(dancePose.rotation);
     ctx.scale(dancePose.scaleX, dancePose.scaleY);
     ctx.translate(-dancePivotX, -dancePivotY);
+  }
+  if (swingPose) {
+    ctx.translate(swingPivotX, swingPivotY);
+    ctx.rotate(swingPose.angle);
+    ctx.translate(swingPose.x, swingPose.y);
+    ctx.scale(swingPose.scaleX, swingPose.scaleY);
+    ctx.translate(-swingPivotX, -swingPivotY);
   }
   ctx.imageSmoothingEnabled = false; // pixel art：关闭插值，保持像素锐利
   drawOutfitLayers(ctx, state.frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'behind');

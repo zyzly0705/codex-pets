@@ -191,3 +191,80 @@ body {
 #petCanvas.shake {
   animation: shake 0.3s ease;
 }
+
+.behavior-debug-panel {
+  display: none;
+}
+
+#app.debug-mode #petCanvas {
+  left: 100px;
+}
+
+#app.debug-mode .bubble {
+  left: 100px;
+  max-width: 180px;
+}
+
+#app.debug-mode .feed-btn {
+  left: 150px;
+  right: auto;
+}
+
+#app.debug-mode .behavior-debug-panel {
+  position: absolute;
+  display: block;
+  top: 10px;
+  right: 10px;
+  width: 330px;
+  height: 340px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(80, 80, 95, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #222;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.35;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+.debug-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.debug-muted {
+  color: #777;
+  font-weight: 400;
+}
+
+.debug-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+  margin-bottom: 8px;
+}
+
+.debug-section {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(80, 80, 95, 0.14);
+}
+
+.debug-row {
+  display: grid;
+  grid-template-columns: 72px 42px 54px 1fr;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.debug-row.selected {
+  color: #c2185b;
+  font-weight: 700;
+}

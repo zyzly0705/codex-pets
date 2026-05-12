@@ -195,8 +195,9 @@ function scanWindowsViaMacOS(selfBounds) {
   }
 }
 
-const APP_WIDTH = 200;
-const APP_HEIGHT = 260;
+const BEHAVIOR_DEBUG_ENABLED = process.env.YOYO_BEHAVIOR_DEBUG === '1';
+const APP_WIDTH = BEHAVIOR_DEBUG_ENABLED ? 560 : 200;
+const APP_HEIGHT = BEHAVIOR_DEBUG_ENABLED ? 360 : 260;
 
 let mainWindow;
 let tray;
@@ -682,6 +683,8 @@ ipcMain.handle('store:batch', (_, updates) => {
   Object.assign(petData, updates);
   saveData();
 });
+
+ipcMain.handle('debug:behavior-enabled', () => BEHAVIOR_DEBUG_ENABLED);
 
 // 监听 renderer 发来的状态同步
 ipcMain.on('menu-state:sync', (_event, state) => {

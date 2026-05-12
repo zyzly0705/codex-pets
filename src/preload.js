@@ -44,4 +44,5 @@ contextBridge.exposeInMainWorld('petApi', {
   storeLoad:  ()          => ipcRenderer.invoke('store:load'),
   storeSet:   (key, val)  => ipcRenderer.invoke('store:set', key, val),
   storeBatch: (updates)   => ipcRenderer.invoke('store:batch', updates),
+  behaviorDebugEnabled: () => ipcRenderer.invoke('debug:behavior-enabled'),
 });

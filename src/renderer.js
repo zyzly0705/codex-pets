@@ -12,6 +12,7 @@ import { initTimers, checkGoodMorning, checkSpecialDate, checkCompanionMilestone
 import { initOutfitSystem } from './modules/outfit-system.js';
 import { startRenderLoop } from './modules/render-engine.js';
 import { startEntryAnimation } from './modules/startup-animation.js';
+import { initBehaviorDebugPanel } from './modules/behavior-debug-panel.js';
 
 // ===== 一次性 localStorage → Store 数据迁移 =====
 function migrateFromLocalStorage() {
@@ -181,6 +182,9 @@ async function init() {
 
   // 启动行为决策引擎
   startBehaviorEngine();
+
+  // 开发调试面板（YOYO_BEHAVIOR_DEBUG=1 时启用）
+  await initBehaviorDebugPanel();
 
   // 启动所有定时器
   initTimers();
