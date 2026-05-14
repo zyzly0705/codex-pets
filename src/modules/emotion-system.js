@@ -1,5 +1,6 @@
 // emotion-system.js - PAD 情感模型 + 性格系统 + 情感事件
 import { clamp, lerp, say } from './core-state.js';
+import { logEmotionDecay, logEmotionEvent } from './debug-log.js';
 
 // ===== Yoyo 拟人化情感系统 =====
 export const yoyoEmotion = {
@@ -32,6 +33,14 @@ export const EMOTION_EVENTS = {
   sad: { valence: -30, arousal: +20, dominance: -15 },
 };
 
+function between(value, min, max) {
+  return value >= min && value <= max;
+}
+
+function clampMultiplier(value) {
+  return Math.max(0.55, Math.min(1.55, value));
+}
+
 // 情感衰减更新
 export function updateEmotion(dt_ms) {
   const dt = dt_ms / 1000;
@@ -39,6 +48,11 @@ export function updateEmotion(dt_ms) {
   yoyoEmotion.valence = lerp(yoyoEmotion.valence, yoyoEmotion.baselineValence, decay * dt);
   yoyoEmotion.arousal = lerp(yoyoEmotion.arousal, yoyoEmotion.baselineArousal, decay * dt);
   yoyoEmotion.dominance = lerp(yoyoEmotion.dominance, yoyoEmotion.baselineDominance, decay * dt);
+  logEmotionDecay({
+    valence: Number(yoyoEmotion.valence.toFixed(2)),
+    arousal: Number(yoyoEmotion.arousal.toFixed(2)),
+    dominance: Number(yoyoEmotion.dominance.toFixed(2)),
+  });
 }
 
 // 应用情感事件（性格调节）
@@ -61,15 +75,21 @@ export function applyEmotionEvent(eventType) {
   yoyoEmotion.valence = clamp(yoyoEmotion.valence + ev.valence * vMod, -100, 100);
   yoyoEmotion.arousal = clamp(yoyoEmotion.arousal + ev.arousal * aMod, 0, 100);
   yoyoEmotion.dominance = clamp(yoyoEmotion.dominance + ev.dominance * dMod, 0, 100);
+  logEmotionEvent(eventType, {
+    valence: Number(yoyoEmotion.valence.toFixed(2)),
+    arousal: Number(yoyoEmotion.arousal.toFixed(2)),
+    dominance: Number(yoyoEmotion.dominance.toFixed(2)),
+  });
 }
 
 // 获取当前情绪标签
 export function getEmotionLabel() {
   const { valence, arousal, dominance } = yoyoEmotion;
   if (valence > 70 && arousal > 60) return 'excited';
-  if (valence > 50) return 'happy';
+  if (arousal < 28 && valence > 35) return 'calm';
   if (valence < -50 && dominance < 30) return 'sad';
-  if (valence < -30 && dominance > 50) return 'angry';
+  if (valence < -35 && arousal > 45 && dominance > 50) return 'angry';
+  if (valence > 50) return 'happy';
   if (arousal < 25) return 'calm';
   return 'neutral';
 }
@@ -132,23 +152,72 @@ export const FEED_DIALOGUES = {
 // 情感影响行为引擎评分
 export function applyEmotionModifier(behaviorName, baseScore) {
   const { valence, arousal, dominance } = yoyoEmotion;
+  const normalizedValence = valence / 100;
+  const normalizedArousal = (arousal - 50) / 50;
+  const normalizedCalm = (50 - arousal) / 50;
+  const normalizedDominance = (dominance - 50) / 50;
+
+  let multiplier = 1;
 
   switch (behaviorName) {
     case 'sweetTalk':
-      return baseScore * (valence > 50 ? 1.3 : (valence < -30 ? 1.2 : 1.0));
+      multiplier = 1 + Math.max(0, normalizedValence) * 0.22 - Math.max(0, -normalizedArousal) * 0.06;
+      break;
     case 'dance':
-      return baseScore * (arousal > 70 ? 1.5 : 1.0);
+      multiplier = 1 + Math.max(0, normalizedArousal) * 0.38 - Math.max(0, normalizedCalm) * 0.18;
+      break;
+    case 'swimming':
+      multiplier = 1 + Math.max(0, normalizedValence) * 0.2 + Math.max(0, normalizedArousal) * 0.18;
+      if (arousal < 40) multiplier -= 0.12;
+      break;
+    case 'fanCooling':
+    case 'airConditioning':
+      multiplier = 1 + Math.max(0, normalizedCalm) * 0.28 + Math.max(0, normalizedValence) * 0.08;
+      if (arousal > 68) multiplier -= 0.16;
+      break;
+    case 'sofaLying':
+      multiplier = 1 + Math.max(0, normalizedCalm) * 0.3 - Math.max(0, normalizedArousal) * 0.12;
+      break;
     case 'sleep':
-      return baseScore * (arousal < 30 ? 1.4 : 1.0);
+      multiplier = 1 + Math.max(0, normalizedCalm) * 0.34 - Math.max(0, normalizedArousal) * 0.24;
+      break;
     case 'climb':
-      return baseScore * (dominance > 60 ? 1.3 : 1.0);
+      multiplier = 1 + Math.max(0, normalizedDominance) * 0.24 + Math.max(0, normalizedArousal) * 0.1;
+      break;
     case 'lookAround':
-      return baseScore;
+      multiplier = 1 + Math.max(0, normalizedCalm) * 0.06;
+      break;
     case 'walk':
-      return baseScore * (arousal > 60 ? 1.2 : 1.0);
+      multiplier = 1 + Math.max(0, normalizedArousal) * 0.18 - Math.max(0, normalizedCalm) * 0.08;
+      break;
     case 'wave':
-      return baseScore * (valence < -20 ? 1.3 : 1.0);
+      multiplier = 1 + Math.max(0, -normalizedValence) * 0.18 + Math.max(0, normalizedValence) * 0.08;
+      break;
+    case 'readBook':
+    case 'watchTV':
+      multiplier = 1 + Math.max(0, normalizedCalm) * 0.24 - Math.max(0, normalizedArousal) * 0.16;
+      break;
+    case 'swing':
+      multiplier = 1 + Math.max(0, normalizedValence) * 0.12 + Math.max(0, normalizedArousal) * 0.18;
+      break;
+    case 'digSand':
+      multiplier = 1 + Math.max(0, normalizedArousal) * 0.16;
+      break;
+    case 'overtimeReminder':
+    case 'wpsCompanion':
+      multiplier = 1 + Math.max(0, normalizedCalm) * 0.12 + Math.max(0, -normalizedValence) * 0.08;
+      break;
     default:
-      return baseScore;
+      multiplier = 1;
+      break;
   }
+
+  if (between(arousal, 0, 18) && ['dance', 'swimming', 'climb', 'digSand'].includes(behaviorName)) {
+    multiplier -= 0.12;
+  }
+  if (between(arousal, 78, 100) && ['sleep', 'readBook', 'fanCooling', 'airConditioning', 'sofaLying'].includes(behaviorName)) {
+    multiplier -= 0.14;
+  }
+
+  return baseScore * clampMultiplier(multiplier);
 }

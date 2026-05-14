@@ -111,6 +111,14 @@ window.petApi.onBusyReminder(() => {
   }
 });
 
+if (window.petApi && window.petApi.onManualEffect) {
+  window.petApi.onManualEffect((data = {}) => {
+    const duration = Number(data.duration || 0);
+    state.manualEffectUntil = duration > 0 ? Date.now() + duration : 0;
+    state.lastInteractionTime = Date.now();
+  });
+}
+
 // ===== 初始化 =====
 async function init() {
   // 1. 先加载持久化数据到内存缓存

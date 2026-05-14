@@ -8,6 +8,7 @@
 - [如何添加自定义文案](#如何添加自定义文案)
 - [如何调整行为频率](#如何调整行为频率)
 - [如何替换宠物素材](#如何替换宠物素材)
+- [素材分类与制作边界](#素材分类与制作边界)
 - [设置面板功能说明](#设置面板功能说明)
 
 ---
@@ -200,6 +201,17 @@ petNeeds.boredom = Math.min(100, petNeeds.boredom + 0.05);  // 改为 0.1
 | 23 | gifting | 8 | 送礼 |
 | 24 | stretching | 8 | 伸懒腰 |
 | 25 | clapping | 8 | 拍手 |
+| 26 | fanCooling | 8 | 吹风扇 |
+| 27 | swimming | 8 | 游泳 |
+| 28 | whip | 8 | 鞭打反应 |
+| 29 | airConditioning | 8 | 吹空调 |
+| 30 | sofaLying | 8 | 沙发躺 |
+| 31 | ascension | 8 | 法相天地特效源 |
+| 32 | typingCompanion | 8 | 键盘陪伴 |
+| 33 | dharmaCharge | 8 | 法相天地蓄势 |
+| 34 | dharmaSpirit | 8 | 法相天地元婴灵体 |
+| 35 | dharmaManifest | 8 | 法相天地显化 |
+| 36 | dharmaStable | 8 | 法相天地稳定威压 |
 
 ### 替换步骤
 
@@ -241,6 +253,78 @@ if (state.row > maxRow) {
 ```
 
 所以即使只做基础动画也能正常运行，高级动画会自动降级为 idle。
+
+## 素材分类与制作边界
+
+Yoyo 的素材不能全部用同一种做法。当前项目里同时存在角色动作、完整场景动作、换装图层和全屏特效源。如果混用，就会出现道具悬浮、脸部重复、空间关系错误、换装图层越界等问题。
+
+### 推荐分类
+
+| 分类 | 适用动作 | 制作方式 | 说明 |
+|------|----------|----------|------|
+| 基础角色动作 | `idle`、跑步、挥手、跳跃、等待、害羞、看向四周、睡觉、跳舞、哭泣、拍手等 | 主 spritesheet 逐帧 | 只表现角色本体姿态，适合稳定换装 |
+| 道具动作 | `readBook`、`watchTV`、`gifting`、`digSand` | 主 spritesheet 逐帧，必要时含小道具 | 道具贴近身体且不需要复杂空间透视时可以保留在角色帧里 |
+| 完整场景动作 | `swing`、`fanCooling`、`swimming`、`whip`、`airConditioning`、`sofaLying`、`typingCompanion` | 必须整帧逐帧绘制 | 有空间关系、遮挡、支撑点、前后景的动作不能靠运行时贴片拼 |
+| 全屏特效源 | `ascension`、`dharmaCharge`、`dharmaSpirit`、`dharmaManifest`、`dharmaStable` / 法相天地 | 独立特效窗口使用 | 不建议当普通行为素材参与换装和日常动作 |
+| 换装图层 | 发饰、帽子、衣服、背部配件 | 单独透明图层 spritesheet | 只适合跟随角色身体，不适合承载复杂场景 |
+| 运行时特效 | 粒子、背景光、爱心、法阵、天气粒子 | Canvas 动态绘制 | 只画环境和氛围，不画五官、身体和关键道具 |
+
+### 可以继续用的动作
+
+这些动作是角色本体或轻道具动作，可以继续放在主 spritesheet 中，并允许换装图层跟随：
+
+`idle`、`runningRight`、`runningLeft`、`waving`、`jumping`、`failed`、`waiting`、`bashful`、`review`、`perching`、`petting`、`yawning`、`eating`、`dizzy`、`lookingAround`、`digSand`、`readBook`、`watchTV`、`sleeping`、`dancing`、`crying`、`gifting`、`stretching`、`clapping`。
+
+### 必须完整逐帧重画的动作
+
+这些动作不应该用“角色 + 道具贴片”的方式拼：
+
+| 动作 | 原因 |
+|------|------|
+| `swing` | 秋千有绳子、座板、摆动角度和支撑关系，必须整帧处理 |
+| `fanCooling` | 风扇、风线、角色站位需要固定空间关系 |
+| `swimming` | 水面、泳圈、遮挡关系必须整体绘制 |
+| `whip` | 鞭子方向、受击姿态、泪水和身体反应必须同帧设计 |
+| `airConditioning` | 空调不能挂在头上，必须有相对位置和冷风区域 |
+| `sofaLying` | 沙发、靠垫、身体躺姿、遮挡必须整体绘制 |
+| `typingCompanion` | 屏幕、桌面、键盘、角色站位必须整体绘制 |
+
+### 不建议继续使用的做法
+
+- 不要运行时硬贴五官。原始像素帧已有脸，再叠一套动态眼睛/嘴巴容易出现“双脸”或“额头脸”。
+- 不要用单个 SVG 道具贴所有动作。动作帧的头身角度、遮挡和透视不同，固定锚点很容易漂。
+- 不要把沙发、泳池、秋千、空调、键盘这类场景拆成孤立贴片。
+- 不要在普通 spritesheet 里塞大量松散光效、阴影、文字、说明、UI 面板。
+- 不要让换装图层承担完整场景职责。换装只负责衣服、帽子、发饰、背部小配件。
+
+### 换装图层限制
+
+主 spritesheet 当前可以超过 26 行，但旧换装图层大多只有 26 行。渲染层会跳过行数不足的换装图层，避免越界绘制。
+
+这意味着：`fanCooling`、`swimming`、`whip`、`airConditioning`、`sofaLying`、`ascension`、`typingCompanion`、`dharmaCharge`、`dharmaSpirit`、`dharmaManifest`、`dharmaStable` 等新增动作上，旧换装可能不会显示。这是有意的安全降级。若这些动作必须支持换装，需要为对应换装项补齐同样行数的透明图层，或直接做带装扮的完整动作帧。
+
+### 可归档或删除的素材
+
+以下素材当前不是运行必需：
+
+| 文件 | 处理建议 |
+|------|----------|
+| `spritesheet_face_*.webp` | 表情换装已禁用，动态五官也关闭；除非恢复整张表情 spritesheet 方案，否则可归档 |
+| `spritesheet_before_ascension_row.webp` | 历史备份，可移出 assets 或删除 |
+| `spritesheet_before_typing_row.webp` | 历史备份，可移出 assets 或删除 |
+| `spritesheet_before_dharma_rows.webp` | 法相天地分阶段素材生成前的历史备份，可移出 assets 或删除 |
+
+正式打包已排除 `*backup*`、`*before_generated*` 等文件，但本地仓库体积仍会受这些备份影响。清理前建议先确认是否还需要回滚素材。
+
+### 新动作制作规则
+
+新增动作时先判断它属于哪类：
+
+1. 只有角色姿态变化：放主 spritesheet，逐帧画。
+2. 小道具贴身且无复杂遮挡：可以放主 spritesheet，必要时做换装图层。
+3. 有场景、支撑、前后景、遮挡或空间透视：必须完整逐帧画，不能运行时拼。
+4. 只是氛围、粒子、背景光：用 Canvas 运行时特效，不进主 spritesheet。
+5. 脸部表情：优先做逐帧表情素材，不要运行时覆盖五官。
 
 ## 设置面板功能说明
 

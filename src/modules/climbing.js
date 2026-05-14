@@ -138,8 +138,10 @@ export async function startClimbing() {
   }
 
   if (targetType === 'window' && targetBounds) {
+    state.climbTarget = targetBounds;
     await climbToWindow(targetBounds, workArea);
   } else {
+    state.climbTarget = null;
     await climbToScreenEdge(workArea);
   }
 }
@@ -218,6 +220,7 @@ async function climbToScreenEdge(workArea) {
 
 async function climbToWindow(windowBounds, workArea) {
   state.climbPhase = 'approaching';
+  state.climbEdgeType = 0;
 
   const targetX = windowBounds.x + windowBounds.width / 2 - 100;
   const targetY = windowBounds.y - 130;

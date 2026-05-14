@@ -6,6 +6,29 @@ const { autoUpdater } = require('electron-updater');
 
 // ===== 统一文件 Store =====
 const dataPath = path.join(app.getPath('userData'), 'yoyo-data.json');
+const debugLogDir = path.join(app.getPath('userData'), 'logs');
+const debugLogPath = path.join(debugLogDir, 'yoyo-debug.jsonl');
+
+function appendDebugLog(type, payload) {
+  if (!BEHAVIOR_DEBUG_ENABLED) return;
+  try {
+    fs.mkdirSync(debugLogDir, { recursive: true });
+    const line = JSON.stringify({
+      ts: new Date().toISOString(),
+      type,
+      payload,
+    });
+    fs.appendFileSync(debugLogPath, `${line}\n`);
+  } catch (e) {
+    console.error('[DebugLog] 写入失败:', e.message);
+  }
+}
+
+function notifyManualEffect(type, duration) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('effect:manual', { type, duration });
+  }
+}
 
 const DEFAULT_DATA = {
   settings: {
@@ -37,6 +60,7 @@ const DEFAULT_DATA = {
   muted:        false,
   shownTips:    [],
   outfit:       { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' },
+  news:         { lastFetchAt: 0, items: [] },
   usedFeatures: [],
   hasSeenGuide: false,
   _migrated:    false,
@@ -88,6 +112,151 @@ function saveData() {
   }
 }
 
+function normalizePlacePart(value) {
+  return String(value || '')
+    .replace(/\s+/g, '')
+    .replace(/[，,、]+/g, '')
+    .replace(/市$/u, '')
+    .replace(/区$/u, '')
+    .replace(/县$/u, '');
+}
+
+function formatPlaceName(city, regionName) {
+  const rawCity = String(city || '').trim();
+  const rawRegion = String(regionName || '').trim();
+  const cityNorm = normalizePlacePart(rawCity);
+  const regionNorm = normalizePlacePart(rawRegion);
+
+  if (!rawCity && !rawRegion) return '本地天气';
+  if (!rawRegion) return rawCity || rawRegion;
+  if (!rawCity) return rawRegion;
+  if (cityNorm && regionNorm && (cityNorm === regionNorm || regionNorm.includes(cityNorm) || cityNorm.includes(regionNorm))) {
+    return rawCity;
+  }
+  return `${rawCity} ${rawRegion}`;
+}
+
+const NEWS_FEEDS = [
+  {
+    name: '微博热搜',
+    type: 'weibo-hot',
+    url: 'https://weibo.com/ajax/side/hotSearch',
+  },
+  {
+    name: 'Google News',
+    type: 'rss',
+    url: 'https://news.google.com/rss?hl=zh-CN&gl=CN&ceid=CN:zh-Hans',
+  },
+  {
+    name: 'BBC 中文',
+    type: 'rss',
+    url: 'https://feeds.bbci.co.uk/zhongwen/simp/rss.xml',
+  },
+];
+const NEWS_CACHE_TTL_MS = 30 * 60 * 1000;
+
+function decodeXmlEntities(value) {
+  return String(value || '')
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+function stripHtml(value) {
+  return decodeXmlEntities(value)
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function firstXmlValue(block, tagName) {
+  const pattern = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
+  const match = block.match(pattern);
+  return match ? stripHtml(match[1]) : '';
+}
+
+function parseRssItems(xml, sourceName) {
+  return Array.from(String(xml || '').matchAll(/<item\b[\s\S]*?<\/item>/gi))
+    .map((match) => {
+      const block = match[0];
+      const title = firstXmlValue(block, 'title');
+      const link = firstXmlValue(block, 'link');
+      const pubDate = firstXmlValue(block, 'pubDate');
+      return title ? { title, link, pubDate, source: sourceName } : null;
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeHotTopicTitle(value) {
+  return stripHtml(value)
+    .replace(/^#+|#+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseWeiboHotItems(payload) {
+  const list = Array.isArray(payload?.data?.realtime) ? payload.data.realtime : [];
+  return list
+    .map((item, index) => {
+      const title = normalizeHotTopicTitle(item.word_scheme || item.word || item.note || item.name);
+      if (!title) return null;
+      return {
+        title,
+        rank: Number(item.rank || item.realpos || index + 1),
+        hot: Number(item.num || item.raw_hot || 0),
+        tag: item.icon_desc || item.small_icon_desc || '',
+        source: '微博热搜',
+        kind: 'hot-search',
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+async function fetchDailyNews(force = false) {
+  const now = Date.now();
+  const cached = petData.news?.items;
+  if (!force && Array.isArray(cached) && cached.length && petData.news?.source === '微博热搜' && now - (petData.news.lastFetchAt || 0) < NEWS_CACHE_TTL_MS) {
+    return { ok: true, items: cached, cached: true, source: petData.news.source };
+  }
+
+  const errors = [];
+  for (const feed of NEWS_FEEDS) {
+    try {
+      const headers = {
+        'User-Agent': feed.type === 'weibo-hot' ? 'Mozilla/5.0 Yoyo hot-search' : `Yoyo/${app.getVersion()} daily-news`,
+      };
+      if (feed.type === 'weibo-hot') headers.Referer = 'https://weibo.com/';
+      const response = await fetch(feed.url, {
+        headers,
+      });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      const items = feed.type === 'weibo-hot'
+        ? parseWeiboHotItems(await response.json())
+        : parseRssItems(await response.text(), feed.name);
+      if (!items.length) throw new Error('empty feed');
+      petData.news = { lastFetchAt: now, items, source: feed.name };
+      saveData();
+      appendDebugLog('news_fetch', { ok: true, source: feed.name, count: items.length });
+      return { ok: true, items, cached: false, source: feed.name };
+    } catch (error) {
+      errors.push(`${feed.name}: ${error.message}`);
+    }
+  }
+
+  appendDebugLog('news_fetch', { ok: false, errors });
+  if (Array.isArray(cached) && cached.length) {
+    return { ok: true, items: cached, cached: true, stale: true, source: petData.news?.source || '' };
+  }
+  return { ok: false, error: '新闻服务暂时不可用。' };
+}
+
 // ===== 窗口扫描模块 =====
 let windowManager = null;
 try {
@@ -97,11 +266,11 @@ try {
 }
 
 // ===== 全局键盘监听（uiohook-napi） =====
-// uiohook 是原生全局监听库，部分 macOS/Electron/Node ABI 组合会在启动阶段崩溃。
-// 默认关闭；需要真实全局打字检测时用 YOYO_ENABLE_UIOHOOK=1 显式开启。
+// 默认开启；如果当前 macOS/Electron/Node ABI 组合不可用，会自动降级并记录日志。
+// 需要临时关闭时设置 YOYO_ENABLE_UIOHOOK=0。
 function initGlobalKeyboardHook() {
-  if (process.env.YOYO_ENABLE_UIOHOOK !== '1') {
-    console.log('[uiohook] 默认禁用；设置 YOYO_ENABLE_UIOHOOK=1 可尝试开启全局键盘监听');
+  if (process.env.YOYO_ENABLE_UIOHOOK === '0') {
+    console.log('[uiohook] 已通过 YOYO_ENABLE_UIOHOOK=0 关闭全局键盘监听');
     return;
   }
   try {
@@ -112,12 +281,15 @@ function initGlobalKeyboardHook() {
       if (now - lastKeyTime < 500) return; // 节流 500ms
       lastKeyTime = now;
       if (mainWindow && !mainWindow.isDestroyed()) {
+        appendDebugLog('keyboard_activity', { source: 'uiohook' });
         mainWindow.webContents.send('keyboard:activity');
       }
     });
     uIOhook.start();
+    appendDebugLog('keyboard_hook_started', { enabled: true });
   } catch (e) {
     console.log('[uiohook] 不可用，键盘响应功能禁用:', e.message);
+    appendDebugLog('keyboard_hook_failed', { message: e.message });
   }
 }
 
@@ -198,6 +370,13 @@ function scanWindowsViaMacOS(selfBounds) {
 const BEHAVIOR_DEBUG_ENABLED = process.env.YOYO_BEHAVIOR_DEBUG === '1';
 const APP_WIDTH = BEHAVIOR_DEBUG_ENABLED ? 560 : 200;
 const APP_HEIGHT = BEHAVIOR_DEBUG_ENABLED ? 360 : 260;
+
+if (BEHAVIOR_DEBUG_ENABLED) {
+  appendDebugLog('session_start', {
+    pid: process.pid,
+    version: app.getVersion(),
+  });
+}
 
 let mainWindow;
 let tray;
@@ -306,6 +485,16 @@ function createWindow() {
 
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    appendDebugLog('render_process_gone', details);
+  });
+  mainWindow.webContents.on('unresponsive', () => {
+    appendDebugLog('renderer_unresponsive', {});
+  });
+  mainWindow.on('closed', () => {
+    appendDebugLog('window_closed', {});
+  });
 }
 
 function createTrayIcon() {
@@ -478,6 +667,7 @@ app.isQuitting = false;
 
 app.on('before-quit', () => {
   app.isQuitting = true;
+  appendDebugLog('before_quit', {});
 });
 
 app.whenReady().then(() => {
@@ -488,6 +678,28 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
   initGlobalKeyboardHook();
+  if (process.env.YOYO_TEST_GIANT === '1') {
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) triggerGiantEffect();
+    }, 2500);
+  }
+  if (process.env.YOYO_TEST_CLONE === '1') {
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) triggerCloneEffect();
+    }, 2500);
+  }
+  if (process.env.YOYO_TEST_KEYBOARD === '1') {
+    let sent = 0;
+    const timer = setInterval(() => {
+      if (!mainWindow || mainWindow.isDestroyed() || sent >= 5) {
+        clearInterval(timer);
+        return;
+      }
+      sent += 1;
+      appendDebugLog('keyboard_activity', { source: 'test', sent });
+      mainWindow.webContents.send('keyboard:activity');
+    }, 700);
+  }
 
   // 开机自启（默认开启）
   app.setLoginItemSettings({
@@ -497,9 +709,11 @@ app.whenReady().then(() => {
 
   // 关闭按钮隐藏到托盘而非退出
   mainWindow.on('close', (event) => {
+    appendDebugLog('window_close_requested', { isQuitting: app.isQuitting });
     if (!app.isQuitting) {
       event.preventDefault();
       mainWindow.hide();
+      appendDebugLog('window_hidden_to_tray', {});
     }
   });
 
@@ -523,6 +737,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', (event) => {
+  appendDebugLog('window_all_closed', {});
   event.preventDefault();
 });
 
@@ -685,6 +900,9 @@ ipcMain.handle('store:batch', (_, updates) => {
 });
 
 ipcMain.handle('debug:behavior-enabled', () => BEHAVIOR_DEBUG_ENABLED);
+ipcMain.handle('debug:log-path', () => debugLogPath);
+ipcMain.on('debug:log', (_event, type, payload) => appendDebugLog(type, payload));
+ipcMain.handle('news:get', async (_event, options = {}) => fetchDailyNews(Boolean(options.force)));
 
 // 监听 renderer 发来的状态同步
 ipcMain.on('menu-state:sync', (_event, state) => {
@@ -700,24 +918,50 @@ ipcMain.handle('context-menu:show', (event) => {
     click: () => { mainWindow.webContents.send('menu-action', `switch-pet:${pet.id}`); }
   }));
   petSubmenu.push({ type: 'separator' });
-  petSubmenu.push({ label: '导入素材...', click: () => { mainWindow.webContents.send('menu-action', 'import'); } });
+  petSubmenu.push({ label: '把新小家伙接回来...', click: () => { mainWindow.webContents.send('menu-action', 'import'); } });
 
   const template = [
     { label: '抚摸一下', click: () => { mainWindow.webContents.send('action:pet'); } },
     { label: '鞭打！', click: () => { mainWindow.webContents.send('action:whip'); } },
-    { type: 'separator' },
-    { label: '跳个舞', type: 'checkbox', checked: menuState.dancing, click: (item) => { mainWindow.webContents.send('action:dance', item.checked); } },
-    { label: '跟随鼠标', type: 'checkbox', checked: menuState.following, click: (item) => { mainWindow.webContents.send('action:follow', item.checked); } },
-    { label: '睡觉', type: 'checkbox', checked: menuState.sleeping, click: (item) => { mainWindow.webContents.send('action:sleep', item.checked); } },
-    { type: 'separator' },
-    { label: '✨ 分身术！', click: () => { triggerCloneEffect(); } },
-    { label: '🏔️ 法天象地！', click: () => { triggerGiantEffect(); } },
+    { label: '看她法天象地', click: () => { triggerGiantEffect(); } },
     { type: 'separator' },
     {
-      label: '👗 换装',
+      label: '🎭 陪她做点事',
+      submenu: [
+        { label: '让她跳会舞', type: 'checkbox', checked: menuState.dancing, click: (item) => { mainWindow.webContents.send('action:dance', item.checked); } },
+        { label: '让她跟着我', type: 'checkbox', checked: menuState.following, click: (item) => { mainWindow.webContents.send('action:follow', item.checked); } },
+        { label: '让她先睡会', type: 'checkbox', checked: menuState.sleeping, click: (item) => { mainWindow.webContents.send('action:sleep', item.checked); } },
+      ]
+    },
+    {
+      label: '🏖️ 带她去玩',
+      submenu: [
+        { label: '陪她吹吹风扇', click: () => { mainWindow.webContents.send('menu-action', 'fan-cooling'); } },
+        { label: '陪她吹吹空调', click: () => { mainWindow.webContents.send('menu-action', 'air-conditioning'); } },
+        { label: '让她沙发躺会', click: () => { mainWindow.webContents.send('menu-action', 'sofa-lying'); } },
+        { label: '带她去游泳', click: () => { mainWindow.webContents.send('menu-action', 'swimming'); } },
+      ]
+    },
+    {
+      label: '📰 听她说说',
+      submenu: [
+        { label: '听她说微博热搜', click: () => { mainWindow.webContents.send('menu-action', 'daily-news'); } },
+      ]
+    },
+    { type: 'separator' },
+    {
+      label: '✨ 看她施法',
+      submenu: [
+        { label: '看她用分身术', click: () => { triggerCloneEffect(); } },
+        { label: '看她法天象地', click: () => { triggerGiantEffect(); } },
+      ]
+    },
+    { type: 'separator' },
+    {
+      label: '👗 给她换穿搭',
       submenu: [
         {
-          label: '发饰',
+          label: '给她戴发饰',
           submenu: [
             { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'none'); } },
             { label: '🌸 小花发夹', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'flower'); } },
@@ -726,7 +970,7 @@ ipcMain.handle('context-menu:show', (event) => {
           ]
         },
         {
-          label: '衣服',
+          label: '给她换衣服',
           submenu: [
             { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'none'); } },
             { label: '💙 蓝色卫衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'hoodie'); } },
@@ -738,7 +982,7 @@ ipcMain.handle('context-menu:show', (event) => {
           ]
         },
         {
-          label: '首饰/大件',
+          label: '给她配小物件',
           submenu: [
             { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'none'); } },
             { label: '🎀 红领结', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'bow'); } },
@@ -751,7 +995,7 @@ ipcMain.handle('context-menu:show', (event) => {
           ]
         },
         {
-          label: '帽子',
+          label: '给她戴帽子',
           submenu: [
             { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'none'); } },
             { label: '🎀 蝴蝶结', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'ribbon'); } },
@@ -761,17 +1005,17 @@ ipcMain.handle('context-menu:show', (event) => {
             { label: '😇 光环', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'halo'); } },
           ]
         },
-        { label: '表情：自动情绪驱动', enabled: false },
+        { label: '表情会跟心情自己变', enabled: false },
         { type: 'separator' },
-        { label: '🔄 随机搭配', click: () => { mainWindow.webContents.send('outfit:random'); } },
-        { label: '🚫 全部卸下', click: () => { mainWindow.webContents.send('outfit:reset'); } },
+        { label: '🔄 帮她随便搭一套', click: () => { mainWindow.webContents.send('outfit:random'); } },
+        { label: '🚫 先让她清清爽爽', click: () => { mainWindow.webContents.send('outfit:reset'); } },
       ]
     },
     { type: 'separator' },
-    { label: '切换宠物', submenu: petSubmenu },
+    { label: '换个小家伙', submenu: petSubmenu },
     { type: 'separator' },
-    { label: '设置', click: () => openSettings() },
-    { label: '退出', click: () => { app.quit(); } }
+    { label: '替她收拾一下', click: () => openSettings() },
+    { label: '让她先退下', click: () => { app.quit(); } }
   ];
   const menu = Menu.buildFromTemplate(template);
   menu.popup(BrowserWindow.fromWebContents(event.sender));
@@ -846,7 +1090,7 @@ ipcMain.handle('weather:get', async () => {
     if (ipData.status !== 'success') throw new Error('IP locate returned failure');
     latitude = ipData.lat;
     longitude = ipData.lon;
-    placeName = `${ipData.city}${ipData.regionName ? `, ${ipData.regionName}` : ''}`;
+    placeName = formatPlaceName(ipData.city, ipData.regionName);
   } catch {
     return { ok: false, error: '无法定位当前位置。' };
   }
@@ -939,10 +1183,20 @@ ipcMain.handle('effect:fullscreen', async (_event, type) => {
 
 // ===== 分身术特效窗口 =====
 function triggerCloneEffect() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const mainBounds = mainWindow.getBounds();
+  const effectDisplay = screen.getDisplayMatching(mainBounds);
+  const displayBounds = effectDisplay.bounds;
+  const overlayBounds = effectDisplay.workArea;
+  const { width, height } = overlayBounds;
+  appendDebugLog('clone_effect_triggered', {
+    mainBounds,
+    displayBounds,
+    overlayBounds,
+  });
+  notifyManualEffect('clone', 6200);
   const cloneWin = new BrowserWindow({
     width, height,
-    x: 0, y: 0,
+    x: overlayBounds.x, y: overlayBounds.y,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -952,16 +1206,45 @@ function triggerCloneEffect() {
     focusable: false,
     webPreferences: { nodeIntegration: false, contextIsolation: true }
   });
+  const enforcedBounds = { x: overlayBounds.x, y: overlayBounds.y, width, height };
+  cloneWin.setBounds(enforcedBounds, false);
   cloneWin.setIgnoreMouseEvents(true);
   cloneWin.setAlwaysOnTop(true, 'screen-saver');
+  cloneWin.webContents.on('console-message', (_event, level, message) => {
+    appendDebugLog('clone_effect_console', { level, message });
+  });
+  cloneWin.webContents.on('render-process-gone', (_event, details) => {
+    appendDebugLog('clone_effect_gone', details);
+  });
+  cloneWin.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    appendDebugLog('clone_effect_load_failed', { errorCode, errorDescription, validatedURL });
+  });
+  cloneWin.once('ready-to-show', () => {
+    cloneWin.setBounds(enforcedBounds, false);
+    appendDebugLog('clone_effect_ready_to_show', cloneWin.getBounds());
+  });
+  cloneWin.once('closed', () => {
+    notifyManualEffect('clone', 0);
+    appendDebugLog('clone_effect_closed', {});
+  });
   cloneWin.loadFile(path.join(__dirname, 'clone-effect.html'));
 
   const spritePath = getActiveSpritesheetPath();
   const spriteUrl = toFileUrl(spritePath);
   const outfitLayerSources = getActiveEffectLayers();
-  const faceSources = getEffectFaceSources();
+  appendDebugLog('clone_effect_assets', {
+    spritePath,
+    outfitLayerCount: outfitLayerSources.length,
+  });
   cloneWin.webContents.once('did-finish-load', () => {
-    cloneWin.webContents.executeJavaScript(`startCloneEffect(${JSON.stringify(spriteUrl)}, ${JSON.stringify(outfitLayerSources)}, ${JSON.stringify({ faceSources })});`);
+    appendDebugLog('clone_effect_loaded', {});
+    cloneWin.webContents.executeJavaScript(`startCloneEffect(${JSON.stringify(spriteUrl)}, ${JSON.stringify(outfitLayerSources)}, ${JSON.stringify({})});`)
+      .then(() => {
+        appendDebugLog('clone_effect_started', {});
+      })
+      .catch((error) => {
+        appendDebugLog('clone_effect_start_failed', { message: error.message, stack: error.stack });
+      });
   });
 
   // 7秒保险关闭
@@ -971,12 +1254,22 @@ function triggerCloneEffect() {
 }
 
 function triggerGiantEffect() {
-  const display = screen.getPrimaryDisplay();
-  const { width, height } = display.size;
+  const mainBounds = mainWindow.getBounds();
+  const effectDisplay = screen.getDisplayMatching(mainBounds);
+  const displayBounds = effectDisplay.bounds;
+  const overlayBounds = effectDisplay.workArea;
+  const { width, height } = overlayBounds;
+  appendDebugLog('giant_effect_triggered', {
+    mainBounds,
+    displayBounds,
+    overlayBounds,
+  });
+  notifyManualEffect('giant', 9000);
 
   const giantWin = new BrowserWindow({
-    x: 0, y: 0,
+    x: overlayBounds.x, y: overlayBounds.y,
     width, height,
+    useContentSize: false,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
@@ -986,34 +1279,74 @@ function triggerGiantEffect() {
     resizable: false,
     webPreferences: { nodeIntegration: false, contextIsolation: true }
   });
+  const enforcedBounds = { x: overlayBounds.x, y: overlayBounds.y, width, height };
+  giantWin.setBounds(enforcedBounds, false);
+  appendDebugLog('giant_effect_bounds_enforced', {
+    requested: enforcedBounds,
+    actual: giantWin.getBounds(),
+  });
   giantWin.setIgnoreMouseEvents(true);
   giantWin.setAlwaysOnTop(true, 'screen-saver');
+  giantWin.webContents.on('console-message', (_event, level, message) => {
+    appendDebugLog('giant_effect_console', { level, message });
+  });
+  giantWin.webContents.on('render-process-gone', (_event, details) => {
+    appendDebugLog('giant_effect_gone', details);
+  });
+  giantWin.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    appendDebugLog('giant_effect_load_failed', { errorCode, errorDescription, validatedURL });
+  });
+  giantWin.once('ready-to-show', () => {
+    giantWin.setBounds(enforcedBounds, false);
+    appendDebugLog('giant_effect_ready_to_show', giantWin.getBounds());
+  });
+  giantWin.once('closed', () => {
+    notifyManualEffect('giant', 0);
+    appendDebugLog('giant_effect_closed', {});
+  });
   giantWin.loadFile(path.join(__dirname, 'giant-effect.html'));
 
-  const mainBounds = mainWindow.getBounds();
   // 角色视觉中心在窗口内的实际偏移量：
   // canvas 在窗口 bottom:10px，高130px → canvas顶部 = 260-10-130 = 120
   // canvas 内绘制：DRAW_SCALE=0.75，drawH=97.5，offsetY=32.5，角色中心=81.25
   // 所以角色中心 Y = 120 + 81.25 ≈ 201，X = window.width/2 = 100
   const charCenterX = mainBounds.x + 100;
   const charCenterY = mainBounds.y + 201;
+  const sourceCenter = {
+    x: charCenterX - overlayBounds.x,
+    y: charCenterY - overlayBounds.y,
+  };
+  const arenaCenter = { x: overlayBounds.width / 2, y: overlayBounds.height / 2 };
   const giantSpritePath = getActiveSpritesheetPath();
   const giantSpriteUrl = toFileUrl(giantSpritePath);
   const outfitLayerSources = getActiveEffectLayers();
+  appendDebugLog('giant_effect_assets', {
+    giantSpritePath,
+    outfitLayerCount: outfitLayerSources.length,
+    sourceCenter,
+    arenaCenter,
+  });
   giantWin.webContents.once('did-finish-load', () => {
+    appendDebugLog('giant_effect_loaded', {});
     giantWin.webContents.executeJavaScript(`
       window.petPosition = { x: ${mainBounds.x}, y: ${mainBounds.y} };
       window.petSize = { w: ${mainBounds.width}, h: ${mainBounds.height} };
-      window.petCharCenter = { x: ${charCenterX}, y: ${charCenterY} };
+      window.petCharCenter = { x: ${sourceCenter.x}, y: ${sourceCenter.y} };
+      window.effectArenaCenter = { x: ${arenaCenter.x}, y: ${arenaCenter.y} };
+      window.effectOverlayBounds = { x: ${overlayBounds.x}, y: ${overlayBounds.y}, width: ${overlayBounds.width}, height: ${overlayBounds.height} };
       window.spritesheetSrc = ${JSON.stringify(giantSpriteUrl)};
       window.outfitLayerSources = ${JSON.stringify(outfitLayerSources)};
       startGiantEffect();
-    `);
+    `).then(() => {
+      appendDebugLog('giant_effect_started', {});
+    }).catch((error) => {
+      appendDebugLog('giant_effect_start_failed', { message: error.message, stack: error.stack });
+    });
   });
 
   setTimeout(() => {
     if (!giantWin.isDestroyed()) giantWin.close();
-  }, 6500);
+  }, 8600);
 }
 
 ipcMain.handle('effect:clone', () => {

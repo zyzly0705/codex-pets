@@ -1,6 +1,7 @@
 // outfit-system.js - 分层换装 spritesheet
 import { state, say, playSound, localFileUrl } from './core-state.js';
 import { set } from './store-client.js';
+import { logOutfitLayers } from './debug-log.js';
 
 // ===== 目录 =====
 // 所有换装项都使用预生成好的透明图层 spritesheet，避免运行时用固定锚点贴 SVG 导致动作帧漂移。
@@ -110,6 +111,14 @@ const BEHIND_LAYERS = {
   },
 };
 
+const BACK_ACCESSORY_IDS = new Set([
+  'wings',
+  'butterfly_wings',
+  'devil_wings',
+  'jetpack',
+  'star_backpack',
+]);
+
 const DRAW_ORDER = [
   { category: 'accessory', position: 'behind' },
   { category: 'clothes', position: 'behind' },
@@ -136,6 +145,11 @@ function buildLayerDescriptors(outfit = state.currentOutfit) {
   for (const entry of DRAW_ORDER) {
     const itemId = outfit[entry.category];
     if (!itemId || itemId === 'none') continue;
+    if (entry.category === 'accessory') {
+      const isBackAccessory = BACK_ACCESSORY_IDS.has(itemId);
+      if (entry.position === 'front' && isBackAccessory) continue;
+      if (entry.position === 'behind' && !isBackAccessory) continue;
+    }
     const file = entry.position === 'behind'
       ? BEHIND_LAYERS[entry.category]?.[itemId]
       : LAYER_SPRITESHEETS[entry.category]?.[itemId];
@@ -164,6 +178,7 @@ async function applyOutfitLayers() {
   const descriptors = buildLayerDescriptors();
   const loaded = await Promise.all(descriptors.map(loadImageLayer));
   state.outfitLayerImages = loaded.filter(Boolean);
+  logOutfitLayers(state.currentOutfit, descriptors);
 }
 
 export function applyOutfitSpritesheet() {
@@ -219,9 +234,44 @@ function normalizeOutfit() {
 }
 
 export function drawOutfitLayers(drawCtx, frame, row, offsetX, offsetY, drawW, drawH, position = 'front') {
+  const now = performance.now() / 1000;
   for (const layer of state.outfitLayerImages || []) {
     if (layer.position !== position || !layer.image?.complete) continue;
+    const maxCol = Math.floor(layer.image.naturalWidth / 192) - 1;
+    const maxRow = Math.floor(layer.image.naturalHeight / 208) - 1;
+    if (frame > maxCol || row > maxRow) continue;
+    drawCtx.save();
+    const cx = offsetX + drawW / 2;
+    const cy = offsetY + drawH / 2;
+    const isDance = state.stateName === 'dancing';
+    const isSwing = state.stateName === 'swing';
+    const motionAmp = isDance ? 1 : isSwing ? 0.75 : (state.stateName === 'runningLeft' || state.stateName === 'runningRight') ? 0.45 : 0.18;
+
+    if (layer.category === 'accessory' && ['wings', 'butterfly_wings', 'devil_wings'].includes(layer.itemId)) {
+      drawCtx.translate(cx, cy - 8);
+      drawCtx.scale(1 + Math.sin(now * 10) * 0.025 * motionAmp, 1 + Math.cos(now * 10) * 0.02 * motionAmp);
+      drawCtx.translate(-cx, -(cy - 8));
+    } else if (layer.category === 'accessory' && layer.itemId === 'scarf') {
+      drawCtx.translate(cx + 6, cy + 2);
+      drawCtx.rotate(Math.sin(now * 5.5) * 0.05 * motionAmp);
+      drawCtx.translate(-(cx + 6), -(cy + 2));
+    } else if (layer.category === 'clothes' && ['cape', 'party', 'angel'].includes(layer.itemId)) {
+      drawCtx.translate(cx, cy + 4);
+      drawCtx.rotate(Math.sin(now * 4.6) * 0.035 * motionAmp);
+      drawCtx.scale(1, 1 + Math.abs(Math.cos(now * 4.6)) * 0.018 * motionAmp);
+      drawCtx.translate(-cx, -(cy + 4));
+    } else if (layer.category === 'hat' && layer.itemId === 'halo') {
+      drawCtx.translate(cx, offsetY + drawH * 0.18 + Math.sin(now * 3.2) * 2.2);
+      drawCtx.scale(1 + Math.sin(now * 3.2) * 0.02, 1 + Math.sin(now * 3.2) * 0.02);
+      drawCtx.translate(-cx, -(offsetY + drawH * 0.18));
+    } else if (layer.category === 'hair') {
+      drawCtx.translate(cx, offsetY + drawH * 0.22);
+      drawCtx.rotate(Math.sin(now * 4.2) * 0.012 * motionAmp);
+      drawCtx.translate(-cx, -(offsetY + drawH * 0.22));
+    }
+
     drawCtx.drawImage(layer.image, frame * 192, row * 208, 192, 208, offsetX, offsetY, drawW, drawH);
+    drawCtx.restore();
   }
 }
 

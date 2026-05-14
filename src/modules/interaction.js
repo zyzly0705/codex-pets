@@ -6,6 +6,8 @@ import { yoyoMemory, saveMemory, addXP, trackGrowthStat, incrementAchievementSta
 import { cancelClimb } from './climbing.js';
 import { petNeeds, behaviorEngineTick, HUNGER_MESSAGES } from './behavior-engine.js';
 import { applyFaceSpritesheet } from './outfit-system.js';
+import { checkDailyNewsBroadcast } from './news-broadcast.js';
+import { debugLog } from './debug-log.js';
 
 // ===== 喂食相关消息 =====
 const DISMISS_MESSAGES = [
@@ -23,12 +25,66 @@ const FEED_MESSAGES = [
   '这个好好吃！妈妈还有吗还有吗？',
 ];
 
+const KEYBOARD_COMPANION_DURATION = 2600;
+const KEYBOARD_COMPANION_MIN_INTERVAL = 900;
+const KEYBOARD_PROTECTED_BEHAVIORS = new Set(['weatherReminder', 'newsBroadcast', 'memoryTrigger']);
+
+function canStartTypingCompanion(now) {
+  if (state.manualEffectUntil && now < state.manualEffectUntil) return false;
+  if (stateMachine.globalMode !== GLOBAL_MODES.INTERACTIVE) return false;
+  if (stateMachine.isDragging || stateMachine.isFeeding || stateMachine.isWhipping || stateMachine.isDropping) return false;
+  if (stateMachine.isSleeping || stateMachine.isFollowing || stateMachine.isClimbing) return false;
+  if (stateMachine.isDancing && !(state.currentBehavior === 'dance' && !state.danceTimer)) return false;
+  if (stateMachine.actionState === ACTION_STATES.TYPING_COMPANION) return true;
+  if (!stateMachine.canTransition(ACTION_STATES.TYPING_COMPANION)) return false;
+  if (state.currentBehavior && KEYBOARD_PROTECTED_BEHAVIORS.has(state.currentBehavior)) return false;
+  return true;
+}
+
 // ===== 重置闲置 =====
 export function resetInteraction() {
   state.lastInteractionTime = Date.now();
   if (stateMachine.isClimbing) {
     cancelClimb();
   }
+}
+
+async function startManualBehavior({ name, stateName, duration = 7000, message, emotionEvent }) {
+  state.lastInteractionTime = Date.now();
+
+  if (stateMachine.isClimbing) {
+    await cancelClimb();
+  }
+  if (stateMachine.isDancing) {
+    clearInterval(state.danceTimer);
+    state.danceTimer = null;
+    stateMachine.transition(ACTION_STATES.IDLE);
+  }
+  if (stateMachine.isFollowing) {
+    stopFollowing();
+  }
+  if (stateMachine.isSleeping) {
+    stateMachine.setGlobalMode(GLOBAL_MODES.INTERACTIVE);
+    STATES.idle.fps = 4;
+  }
+
+  clearTimeout(state.dismissTimeout);
+  feedBtn.classList.remove('show');
+  state.hungerPromptStartedAt = 0;
+
+  state.currentBehavior = name;
+  state.behaviorEndTime = Date.now() + duration;
+  setState(stateName);
+  if (message) say(message, Math.min(duration, 7000));
+  if (emotionEvent) applyEmotionEvent(emotionEvent);
+
+  setTimeout(() => {
+    if (state.currentBehavior === name) {
+      state.currentBehavior = null;
+      state.behaviorEndTime = 0;
+      setState('idle');
+    }
+  }, duration + 120);
 }
 
 // ===== 同步菜单状态 =====
@@ -45,6 +101,7 @@ export function showHungerUI() {
   const msg = HUNGER_MESSAGES[Math.floor(Math.random() * HUNGER_MESSAGES.length)];
   setState('waiting');
   say(msg, 6000);
+  state.hungerPromptStartedAt = Date.now();
 
   feedBtn.classList.add('show');
   window.petApi.setIgnoreMouse(false);
@@ -55,6 +112,7 @@ export function showHungerUI() {
     const dismissMsg = DISMISS_MESSAGES[Math.floor(Math.random() * DISMISS_MESSAGES.length)];
     setState('failed');
     say(dismissMsg);
+    state.hungerPromptStartedAt = 0;
   }, 30000);
 }
 
@@ -90,14 +148,20 @@ export function whipPet() {
   setTimeout(() => canvas.classList.remove('shake'), 300);
 
   // 鞭打反应状态
-  reactionState.whip = { phase: 'hit', startTime: Date.now() };
+  const side = Math.random() > 0.5 ? 1 : -1;
+  reactionState.whip = {
+    phase: 'hit',
+    startTime: Date.now(),
+    side,
+    severity: state.whipCount >= 5 ? 'heavy' : 'light',
+  };
 
   if (state.whipCount >= 5) {
-    setState('crying');
+    setState('whip');
     playSound('cry');
     say('呜呜呜…妈妈打了Yoyo好多次…Yoyo好委屈…', 6000);
   } else {
-    setState('dizzy');
+    setState('whip');
     say('呜…好疼…', 2000);
   }
 
@@ -131,7 +195,7 @@ export function whipPet() {
         stateMachine.transition(ACTION_STATES.IDLE);
       }
     }, 500);
-  }, 500);
+  }, 4500);
 }
 
 // ===== 跳舞模式 =====
@@ -189,6 +253,7 @@ export function toggleSleep() {
     if (wasFollowing) stopFollowing();
     clearTimeout(state.dismissTimeout);
     feedBtn.classList.remove('show');
+    state.hungerPromptStartedAt = 0;
     setState('sleeping');
     say('呼...Yoyo好困呀...zzZ...');
     STATES.idle.fps = 1;
@@ -230,6 +295,7 @@ export function toggleFollowMouse() {
 }
 
 function startFollowing() {
+  state.followMotion = { vx: 0, vy: 0, targetDx: 0, targetDy: 0 };
   state.followInterval = setInterval(async () => {
     if (!stateMachine.isFollowing) return;
 
@@ -242,15 +308,25 @@ function startFollowing() {
     const dx = mousePos.x - petCenterX;
     const dy = mousePos.y - petCenterY;
     const distance = Math.sqrt(dx * dx + dy * dy);
+    state.followMotion.targetDx = dx;
+    state.followMotion.targetDy = dy;
 
     if (distance < 30) {
       setState('idle');
+      state.followMotion.vx *= 0.6;
+      state.followMotion.vy *= 0.6;
       return;
     }
 
-    const speed = Math.min(5, distance * 0.1);
-    const moveX = Math.round((dx / distance) * speed);
-    const moveY = Math.round((dy / distance) * speed);
+    const targetSpeed = Math.min(6.5, Math.max(1.2, distance * 0.055));
+    const slowRadius = 140;
+    const speedScale = distance < slowRadius ? (0.35 + 0.65 * (distance / slowRadius)) : 1;
+    const desiredX = (dx / distance) * targetSpeed * speedScale;
+    const desiredY = (dy / distance) * targetSpeed * speedScale;
+    state.followMotion.vx += (desiredX - state.followMotion.vx) * 0.24;
+    state.followMotion.vy += (desiredY - state.followMotion.vy) * 0.20;
+    const moveX = Math.round(state.followMotion.vx);
+    const moveY = Math.round(state.followMotion.vy);
 
     if (dx > 0) {
       setState('runningRight');
@@ -267,6 +343,7 @@ function stopFollowing() {
     clearInterval(state.followInterval);
     state.followInterval = null;
   }
+  state.followMotion = { vx: 0, vy: 0, targetDx: 0, targetDy: 0 };
 }
 
 // ===== 抚摸重置定时器 =====
@@ -455,6 +532,7 @@ export function initInteraction() {
 
       // 喂食反应：进入吃的阶段
       reactionState.feed = { phase: 'eating', startTime: Date.now() };
+      state.hungerPromptStartedAt = 0;
 
       state.feedScaleStart = performance.now();
       applyEmotionEvent('feed');
@@ -526,6 +604,45 @@ export function initInteraction() {
         }
         break;
       }
+      case 'fan-cooling':
+        await startManualBehavior({
+          name: 'fanCooling',
+          stateName: 'fanCooling',
+          duration: 7000,
+          message: '呼呼的小风扇吹起来啦～',
+          emotionEvent: 'calm',
+        });
+        break;
+      case 'air-conditioning':
+        await startManualBehavior({
+          name: 'airConditioning',
+          stateName: 'airConditioning',
+          duration: 8000,
+          message: '空调凉凉的～Yoyo不热啦！',
+          emotionEvent: 'calm',
+        });
+        break;
+      case 'sofa-lying':
+        await startManualBehavior({
+          name: 'sofaLying',
+          stateName: 'sofaLying',
+          duration: 9000,
+          message: 'Yoyo在沙发上躺一下下～',
+          emotionEvent: 'relaxed',
+        });
+        break;
+      case 'swimming':
+        await startManualBehavior({
+          name: 'swimming',
+          stateName: 'swimming',
+          duration: 8000,
+          message: '扑通！Yoyo去游泳啦～',
+          emotionEvent: 'happy',
+        });
+        break;
+      case 'daily-news':
+        await checkDailyNewsBroadcast(true);
+        break;
     }
   });
 
@@ -635,12 +752,31 @@ export function initInteraction() {
       say(randomFrom(['打字好久啦，手指休息一下吧～', '键盘都被敲热啦！站起来活动活动嘛～', '写了这么久，眨眨眼休息一下下吧～']));
     }
 
-    if (state.stateName === 'idle' || state.stateName === 'waiting' || state.stateName === 'lookingAround') {
-      if (stateMachine.canTransition(ACTION_STATES.TYPING_COMPANION)) {
-        setState('clapping');
-        state.keyboardActiveUntil = now + 3000;
-      }
+    if (!canStartTypingCompanion(now)) {
+      debugLog('keyboard_companion_ignored', {
+        stateName: state.stateName,
+        actionState: stateMachine.actionState,
+        currentBehavior: state.currentBehavior,
+        globalMode: stateMachine.globalMode,
+      });
+      return;
     }
+
+    if (state.stateName !== 'typingCompanion' && now - (state.lastTypingCompanionAt || 0) < KEYBOARD_COMPANION_MIN_INTERVAL) {
+      return;
+    }
+
+    const interruptedBehavior = state.currentBehavior;
+    state.lastTypingCompanionAt = now;
+    state.currentBehavior = 'typingCompanion';
+    state.behaviorEndTime = now + KEYBOARD_COMPANION_DURATION;
+    state.keyboardActiveUntil = now + KEYBOARD_COMPANION_DURATION;
+    stateMachine.transition(ACTION_STATES.TYPING_COMPANION);
+    setState('typingCompanion');
+    debugLog('keyboard_companion_started', {
+      interruptedBehavior,
+      duration: KEYBOARD_COMPANION_DURATION,
+    });
   });
 }
 

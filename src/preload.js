@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('petApi', {
   listPets: () => ipcRenderer.invoke('pets:list'),
   importPet: () => ipcRenderer.invoke('pet:import'),
   getWeather: () => ipcRenderer.invoke('weather:get'),
+  getDailyNews: (options) => ipcRenderer.invoke('news:get', options),
   getBounds: () => ipcRenderer.invoke('window:get-bounds'),
   moveBy: (delta) => ipcRenderer.invoke('window:move-by', delta),
   getMousePosition: () => ipcRenderer.invoke('mouse:getPosition'),
@@ -27,6 +28,7 @@ contextBridge.exposeInMainWorld('petApi', {
   onSystemResume: (callback) => ipcRenderer.on('system:resume', () => callback()),
   // 繁忙提醒监听
   onBusyReminder: (callback) => ipcRenderer.on('system:busy-reminder', () => callback()),
+  onManualEffect: (callback) => ipcRenderer.on('effect:manual', (_, data) => callback(data)),
   // 键盘活动监听
   onKeyboardActivity: (cb) => ipcRenderer.on('keyboard:activity', cb),
   // 前台应用变化监听（WPS工作陪伴）
@@ -45,4 +47,6 @@ contextBridge.exposeInMainWorld('petApi', {
   storeSet:   (key, val)  => ipcRenderer.invoke('store:set', key, val),
   storeBatch: (updates)   => ipcRenderer.invoke('store:batch', updates),
   behaviorDebugEnabled: () => ipcRenderer.invoke('debug:behavior-enabled'),
+  debugLog: (type, payload) => ipcRenderer.send('debug:log', type, payload),
+  debugLogPath: () => ipcRenderer.invoke('debug:log-path'),
 });

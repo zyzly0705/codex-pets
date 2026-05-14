@@ -14,12 +14,22 @@ function escapeHtml(value) {
 function renderCandidateRows(snapshot) {
   return snapshot.candidates.map(candidate => {
     const selected = snapshot.selected?.name === candidate.name;
+    const bd = candidate.breakdown;
     return `
       <div class="debug-row${selected ? ' selected' : ''}">
         <span>${escapeHtml(candidate.name)}</span>
         <span>${candidate.score}</span>
         <span>${escapeHtml(candidate.pool)}</span>
         <span>${escapeHtml(candidate.category)}</span>
+      </div>
+      <div class="debug-breakdown ${selected ? ' selected' : ''}">
+        base ${bd.base}
+        em ${bd.emotion >= 0 ? '+' : ''}${bd.emotion}
+        gr ${bd.growth >= 0 ? '+' : ''}${bd.growth}
+        meta ${bd.meta >= 0 ? '+' : ''}${bd.meta}
+        bias ${bd.bias >= 0 ? '+' : ''}${bd.bias}
+        smooth ${bd.smoothed >= 0 ? '+' : ''}${bd.smoothed}
+        pen -${bd.penalty}
       </div>
     `;
   }).join('');
@@ -55,7 +65,8 @@ function renderDebugPanel(panel, snapshot) {
     </div>
     <div class="debug-section">
       <div>needs e:${snapshot.needs.energy} b:${snapshot.needs.boredom} h:${snapshot.needs.hunger} p:${snapshot.needs.playfulness}</div>
-      <div>ctx ${snapshot.context.hour}:00 ${escapeHtml(snapshot.context.weatherKind)} idle ${snapshot.context.idleMin}m</div>
+      <div>ctx ${snapshot.context.hour}:00 ${escapeHtml(snapshot.context.weatherKind)} ${escapeHtml(snapshot.context.season)} idle ${snapshot.context.idleMin}m</div>
+      <div>score ctx <span class="debug-muted">${escapeHtml(snapshot.context.scoreContext)}</span></div>
       <div>recent <span class="debug-muted">${escapeHtml(snapshot.recent.join(', ') || 'none')}</span></div>
     </div>
     <div class="debug-section">

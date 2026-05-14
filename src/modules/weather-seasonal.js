@@ -1,6 +1,7 @@
 // weather-seasonal.js - 天气获取/提醒 + 季节粒子 + 天气代码映射
 import { state, WEATHER_CODES, say, setState, speechQueue, SPEECH_PRIORITY } from './core-state.js';
 import { incrementAchievementStat, trackFeatureUsed } from './growth-system.js';
+import { stateMachine } from './state-machine.js';
 
 // ===== 季节微粒子系统 =====
 export const SEASON_PARTICLES = {
@@ -88,11 +89,15 @@ export function weatherMood(current) {
   if (kind === 'storm') return { state: 'failed', text: `外面好大的雷！轰隆隆的…妈妈不要出门哦～` };
   if (temp > 35) return { state: 'waiting', text: `好热好热！妈妈多喝水别中暑哦～Yoyo担心！` };
   if (temp >= 30) return { state: 'waiting', text: `好热呀！妈妈记得多喝水～` };
-  if (temp < 10) return { state: 'waiting', text: `好冷呀！妈妈记得穿厚外套哦～` };
   if (temp <= 5) return { state: 'waiting', text: `好冷好冷！妈妈穿暖和了吗？别感冒啦～` };
+  if (temp < 10) return { state: 'waiting', text: `好冷呀！妈妈记得穿厚外套哦～` };
   if (wind >= 28) return { state: 'review', text: `外面风好大呀！妈妈出门要小心哦～` };
   if (kind === 'clear') return { state: 'jumping', text: `今天天气好好哦～妈妈心情也要棒棒的！` };
-  return { state: 'review', text: `天阴阴的，妈妈注意保暖哦～` };
+  return { state: 'review', text: `今天是阴天，妈妈注意保暖哦～` };
+}
+
+function canWeatherTakeOverState() {
+  return stateMachine.isIdle && !state.currentBehavior;
 }
 
 export function timeMood() {
@@ -127,8 +132,11 @@ export async function refreshWeatherContext() {
     if (result.ok) {
       state.weatherContext = result;
       const mood = weatherMood(result.current);
-      setState(mood.state);
-      say(`${result.place}：${mood.text}`);
+      if (canWeatherTakeOverState()) {
+        setState(mood.state);
+      }
+      const placePrefix = result.place ? `${result.place}天气：` : '';
+      say(`${placePrefix}${mood.text}`);
       checkWeatherReminders(result);
       // 延迟触发行为决策（由 behavior-engine 处理）
       return;
@@ -161,7 +169,15 @@ export function checkWeatherReminders(weatherData) {
 
   if (temp < 15 || tempDrop) {
     const icon = '🧥';
-    msg = `${icon} 现在${Math.round(temp)}°C${tempDrop ? '，马上还要降温到' + Math.round(minTemp6h) + '°C' : ''}，记得穿外套哦~`;
+    const currentTemp = Math.round(temp);
+    const nextMin = minTemp6h !== null ? Math.round(minTemp6h) : null;
+    if (tempDrop && currentTemp >= 26 && nextMin !== null && nextMin >= 18) {
+      msg = `${icon} 现在${currentTemp}°C，晚些会降到${nextMin}°C，温差会变大，出门带件薄外套哦~`;
+    } else if (tempDrop && nextMin !== null) {
+      msg = `${icon} 现在${currentTemp}°C，马上还要降温到${nextMin}°C，记得加件外套哦~`;
+    } else {
+      msg = `${icon} 现在${currentTemp}°C，记得穿暖一点哦~`;
+    }
     state.weatherReminderCount++;
   } else if (rainComing) {
     msg = `☔ 接下来几小时可能要下雨，出门记得带伞哦~`;
@@ -172,7 +188,19 @@ export function checkWeatherReminders(weatherData) {
   }
 
   if (msg) {
-    setTimeout(() => speechQueue.enqueue(msg, 6000, SPEECH_PRIORITY.IMPORTANT), 8000);
+    setTimeout(() => {
+      state.currentBehavior = 'weatherReminder';
+      state.behaviorEndTime = Date.now() + 6000;
+      setState('review');
+      speechQueue.enqueue(msg, 6000, SPEECH_PRIORITY.IMPORTANT);
+      setTimeout(() => {
+        if (state.currentBehavior === 'weatherReminder') {
+          state.currentBehavior = null;
+          state.behaviorEndTime = 0;
+          if (state.stateName === 'review') setState('idle');
+        }
+      }, 6200);
+    }, 8000);
     incrementAchievementStat('weatherRemindCount');
     trackFeatureUsed('weather');
   }

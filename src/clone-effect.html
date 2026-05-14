@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  * { margin: 0; padding: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
-  canvas { width: 100%; height: 100%; }
+  canvas { width: 100%; height: 100%; display: block; }
 </style>
 </head>
 <body>
@@ -13,163 +13,141 @@
 <script>
 (function() {
   const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: true });
 
-  // HiDPI 支持：缓冲区用物理像素，绘制坐标用逻辑像素
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   const logW = window.innerWidth;
   const logH = window.innerHeight;
   canvas.width = Math.round(logW * dpr);
   canvas.height = Math.round(logH * dpr);
   ctx.scale(dpr, dpr);
 
-  // Spritesheet 配置
-  const COLS = 8;
-  const ROWS = 26;
   const FRAME_W = 192;
   const FRAME_H = 208;
-  const TOTAL_DURATION = 6000; // 6秒总时长
+  const TOTAL_DURATION = 6000;
+  const CLONE_COUNT = Math.min(18, Math.max(14, Math.floor(Math.min(logW, logH) / 58)));
 
   const sprite = new Image();
   let outfitLayers = [];
-  let faceSprites = [];
-
-  // 分身数据
   let clones = [];
   let startTime = 0;
   let animating = false;
 
-  // 缓动函数
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
   }
+
+  function mix(a, b, t) {
+    return a + (b - a) * t;
+  }
+
   function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
   }
-  function easeInCubic(t) {
-    return t * t * t;
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
+
   function easeOutBack(t) {
-    const c1 = 1.70158;
+    const c1 = 1.45;
     const c3 = c1 + 1;
     return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
   }
 
-  function drawRoundRect(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-  }
-
-  function drawStar(x, y, outerR, innerR, color, alpha) {
-    ctx.save();
-    ctx.globalAlpha *= alpha;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    for (let i = 0; i < 10; i++) {
-      const r = i % 2 === 0 ? outerR : innerR;
-      const a = -Math.PI / 2 + i * Math.PI / 5;
-      const px = x + Math.cos(a) * r;
-      const py = y + Math.sin(a) * r;
-      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function drawHeart(x, y, size, color, alpha) {
-    ctx.save();
-    ctx.globalAlpha *= alpha;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    const s = size / 16;
-    for (let i = 0; i <= 64; i++) {
-      const t = (i / 64) * Math.PI * 2;
-      const px = x + 16 * Math.pow(Math.sin(t), 3) * s;
-      const py = y - (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * s;
-      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function drawSparkles(elapsed, intensity) {
-    const count = 18;
-    for (let i = 0; i < count; i++) {
-      const a = (i / count) * Math.PI * 2 + elapsed * 0.0008;
-      const radius = 105 + (i % 3) * 72 + Math.sin(elapsed * 0.002 + i) * 8;
-      const alpha = intensity * (0.35 + 0.35 * Math.sin(elapsed * 0.004 + i));
-      drawStar(logW / 2 + Math.cos(a) * radius, logH / 2 + Math.sin(a) * radius, 6 + (i % 2) * 3, 2.5, i % 2 ? '#fff7ad' : '#ffc1dc', alpha);
-    }
+  function segment(elapsed, start, end) {
+    return clamp((elapsed - start) / (end - start), 0, 1);
   }
 
   function loadOutfitLayers(layerSources) {
     const sources = Array.isArray(layerSources) ? layerSources : [];
-    return Promise.all(sources.map(function(layer) {
-      return new Promise(function(resolve) {
-        if (!layer || !layer.src) return resolve(null);
-        const img = new Image();
-        img.onload = function() { resolve({ position: layer.position || 'front', image: img }); };
-        img.onerror = function() { resolve(null); };
-        img.src = layer.src;
-      });
-    })).then(function(layers) {
+    return Promise.all(sources.map((layer) => new Promise((resolve) => {
+      if (!layer || !layer.src) return resolve(null);
+      const img = new Image();
+      img.onload = () => resolve({ position: layer.position || 'front', image: img });
+      img.onerror = () => resolve(null);
+      img.src = layer.src;
+    }))).then((layers) => {
       outfitLayers = layers.filter(Boolean);
     });
   }
 
-  function loadFaceSprites(effectOptions) {
-    const sources = Array.isArray(effectOptions?.faceSources) ? effectOptions.faceSources : [];
-    return Promise.all(sources.map(function(face) {
-      return new Promise(function(resolve) {
-        if (!face || !face.src) return resolve(null);
-        const img = new Image();
-        img.onload = function() { resolve({ id: face.id || 'none', image: img }); };
-        img.onerror = function() { resolve(null); };
-        img.src = face.src;
-      });
-    })).then(function(loaded) {
-      faceSprites = loaded.filter(Boolean);
-      if (!faceSprites.length) faceSprites = [{ id: 'current', image: sprite }];
-    });
-  }
-
-  function drawLayerSet(position, col, row) {
-    for (const layer of outfitLayers) {
-      if (layer.position !== position || !layer.image.complete) continue;
-      ctx.drawImage(
-        layer.image,
-        col * FRAME_W, row * FRAME_H,
-        FRAME_W, FRAME_H,
-        -FRAME_W / 2, -FRAME_H / 2,
-        FRAME_W, FRAME_H
-      );
-    }
-  }
-
-  function drawPetFrame(col, row, baseImage) {
-    drawLayerSet('behind', col, row);
-    ctx.drawImage(
-      baseImage || sprite,
+  function drawLayerTo(targetCtx, layer, col, row) {
+    if (!layer.image.complete) return;
+    if ((row + 1) * FRAME_H > layer.image.naturalHeight || (col + 1) * FRAME_W > layer.image.naturalWidth) return;
+    targetCtx.drawImage(
+      layer.image,
       col * FRAME_W, row * FRAME_H,
       FRAME_W, FRAME_H,
-      -FRAME_W / 2, -FRAME_H / 2,
+      0, 0,
       FRAME_W, FRAME_H
     );
-    drawLayerSet('front', col, row);
   }
 
-  // 生成更漂亮的最终构图：上方爱心花环 + 中心小队列
+  function renderFrame(col, row) {
+    const frame = document.createElement('canvas');
+    frame.width = FRAME_W;
+    frame.height = FRAME_H;
+    const fctx = frame.getContext('2d');
+    fctx.imageSmoothingEnabled = false;
+
+    for (const layer of outfitLayers) {
+      if (layer.position === 'behind') drawLayerTo(fctx, layer, col, row);
+    }
+    fctx.drawImage(
+      sprite,
+      col * FRAME_W, row * FRAME_H,
+      FRAME_W, FRAME_H,
+      0, 0,
+      FRAME_W, FRAME_H
+    );
+    for (const layer of outfitLayers) {
+      if (layer.position !== 'behind') drawLayerTo(fctx, layer, col, row);
+    }
+    return frame;
+  }
+
+  function drawStar(x, y, r, alpha) {
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    ctx.fillStyle = '#fff2a8';
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const rr = i % 2 === 0 ? r : r * 0.45;
+      const a = -Math.PI / 2 + i * Math.PI / 5;
+      const px = x + Math.cos(a) * rr;
+      const py = y + Math.sin(a) * rr;
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSeal(cx, cy, radius, elapsed, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = 'rgba(154, 236, 255, 0.36)';
+    ctx.lineWidth = 1.5;
+    ctx.translate(cx, cy);
+    ctx.rotate(elapsed * 0.00055);
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.72, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * radius * 0.78, Math.sin(a) * radius * 0.78);
+      ctx.lineTo(Math.cos(a) * radius * 1.08, Math.sin(a) * radius * 1.08);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function heartPoint(t) {
     return {
       x: 16 * Math.pow(Math.sin(t), 3),
@@ -177,211 +155,227 @@
     };
   }
 
-  function generateFinalPositions(count, cx, cy) {
-    const positions = [];
-    const heartCount = Math.max(12, count - 5);
-    const centerCount = count - heartCount;
-    const scale = Math.min(logW, logH) / 38;
-    const heartCy = cy - 18;
-
-    for (let i = 0; i < heartCount; i++) {
-      const t = (i / heartCount) * Math.PI * 2;
+  function drawHeartLine(cx, cy, scale, elapsed, alpha, reveal = 1) {
+    const steps = Math.max(8, Math.floor(180 * clamp(reveal, 0, 1)));
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = 'rgba(255, 111, 176, 0.62)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(255, 130, 190, 0.58)';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const t = (i / 180) * Math.PI * 2;
       const p = heartPoint(t);
-      const next = heartPoint(t + 0.04);
-      positions.push({
-        x: cx + p.x * scale,
-        y: heartCy + p.y * scale,
-        rotation: Math.atan2(next.y - p.y, next.x - p.x) + Math.PI / 2,
-        scale: 0.52 + (i % 2) * 0.08,
-        finalKind: 'heart'
-      });
+      const wobble = Math.sin(elapsed * 0.004 + i * 0.13) * 0.9;
+      const x = cx + p.x * scale;
+      const y = cy + p.y * scale + wobble;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
+    if (reveal >= 0.98) ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
 
-    for (let i = 0; i < centerCount; i++) {
-      const a = (i / Math.max(1, centerCount)) * Math.PI * 2 - Math.PI / 2;
-      positions.push({
-        x: cx + Math.cos(a) * 58,
-        y: cy + 10 + Math.sin(a) * 38,
-        rotation: Math.sin(i) * 0.18,
-        scale: 0.58,
-        finalKind: 'center'
-      });
+  function drawHeartGlow(cx, cy, scale, elapsed, alpha) {
+    if (alpha <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.globalCompositeOperation = 'screen';
+    const g = ctx.createRadialGradient(cx, cy - scale * 2, 10, cx, cy, scale * 18);
+    g.addColorStop(0, 'rgba(255, 244, 250, 0.42)');
+    g.addColorStop(0.45, 'rgba(255, 125, 188, 0.18)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    for (let i = 0; i <= 180; i++) {
+      const t = (i / 180) * Math.PI * 2;
+      const p = heartPoint(t);
+      const pulse = 1 + Math.sin(elapsed * 0.005) * 0.025;
+      const x = cx + p.x * scale * pulse;
+      const y = cy + p.y * scale * pulse;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
 
-    return positions;
+  function drawBackdrop(elapsed) {
+    const fadeOut = 1 - segment(elapsed, 5350, TOTAL_DURATION);
+    const cx = logW / 2;
+    const cy = logH / 2;
+    const heartReveal = easeInOutCubic(segment(elapsed, 3150, 4750));
+    const heartAlpha = heartReveal * fadeOut;
+    const happinessPulse = Math.sin(segment(elapsed, 4300, 5300) * Math.PI) * fadeOut;
+    const g = ctx.createLinearGradient(0, 0, logW, logH);
+    g.addColorStop(0, `rgba(42, 53, 92, ${0.12 * fadeOut})`);
+    g.addColorStop(0.48, `rgba(255, 214, 235, ${(0.12 + happinessPulse * 0.08) * fadeOut})`);
+    g.addColorStop(1, `rgba(83, 190, 224, ${0.10 * fadeOut})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, logW, logH);
+
+    const radial = ctx.createRadialGradient(cx, cy, 30, cx, cy, Math.min(logW, logH) * 0.52);
+    radial.addColorStop(0, `rgba(255, 246, 252, ${(0.12 + happinessPulse * 0.10) * fadeOut})`);
+    radial.addColorStop(0.48, `rgba(255, 144, 198, ${(0.07 + happinessPulse * 0.06) * fadeOut})`);
+    radial.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = radial;
+    ctx.fillRect(0, 0, logW, logH);
+
+    drawSeal(cx, cy + 6, Math.min(logW, logH) * 0.27, elapsed, 0.55 * fadeOut);
+    const heartScale = Math.min(logW, logH) / 42;
+    drawHeartGlow(cx, cy - 8, heartScale, elapsed, heartAlpha * 0.32 + happinessPulse * 0.28);
+    drawHeartLine(cx, cy - 8, heartScale * (1 + happinessPulse * 0.035), elapsed, heartAlpha * 0.82, heartReveal);
+    drawHeartLine(cx, cy - 8, heartScale * 1.08, elapsed, happinessPulse * 0.26, 1);
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8 + elapsed * 0.0007;
+      const r = Math.min(logW, logH) * (0.14 + (i % 3) * 0.07);
+      drawStar(cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.72, 3.5 + (i % 3), 0.34 * fadeOut);
+    }
+    for (let i = 0; i < 10; i++) {
+      const t = ((i / 10) + elapsed * 0.00008) * Math.PI * 2;
+      const p = heartPoint(t);
+      drawStar(cx + p.x * heartScale, cy - 8 + p.y * heartScale, 3 + (i % 2), heartAlpha * 0.46);
+    }
   }
 
   function initClones() {
-    const count = 20; // 更多分身，表情更丰富，最终构图更饱满
+    clones = [];
     const cx = logW / 2;
     const cy = logH / 2;
+    const rowFrames = [
+      { row: 0, frames: 6 }, { row: 3, frames: 4 }, { row: 4, frames: 5 },
+      { row: 7, frames: 6 }, { row: 11, frames: 4 }, { row: 15, frames: 5 },
+      { row: 21, frames: 8 }, { row: 23, frames: 8 }, { row: 24, frames: 8 },
+      { row: 25, frames: 8 }, { row: 31, frames: 8 },
+    ];
+    const ringRadius = Math.min(logW, logH) * 0.25;
+    const heartScale = Math.min(logW, logH) / 42;
 
-    // 仅使用视觉效果好的行（活泼/欢快动作），及其各自的实际帧数
-    const ROW_FRAMES = {
-      0:6, 1:8, 2:8, 3:4, 4:5, 6:6, 7:6, 8:6,
-      11:4, 12:5, 15:5, 16:8, 17:8, 18:8, 19:8,
-      21:8, 23:8, 24:8, 25:8
-    };
-    const availableRows = Object.keys(ROW_FRAMES).map(Number);
-    // 打乱
-    for (let i = availableRows.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [availableRows[i], availableRows[j]] = [availableRows[j], availableRows[i]];
-    }
-
-    const finalPositions = generateFinalPositions(count, cx, cy);
-    const faces = faceSprites.length ? faceSprites : [{ id: 'current', image: sprite }];
-
-    for (let i = 0; i < count; i++) {
-      const row = availableRows[i % availableRows.length];
-      const col = Math.floor(Math.random() * ROW_FRAMES[row]); // 用该行实际帧数，避免越界出现透明帧
-
-      // 先像烟花一样散开到一圈不规则轨道
-      const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-      const distance = Math.min(logW, logH) * (0.22 + Math.random() * 0.18);
-      const explodeX = cx + Math.cos(angle) * distance;
-      const explodeY = cy + Math.sin(angle) * distance;
-      const orbitRadius = Math.min(logW, logH) * (0.22 + (i % 3) * 0.055);
-
+    for (let i = 0; i < CLONE_COUNT; i++) {
+      const spec = rowFrames[i % rowFrames.length];
+      const col = (i * 3) % spec.frames;
+      const angle = i * Math.PI * 2 / CLONE_COUNT - Math.PI / 2;
+      const burst = ringRadius * (0.72 + (i % 3) * 0.12);
+      const heartT = (i / CLONE_COUNT) * Math.PI * 2;
+      const p = heartPoint(heartT);
+      const next = heartPoint(heartT + 0.05);
       clones.push({
-        row,
-        col,
-        faceImage: faces[i % faces.length].image,
-        // 起始位置（中心）
+        image: renderFrame(col, spec.row),
+        angle,
         startX: cx,
         startY: cy,
-        // 爆炸散开后的位置
-        explodeX,
-        explodeY,
-        // 最终爱心花环位置
-        flowerX: finalPositions[i].x,
-        flowerY: finalPositions[i].y,
-        flowerRotation: finalPositions[i].rotation,
-        finalScale: finalPositions[i].scale,
-        finalKind: finalPositions[i].finalKind,
-        orbitAngle: angle,
-        orbitRadius,
-        // 浮动偏移
-        floatOffset: Math.random() * Math.PI * 2,
-        floatSpeed: 1.5 + Math.random() * 1.5,
-        // 当前绘制状态
+        burstX: cx + Math.cos(angle) * burst,
+        burstY: cy + Math.sin(angle) * burst * 0.68,
+        finalX: cx + p.x * heartScale,
+        finalY: cy - 8 + p.y * heartScale,
+        finalRotation: Math.atan2(next.y - p.y, next.x - p.x) + Math.PI / 2,
+        finalScale: 0.34 + (i % 4) * 0.018,
+        phase: Math.random() * Math.PI * 2,
         x: cx,
         y: cy,
         rotation: 0,
-        scale: 0.6,
-        opacity: 1
+        scale: 0.2,
+        opacity: 0,
       });
     }
+  }
+
+  function updateClones(elapsed) {
+    const cx = logW / 2;
+    const cy = logH / 2;
+    if (elapsed < 700) {
+      const t = easeOutBack(elapsed / 700);
+      for (const c of clones) {
+        c.x = mix(c.startX, c.burstX, t);
+        c.y = mix(c.startY, c.burstY, t);
+        c.rotation = Math.sin(c.phase) * 0.18 * t;
+        c.scale = 0.12 + 0.42 * Math.min(1, t);
+        c.opacity = Math.min(1, 0.2 + t);
+      }
+    } else if (elapsed < 2600) {
+      const t = (elapsed - 700) / 1900;
+      for (const c of clones) {
+        const a = c.angle + t * Math.PI * 1.8;
+        c.x = cx + Math.cos(a) * Math.hypot(c.burstX - cx, (c.burstY - cy) / 0.68);
+        c.y = cy + Math.sin(a) * Math.hypot(c.burstX - cx, (c.burstY - cy) / 0.68) * 0.68 + Math.sin(t * 10 + c.phase) * 5;
+        c.rotation = Math.sin(t * 5 + c.phase) * 0.12;
+        c.scale = 0.48 + Math.sin(t * Math.PI + c.phase) * 0.035;
+        c.opacity = 0.92;
+      }
+    } else if (elapsed < 4650) {
+      const t = easeInOutCubic((elapsed - 2600) / 2050);
+      for (const c of clones) {
+        const a = c.angle + Math.PI * 1.8;
+        const fromX = cx + Math.cos(a) * Math.hypot(c.burstX - cx, (c.burstY - cy) / 0.68);
+        const fromY = cy + Math.sin(a) * Math.hypot(c.burstX - cx, (c.burstY - cy) / 0.68) * 0.68;
+        c.x = mix(fromX, c.finalX, t);
+        c.y = mix(fromY, c.finalY, t);
+        c.rotation = mix(Math.sin(c.phase) * 0.12, c.finalRotation, t);
+        c.scale = mix(0.48, c.finalScale, t);
+        c.opacity = 0.95;
+      }
+    } else if (elapsed < 5350) {
+      const t = segment(elapsed, 4650, 5350);
+      const pulse = Math.sin(t * Math.PI);
+      for (const c of clones) {
+        c.x = c.finalX + Math.cos(c.phase + elapsed * 0.002) * 1.6;
+        c.y = c.finalY + Math.sin(c.phase + elapsed * 0.002) * 1.2;
+        c.rotation = c.finalRotation + Math.sin(c.phase + elapsed * 0.003) * 0.025;
+        c.scale = c.finalScale * (1 + pulse * 0.08);
+        c.opacity = 0.98;
+      }
+    } else {
+      const t = easeOutCubic((elapsed - 5350) / 650);
+      for (const c of clones) {
+        c.x = mix(c.finalX, cx, t);
+        c.y = mix(c.finalY, cy - 18, t);
+        c.rotation = c.finalRotation + t * Math.PI * 0.35;
+        c.scale = c.finalScale * (1 - t * 0.35);
+        c.opacity = 1 - t;
+      }
+    }
+  }
+
+  function drawClone(c, elapsed) {
+    if (c.opacity <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = c.opacity;
+    ctx.translate(c.x, c.y);
+    ctx.rotate(c.rotation);
+    ctx.scale(c.scale, c.scale);
+    ctx.imageSmoothingEnabled = false;
+
+    const trail = 0.18 * c.opacity;
+    ctx.globalAlpha = trail;
+    ctx.drawImage(c.image, -FRAME_W / 2 - Math.cos(c.angle) * 16, -FRAME_H / 2 - Math.sin(c.angle) * 8);
+    ctx.globalAlpha = c.opacity;
+    ctx.shadowColor = 'rgba(126, 232, 255, 0.42)';
+    ctx.shadowBlur = 14;
+    ctx.drawImage(c.image, -FRAME_W / 2, -FRAME_H / 2);
+    ctx.restore();
   }
 
   function animate(now) {
     if (!animating) return;
-
     const elapsed = now - startTime;
-
     if (elapsed >= TOTAL_DURATION) {
-      // 动画结束
       animating = false;
-      try { window.close(); } catch(e) {}
+      try { window.close(); } catch (e) {}
       return;
     }
 
     ctx.clearRect(0, 0, logW, logH);
-
-    const cx = logW / 2;
-    const cy = logH / 2;
-
-    // 淡淡的舞台光晕和星光，比原来的纯透明更有“术式”感觉
-    const bgAlpha = elapsed < 5200 ? 0.05 : 0.05 * (1 - (elapsed - 5200) / 800);
-    ctx.save();
-    const grad = ctx.createRadialGradient(cx, cy, 30, cx, cy, Math.min(logW, logH) * 0.48);
-    grad.addColorStop(0, `rgba(255, 210, 235, ${bgAlpha * 1.5})`);
-    grad.addColorStop(0.55, `rgba(180, 210, 255, ${bgAlpha})`);
-    grad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, logW, logH);
-    ctx.restore();
-    drawSparkles(elapsed, elapsed < 5200 ? 1 : 1 - (elapsed - 5200) / 800);
-
-    if (elapsed < 800) {
-      // 阶段1：烟花弹出（0-0.8s）
-      const t = easeOutBack(elapsed / 800);
-      for (const c of clones) {
-        c.x = c.startX + (c.explodeX - c.startX) * t;
-        c.y = c.startY + (c.explodeY - c.startY) * t;
-        c.rotation = t * (c.orbitAngle > Math.PI ? -0.38 : 0.38);
-        c.scale = 0.18 + Math.min(t, 1) * 0.48;
-        c.opacity = Math.min(1, 0.2 + t * 0.85);
-      }
-      if (elapsed < 180) drawHeart(cx, cy, 24 + elapsed * 0.2, '#ff6aa9', 0.45);
-    } else if (elapsed < 2600) {
-      // 阶段2：星环绕场（0.8-2.6s）
-      const phase = (elapsed - 800) / 1800;
-      for (const c of clones) {
-        const a = c.orbitAngle + phase * Math.PI * 1.35;
-        c.x = cx + Math.cos(a) * c.orbitRadius;
-        c.y = cy + Math.sin(a) * c.orbitRadius * 0.72 + Math.sin(phase * 8 + c.floatOffset) * 5;
-        c.scale = 0.58 + Math.sin(phase * Math.PI + c.floatOffset) * 0.05;
-        c.opacity = 1;
-        c.rotation = Math.sin(phase * 4 + c.floatOffset) * 0.12;
-      }
-    } else if (elapsed < 5000) {
-      // 阶段3：汇聚成爱心花环（2.6-5s）
-      const t = easeInOutCubic((elapsed - 2600) / 2400);
-      for (const c of clones) {
-        const a = c.orbitAngle + Math.PI * 1.35;
-        const fromX = cx + Math.cos(a) * c.orbitRadius;
-        const fromY = cy + Math.sin(a) * c.orbitRadius * 0.72;
-        c.x = fromX + (c.flowerX - fromX) * t;
-        c.y = fromY + (c.flowerY - fromY) * t + Math.sin(elapsed * 0.004 + c.floatOffset) * (1 - t) * 8;
-        c.rotation = Math.sin(c.floatOffset) * 0.15 * (1 - t) + c.flowerRotation * t;
-        c.scale = 0.58 + (c.finalScale - 0.58) * t;
-        c.opacity = 1;
-      }
-      if (elapsed > 3900) {
-        const pulse = (elapsed - 3900) / 1100;
-        drawHeart(cx, cy + 2, 82 + Math.sin(elapsed * 0.008) * 5, '#ff75ad', Math.min(0.18, pulse * 0.18));
-      }
-    } else {
-      // 阶段4：星尘散开（5-6s）
-      const t = easeInCubic((elapsed - 5000) / 1000);
-      const globalScale = 1 - t * 0.55;
-      const globalRotation = t * Math.PI * 0.35;
-      for (const c of clones) {
-        const dx = c.flowerX - cx;
-        const dy = c.flowerY - cy;
-        const cos = Math.cos(globalRotation);
-        const sin = Math.sin(globalRotation);
-        c.x = cx + (dx * cos - dy * sin) * globalScale;
-        c.y = cy + (dx * sin + dy * cos) * globalScale - t * 42;
-        c.rotation = c.flowerRotation + globalRotation;
-        c.scale = c.finalScale * globalScale;
-        c.opacity = 1 - t;
-      }
-    }
-
-    // 绘制所有分身
-    for (const c of clones) {
-      if (c.opacity <= 0) continue;
-      ctx.save();
-      ctx.globalAlpha = c.opacity;
-      ctx.translate(c.x, c.y);
-      ctx.rotate(c.rotation);
-      ctx.scale(c.scale, c.scale);
-      ctx.imageSmoothingEnabled = false;
-      // 多表情基础 spritesheet + 当前换装图层裁剪对应帧
-      drawPetFrame(c.col, c.row, c.faceImage);
-      ctx.restore();
-    }
-
+    drawBackdrop(elapsed);
+    updateClones(elapsed);
+    for (const c of clones) drawClone(c, elapsed);
     requestAnimationFrame(animate);
   }
 
-  // 启动入口（由主进程调用）
-  window.startCloneEffect = function(spriteSrc, layerSources, effectOptions) {
+  window.startCloneEffect = function(spriteSrc, layerSources) {
     sprite.onload = function() {
-      clones = [];
-      Promise.all([loadOutfitLayers(layerSources), loadFaceSprites(effectOptions)]).then(function() {
+      Promise.all([loadOutfitLayers(layerSources)]).then(function() {
         initClones();
         startTime = performance.now();
         animating = true;
@@ -389,15 +383,14 @@
       });
     };
     sprite.onerror = function() {
-      setTimeout(function() { try { window.close(); } catch(e) {} }, 5000);
+      setTimeout(() => { try { window.close(); } catch (e) {} }, 3000);
     };
     sprite.src = spriteSrc;
   };
 
-  // 若5秒内未收到启动信号，自动关闭
   setTimeout(function() {
     if (!animating) {
-      try { window.close(); } catch(e) {}
+      try { window.close(); } catch (e) {}
     }
   }, 5000);
 })();

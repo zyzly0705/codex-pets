@@ -32,15 +32,21 @@ export const STATES = {
   dizzy: { row: 14, frames: 4, fps: 6 },
   lookingAround: { row: 15, frames: 5, fps: 3 },
   swing: { row: 16, frames: 8, speed: 200 },
+  swimming: { row: 27, frames: 8, speed: 210 },
   digSand: { row: 17, frames: 8, speed: 250 },
   readBook: { row: 18, frames: 8, speed: 300 },
   watchTV: { row: 19, frames: 8, speed: 350 },
+  fanCooling: { row: 26, frames: 8, speed: 180 },
   sleeping: { row: 20, frames: 8, speed: 400 },
   dancing: { row: 21, frames: 8, speed: 220 },
   crying: { row: 22, frames: 8, speed: 250 },
   gifting: { row: 23, frames: 8, speed: 200 },
   stretching: { row: 24, frames: 8, speed: 300 },
   clapping: { row: 25, frames: 8, speed: 150 },
+  whip: { row: 28, frames: 8, speed: 160 },
+  airConditioning: { row: 29, frames: 8, speed: 220 },
+  sofaLying: { row: 30, frames: 8, speed: 320 },
+  typingCompanion: { row: 32, frames: 8, speed: 170 },
 };
 
 export const WEATHER_CODES = new Map([
@@ -91,6 +97,7 @@ export const state = {
   // 菜单模式
   danceTimer: null,
   followInterval: null,
+  followMotion: { vx: 0, vy: 0, targetDx: 0, targetDy: 0 },
 
   // 闲置追踪
   lastInteractionTime: Date.now(),
@@ -113,10 +120,12 @@ export const state = {
   keyboardActiveUntil: 0,
   continuousTypingStart: 0,
   typingReminderSent: false,
+  lastTypingCompanionAt: 0,
 
   // 喂食
   feedingLock: false,
   dismissTimeout: null,
+  hungerPromptStartedAt: 0,
 
   // 前台应用
   currentActiveApp: { isWPS: false, title: '' },
@@ -127,6 +136,7 @@ export const state = {
   // 行为引擎
   currentBehavior: null,
   behaviorEndTime: 0,
+  manualEffectUntil: 0,
 
   // 季节粒子
   seasonalParticles: [],
@@ -158,7 +168,7 @@ export const state = {
 // ===== 精细化交互反应状态 =====
 export const reactionState = {
   drag: null,      // { velocity: {x,y}, holdStart: number, hasShaken: boolean }
-  whip: null,      // { phase: 'hit'|'rub'|'pout', startTime: number }
+  whip: null,      // { phase: 'hit'|'rub'|'pout', startTime: number, side?: 1|-1, severity?: 'light'|'heavy' }
   feed: null,      // { phase: 'excited'|'eating'|'satisfied', startTime: number }
   pat: null,       // { phase: 'happy'|'purring', count: number, startTime: number }
 };
@@ -324,6 +334,8 @@ const SPRITE_TO_ACTION = {
   climbing:     ACTION_STATES.CLIMBING,
   perching:     ACTION_STATES.CLIMBING,
   eating:       ACTION_STATES.FEEDING,
+  whip:         ACTION_STATES.WHIP,
+  typingCompanion: ACTION_STATES.TYPING_COMPANION,
 };
 
 // ===== setState =====
@@ -394,6 +406,21 @@ export class SpeechQueue {
       }, 180);
     }
     this.enqueue(text, duration, SPEECH_PRIORITY.CRITICAL);
+  }
+
+  replaceBehavior(text, duration = 5200) {
+    this.queue = this.queue.filter(msg => msg.priority > SPEECH_PRIORITY.BEHAVIOR);
+    if (this.isDisplaying && this._currentMsg?.priority <= SPEECH_PRIORITY.BEHAVIOR) {
+      this._stopTyping();
+      bubble.classList.remove('visible', 'hiding');
+      if (bubbleText) {
+        bubbleText.textContent = '';
+        bubbleText.classList.remove('typing');
+      }
+      this.isDisplaying = false;
+      this._currentMsg = null;
+    }
+    this.enqueue(text, duration, SPEECH_PRIORITY.BEHAVIOR);
   }
 
   _displayNext() {
@@ -485,5 +512,5 @@ export class SpeechQueue {
 export const speechQueue = new SpeechQueue();
 
 export function say(text, duration = 5200) {
-  speechQueue.enqueue(text, duration, SPEECH_PRIORITY.BEHAVIOR);
+  speechQueue.replaceBehavior(text, duration);
 }

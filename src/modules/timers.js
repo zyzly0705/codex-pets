@@ -7,6 +7,7 @@ import { refreshWeatherContext } from './weather-seasonal.js';
 import { resetInteraction } from './interaction.js';
 import { behaviorEngineTick, SPECIAL_DATES, getMothersDay } from './behavior-engine.js';
 import { get, set } from './store-client.js';
+import { checkDailyNewsBroadcast } from './news-broadcast.js';
 
 // ===== 定时提醒系统 =====
 // 根据设置动态生成提醒列表（上下班时间可配置）
@@ -188,6 +189,12 @@ export function initTimers() {
   setTimeout(() => {
     globalTimers.push(setInterval(refreshWeatherContext, 30 * 60 * 1000));
   }, 10000);
+
+  // 每日新闻播报：启动后稍等网络/天气初始化，之后每小时检查一次
+  setTimeout(() => {
+    checkDailyNewsBroadcast();
+    globalTimers.push(setInterval(checkDailyNewsBroadcast, 60 * 60 * 1000));
+  }, 15000);
 
   // 记忆系统：每小时活跃度更新
   globalTimers.push(setInterval(() => {

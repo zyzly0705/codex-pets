@@ -1,5 +1,5 @@
 // render-engine.js - Canvas 渲染主循环（drawFrame, 动画帧计算）
-import { state, canvas, ctx, bubble, STATES, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, playSound, reactionState } from './core-state.js';
+import { state, canvas, ctx, bubble, feedBtn, STATES, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, playSound, reactionState } from './core-state.js';
 import { drawOutfitLayers } from './outfit-system.js';
 import { getEmotionExpression, yoyoEmotion } from './emotion-system.js';
 import { updateSeasonalParticles, drawSeasonalParticles } from './weather-seasonal.js';
@@ -159,9 +159,11 @@ function getSwingPose(now) {
 }
 
 function drawSwingBackdrop(ctx, cx, topY, pose) {
-  const seatY = topY + 68 + pose.seatBounce;
-  const leftSeatX = cx - 19 + pose.x;
-  const rightSeatX = cx + 19 + pose.x;
+  const hangerY = topY + 4;
+  const ropeLen = 82 + pose.ramp * 4;
+  const seatY = ropeLen + pose.seatBounce;
+  const seatHalfWidth = 21;
+  const topHalfWidth = 22;
 
   ctx.save();
   ctx.lineCap = 'round';
@@ -182,18 +184,23 @@ function drawSwingBackdrop(ctx, cx, topY, pose) {
   ctx.quadraticCurveTo(cx, topY - 8, cx + 34, topY + 2);
   ctx.stroke();
 
+  ctx.save();
+  ctx.translate(cx, hangerY);
+  ctx.rotate(pose.angle);
+  ctx.translate(pose.x, pose.y * 0.6);
+
   ctx.strokeStyle = 'rgba(244, 213, 150, 0.95)';
   ctx.lineWidth = 2.2;
   ctx.beginPath();
-  ctx.moveTo(cx - 23, topY + 3);
-  ctx.lineTo(leftSeatX, seatY);
-  ctx.moveTo(cx + 23, topY + 3);
-  ctx.lineTo(rightSeatX, seatY);
+  ctx.moveTo(-topHalfWidth, 0);
+  ctx.lineTo(-seatHalfWidth, seatY);
+  ctx.moveTo(topHalfWidth, 0);
+  ctx.lineTo(seatHalfWidth, seatY);
   ctx.stroke();
 
   ctx.save();
-  ctx.translate(cx + pose.x, seatY);
-  ctx.rotate(pose.angle * 0.18);
+  ctx.translate(0, seatY);
+  ctx.rotate(pose.angle * 0.12);
   ctx.fillStyle = 'rgba(255, 201, 125, 0.96)';
   ctx.strokeStyle = 'rgba(166, 108, 61, 0.75)';
   ctx.lineWidth = 1;
@@ -206,10 +213,443 @@ function drawSwingBackdrop(ctx, cx, topY, pose) {
   ctx.restore();
 }
 
+function drawSwingForeground(ctx, cx, cy, now, pose) {
+  const t = now / 1000;
+  const direction = Math.sign(pose.angle) || 1;
+  const gustAlpha = 0.10 + pose.ramp * 0.16;
+
+  ctx.save();
+  ctx.strokeStyle = `rgba(255, 255, 255, ${gustAlpha})`;
+  ctx.lineWidth = 1.4;
+  for (let i = 0; i < 3; i++) {
+    const trailY = cy - 12 + i * 9;
+    const baseX = cx - direction * (26 + i * 7);
+    ctx.beginPath();
+    ctx.moveTo(baseX, trailY);
+    ctx.quadraticCurveTo(baseX + direction * 12, trailY - 3, baseX + direction * 24, trailY + 2);
+    ctx.stroke();
+  }
+
+  const sparkleCount = 3;
+  for (let i = 0; i < sparkleCount; i++) {
+    const phase = t * 1.6 + i * 0.9;
+    const orbitX = cx + Math.sin(phase) * (18 + i * 6);
+    const orbitY = cy - 30 - ((phase * 18 + i * 5) % 22);
+    ctx.globalAlpha = 0.28 + pose.ramp * 0.28;
+    ctx.fillStyle = i % 2 === 0 ? '#ffd166' : '#ffffff';
+    drawSmallStar(ctx, orbitX, orbitY, 2 + (i % 2));
+  }
+  ctx.restore();
+}
+
+function getClimbVisualPose(now) {
+  const edgeType = state.climbEdgeType ?? 0;
+  const phase = state.climbPhase || 'idle';
+  const t = now / 1000;
+  const bob = Math.sin(t * 5.2);
+  const side = edgeType === 1 ? -1 : edgeType === 2 ? 1 : 0;
+
+  if (phase === 'perching') {
+    return { x: side * 3, y: -2 + bob * 1.5, rotation: side * 0.05 + bob * 0.01, scaleX: 1.01, scaleY: 0.99 };
+  }
+  if (phase === 'peeking') {
+    return { x: side * 7, y: -6 + bob * 1.8, rotation: side * 0.08, scaleX: 1.03, scaleY: 0.98 };
+  }
+  if (phase === 'descending') {
+    return { x: side * 2, y: 2 + Math.abs(bob) * 1.5, rotation: side * 0.03, scaleX: 0.99, scaleY: 1.01 };
+  }
+  return { x: side * 2, y: bob * 1.4, rotation: side * 0.04 + bob * 0.015, scaleX: 1.0, scaleY: 1.0 };
+}
+
+function drawClimbBackdrop(ctx, logW, logH, edgeType, phase, now) {
+  const t = now / 1000;
+  ctx.save();
+  ctx.globalAlpha = 0.82;
+
+  if (edgeType === 0) {
+    ctx.fillStyle = 'rgba(255, 234, 196, 0.75)';
+    ctx.fillRect(10, 4, logW - 20, 10);
+    ctx.strokeStyle = 'rgba(188, 146, 92, 0.85)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(12, 14);
+    ctx.lineTo(logW - 12, 14);
+    ctx.stroke();
+  } else if (edgeType === 1) {
+    ctx.fillStyle = 'rgba(230, 236, 248, 0.72)';
+    ctx.fillRect(3, 8, 12, logH - 20);
+    ctx.strokeStyle = 'rgba(168, 181, 206, 0.86)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(15, 10);
+    ctx.lineTo(15, logH - 12);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = 'rgba(230, 236, 248, 0.72)';
+    ctx.fillRect(logW - 15, 8, 12, logH - 20);
+    ctx.strokeStyle = 'rgba(168, 181, 206, 0.86)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(logW - 15, 10);
+    ctx.lineTo(logW - 15, logH - 12);
+    ctx.stroke();
+  }
+
+  if (phase === 'peeking') {
+    ctx.fillStyle = `rgba(255, 214, 94, ${0.35 + Math.sin(t * 8) * 0.15})`;
+    drawSmallStar(ctx, logW * 0.5 + Math.sin(t * 3) * 6, 24, 4);
+  }
+  ctx.restore();
+}
+
+function getHungryPromptPose(now) {
+  const t = now / 1000;
+  return {
+    x: Math.sin(t * 3.8) * 2.2,
+    y: -1 + Math.sin(t * 7.2) * 1.4,
+    rotation: Math.sin(t * 3.8) * 0.035,
+    scaleX: 1.01 + Math.sin(t * 7.2) * 0.02,
+    scaleY: 0.99 - Math.sin(t * 7.2) * 0.015,
+  };
+}
+
+function drawHungryForeground(ctx, cx, cy, now) {
+  const t = now / 1000;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 210, 120, 0.36)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx + 16, cy - 8);
+  ctx.quadraticCurveTo(cx + 32, cy - 18 + Math.sin(t * 3) * 3, cx + 44, cy - 28);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255, 193, 94, 0.82)';
+  ctx.beginPath();
+  ctx.arc(cx + 48, cy - 30 + Math.sin(t * 4) * 2, 4.6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  drawSmallStar(ctx, cx + 30, cy - 26, 2);
+  drawSmallStar(ctx, cx + 40, cy - 16, 1.8);
+  ctx.restore();
+}
+
+function getWhipPose(now) {
+  if (!reactionState.whip) return null;
+  const elapsed = now - reactionState.whip.startTime;
+  const side = reactionState.whip.side || 1;
+  const hitStrength = reactionState.whip.severity === 'heavy' ? 1.35 : 1;
+  if (reactionState.whip.phase === 'hit') {
+    return {
+      x: -side * (5.5 * hitStrength) + Math.sin(elapsed / 30) * 1.8,
+      y: 1.5 + Math.cos(elapsed / 48) * 1.4,
+      rotation: -side * 0.12 * hitStrength + Math.sin(elapsed / 32) * 0.025,
+      scaleX: 1.04,
+      scaleY: 0.97,
+    };
+  }
+  if (reactionState.whip.phase === 'rub') {
+    return {
+      x: -side * 3.5,
+      y: 2.5 + Math.sin(elapsed / 140) * 1.2,
+      rotation: -side * 0.085,
+      scaleX: 0.985,
+      scaleY: 1.015,
+    };
+  }
+  return {
+    x: side * 2.5,
+    y: 0,
+    rotation: side * 0.08,
+    scaleX: 1.0,
+    scaleY: 1.0,
+  };
+}
+
+function drawWhipModel(ctx, cx, cy, now) {
+  if (!reactionState.whip) return;
+
+  const { phase, startTime, side = 1, severity = 'light' } = reactionState.whip;
+  const elapsed = now - startTime;
+  const heavy = severity === 'heavy';
+  const hitX = cx + side * 20;
+  const hitY = cy + 10;
+  const handleX = cx + side * 74;
+  const handleY = cy - 12;
+
+  let tipX = hitX;
+  let tipY = hitY;
+  let ctrl1X = cx + side * 62;
+  let ctrl1Y = cy - 32;
+  let ctrl2X = cx + side * 36;
+  let ctrl2Y = cy - 4;
+  let alpha = 0.95;
+
+  if (phase === 'hit') {
+    const strikeT = Math.min(1, elapsed / 180);
+    const overshoot = (1 - strikeT) * side * 22;
+    tipX += overshoot;
+    tipY -= (1 - strikeT) * 20;
+    ctrl1Y -= 10 + (1 - strikeT) * 12;
+    ctrl2Y -= 6 + Math.sin(strikeT * Math.PI) * 8;
+  } else if (phase === 'rub') {
+    const sway = Math.sin(elapsed / 180) * 4;
+    tipX = cx + side * 30 + sway;
+    tipY = cy + 24;
+    ctrl1X = cx + side * 64;
+    ctrl1Y = cy - 12;
+    ctrl2X = cx + side * 48;
+    ctrl2Y = cy + 14;
+    alpha = 0.72;
+  } else {
+    tipX = cx + side * 34;
+    tipY = cy + 2;
+    ctrl1X = cx + side * 58;
+    ctrl1Y = cy - 16;
+    ctrl2X = cx + side * 46;
+    ctrl2Y = cy - 2;
+    alpha = 0.78;
+  }
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (phase === 'hit') {
+    ctx.strokeStyle = 'rgba(255, 236, 170, 0.26)';
+    ctx.lineWidth = heavy ? 6.5 : 5;
+    ctx.beginPath();
+    ctx.moveTo(handleX + side * 4, handleY - 2);
+    ctx.bezierCurveTo(ctrl1X + side * 6, ctrl1Y - 4, ctrl2X + side * 5, ctrl2Y - 2, tipX + side * 8, tipY + 2);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = heavy ? '#5d2f18' : '#6a371d';
+  ctx.lineWidth = heavy ? 3.6 : 3.1;
+  ctx.beginPath();
+  ctx.moveTo(handleX, handleY);
+  ctx.bezierCurveTo(ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, tipX, tipY);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(213, 165, 104, 0.95)';
+  ctx.lineWidth = heavy ? 1.35 : 1.15;
+  ctx.beginPath();
+  ctx.moveTo(handleX - side * 1.5, handleY - 1.5);
+  ctx.bezierCurveTo(ctrl1X - side * 1.5, ctrl1Y - 1.5, ctrl2X - side * 1.5, ctrl2Y - 1, tipX - side * 1.2, tipY - 0.8);
+  ctx.stroke();
+
+  const handleAngle = Math.atan2(ctrl1Y - handleY, ctrl1X - handleX);
+  ctx.save();
+  ctx.translate(handleX, handleY);
+  ctx.rotate(handleAngle);
+  ctx.fillStyle = '#3b2417';
+  ctx.strokeStyle = '#8f5f37';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(-15, -3, 17, 6, 3);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#c79b61';
+  for (let i = -10; i <= -2; i += 4) {
+    ctx.fillRect(i, -2.2, 1.1, 4.4);
+  }
+  ctx.restore();
+
+  if (phase === 'hit') {
+    ctx.fillStyle = 'rgba(255, 248, 220, 0.85)';
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, heavy ? 2.8 : 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function getFanPose(now) {
+  const t = now / 1000;
+  return {
+    x: Math.sin(t * 2.2) * 1.2,
+    y: Math.sin(t * 4.4) * 1.4,
+    rotation: Math.sin(t * 2.6) * 0.02,
+    scaleX: 1.0,
+    scaleY: 1.0,
+    breeze: 0.65 + (Math.sin(t * 6) * 0.5 + 0.5) * 0.35,
+  };
+}
+
+function drawFanBackdrop(ctx, cx, cy, pose) {
+  ctx.save();
+  const fanX = cx + 38;
+  const fanY = cy + 14;
+  ctx.fillStyle = 'rgba(198, 240, 255, 0.88)';
+  ctx.strokeStyle = 'rgba(104, 172, 194, 0.92)';
+  ctx.lineWidth = 1.2;
+
+  ctx.beginPath();
+  ctx.roundRect(fanX - 12, fanY + 10, 24, 18, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(fanX, fanY + 28);
+  ctx.lineTo(fanX, fanY + 42);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(224, 250, 255, 0.96)';
+  ctx.beginPath();
+  ctx.arc(fanX, fanY, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(fanX, fanY);
+  ctx.rotate(performance.now() * 0.03);
+  ctx.fillStyle = 'rgba(129, 197, 223, 0.85)';
+  for (let i = 0; i < 3; i++) {
+    ctx.rotate((Math.PI * 2) / 3);
+    ctx.beginPath();
+    ctx.ellipse(0, -7, 4, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = `rgba(182, 239, 255, ${0.22 + pose.breeze * 0.24})`;
+  for (let i = 0; i < 3; i++) {
+    const lineY = cy - 12 + i * 12;
+    ctx.beginPath();
+    ctx.moveTo(fanX - 14, lineY);
+    ctx.bezierCurveTo(fanX - 26, lineY - 4, cx + 10, lineY - 2, cx - 18, lineY + 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawAirConditioningScene(ctx, logW, logH, now) {
+  const t = now / 1000;
+  const unitX = logW * 0.5;
+  const unitY = 28;
+  ctx.save();
+
+  ctx.fillStyle = 'rgba(210, 235, 248, 0.18)';
+  ctx.beginPath();
+  ctx.roundRect(22, 10, logW - 44, 118, 14);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+  ctx.strokeStyle = 'rgba(111, 177, 207, 0.74)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(unitX - 58, unitY - 12, 116, 27, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(99, 184, 224, 0.85)';
+  ctx.beginPath();
+  ctx.roundRect(unitX - 42, unitY + 9, 84, 5, 2.5);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(98, 196, 238, 0.95)';
+  ctx.beginPath();
+  ctx.arc(unitX + 45, unitY, 2.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(132, 216, 255, 0.45)';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const x = unitX - 38 + i * 25;
+    const drift = Math.sin(t * 2.1 + i) * 5;
+    ctx.beginPath();
+    ctx.moveTo(x, unitY + 20);
+    ctx.bezierCurveTo(x - 8 + drift, unitY + 48, x + 10 - drift, unitY + 77, x + drift * 0.5, unitY + 107);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.62)';
+  ctx.beginPath();
+  ctx.ellipse(unitX, logH - 19, 58, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function getSwimmingPose(now) {
+  const t = now / 1000;
+  return {
+    x: Math.sin(t * 3.1) * 4,
+    y: Math.sin(t * 5.6) * 3.2,
+    rotation: Math.sin(t * 3.1) * 0.06,
+    scaleX: 1 + Math.sin(t * 5.6) * 0.03,
+    scaleY: 1 - Math.sin(t * 5.6) * 0.02,
+    bob: Math.sin(t * 2.8) * 3.4,
+  };
+}
+
+function drawSwimmingBackdrop(ctx, cx, baseY, now) {
+  const t = now / 1000;
+  ctx.save();
+  const poolTop = baseY + 18;
+  const wavePhase = t * 2.5;
+
+  ctx.fillStyle = 'rgba(146, 221, 255, 0.75)';
+  ctx.beginPath();
+  ctx.roundRect(cx - 62, poolTop, 124, 42, 14);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i < 3; i++) {
+    const y = poolTop + 8 + i * 10;
+    ctx.beginPath();
+    for (let x = -58; x <= 58; x += 10) {
+      const px = cx + x;
+      const py = y + Math.sin(wavePhase + x * 0.08 + i * 0.7) * 2;
+      if (x === -58) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(255, 196, 97, 0.88)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(cx, poolTop + 18, 20, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSwimmingForeground(ctx, cx, cy, now) {
+  const t = now / 1000;
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+  for (let i = 0; i < 5; i++) {
+    const px = cx - 28 + i * 14 + Math.sin(t * 2 + i) * 2;
+    const py = cy + 22 + Math.cos(t * 3 + i) * 2;
+    ctx.beginPath();
+    ctx.arc(px, py, 2 + (i % 2), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = 'rgba(132, 223, 255, 0.72)';
+  ctx.lineWidth = 1.3;
+  for (let i = 0; i < 2; i++) {
+    const splashX = cx + (i === 0 ? -22 : 22);
+    const splashY = cy + 14;
+    ctx.beginPath();
+    ctx.moveTo(splashX, splashY);
+    ctx.quadraticCurveTo(splashX - 4, splashY - 10 - Math.sin(t * 6 + i) * 2, splashX - 8, splashY - 2);
+    ctx.moveTo(splashX, splashY);
+    ctx.quadraticCurveTo(splashX + 3, splashY - 12 - Math.cos(t * 6 + i) * 2, splashX + 8, splashY - 3);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // ===== 情绪驱动的“原生脸” =====
-// 不再把 face_*.svg 当成固定贴片糊上去；这里在当前动画帧的脸部区域内，先小范围擦除原五官，
-// 再按 PAD 情绪 + 即时反应绘制会眨眼、会呼吸、会发光/流泪的五官，让表情跟行为一起变化。
-const FACE_ROWS = new Set([0, 3, 5, 6, 7, 8, 11, 12, 15, 20, 21, 22, 23, 24, 25]);
+// 这套覆盖式动态五官在像素头身上容易和原始脸叠出“双脸/额头脸”。
+// 默认关闭，保留代码只作为后续重新做逐帧表情素材前的实验入口。
+const ENABLE_DYNAMIC_FACE = false;
+const FACE_ROWS = new Set([0, 3, 5, 6, 7, 8, 11, 12, 15, 20, 21, 22, 23, 24, 25, 32]);
 const FACE_ANCHOR = { x: 64, y: 43, width: 64, height: 44 };
 
 function resolveAutoExpression() {
@@ -231,6 +671,25 @@ function resolveAutoExpression() {
     case 'dancing':
     case 'clapping':
       return 'sparkle';
+    case 'typingCompanion':
+      return 'happy';
+    case 'swing': {
+      const swingPose = getSwingPose(Date.now());
+      if (swingPose.ramp > 0.85 && Math.abs(swingPose.angle) > SWING_MAX_ANGLE * 0.78) return 'sparkle';
+      return 'happy';
+    }
+    case 'swimming':
+      return 'sparkle';
+    case 'fanCooling':
+    case 'airConditioning':
+      return 'happy';
+    case 'sofaLying':
+      return 'sleepy';
+    case 'whip':
+      return 'sad';
+    case 'waiting':
+      if (state.hungerPromptStartedAt && feedBtn.classList.contains('show')) return 'sad';
+      return 'happy';
     case 'bashful':
       return 'shy';
     case 'yawning':
@@ -264,18 +723,20 @@ function eraseNativeFeatures(drawCtx, r) {
   drawCtx.save();
   drawCtx.fillStyle = '#e7a777';
   drawCtx.globalAlpha = 0.92;
-  // 只擦五官所在的小区域，避免整块椭圆“补丁感”。
+  // 擦掉原始眉眼嘴，避免和自动情绪脸叠出“额头残留”。
   drawCtx.beginPath();
+  drawCtx.ellipse(r.x + r.w * 0.31, r.y + r.h * 0.26, r.w * 0.16, r.h * 0.10, -0.08, 0, Math.PI * 2);
+  drawCtx.ellipse(r.x + r.w * 0.69, r.y + r.h * 0.26, r.w * 0.16, r.h * 0.10, 0.08, 0, Math.PI * 2);
   drawCtx.ellipse(r.x + r.w * 0.31, r.y + r.h * 0.42, r.w * 0.18, r.h * 0.23, 0, 0, Math.PI * 2);
   drawCtx.ellipse(r.x + r.w * 0.69, r.y + r.h * 0.42, r.w * 0.18, r.h * 0.23, 0, 0, Math.PI * 2);
   drawCtx.ellipse(r.x + r.w * 0.50, r.y + r.h * 0.70, r.w * 0.24, r.h * 0.18, 0, 0, Math.PI * 2);
   drawCtx.fill();
 
   // 用半透明暖色羽化边缘，让新五官更像长在脸上。
-  drawCtx.globalAlpha = 0.20;
+  drawCtx.globalAlpha = 0.18;
   drawCtx.fillStyle = '#f4bd8e';
   drawCtx.beginPath();
-  drawCtx.ellipse(r.x + r.w * 0.50, r.y + r.h * 0.56, r.w * 0.43, r.h * 0.38, 0, 0, Math.PI * 2);
+  drawCtx.ellipse(r.x + r.w * 0.50, r.y + r.h * 0.50, r.w * 0.45, r.h * 0.44, 0, 0, Math.PI * 2);
   drawCtx.fill();
   drawCtx.restore();
 }
@@ -335,6 +796,7 @@ function drawBlush(drawCtx, r, intensity = 1) {
 }
 
 function drawExpressionFace(drawCtx, row, offsetX, offsetY, drawW, drawH, now) {
+  if (!ENABLE_DYNAMIC_FACE) return;
   if (!FACE_ROWS.has(row)) return;
   const expr = resolveAutoExpression();
   const r = faceRect(offsetX, offsetY, drawW, drawH);
@@ -357,13 +819,13 @@ function drawExpressionFace(drawCtx, row, offsetX, offsetY, drawW, drawH, now) {
     drawArcEye(drawCtx, leftX, eyeY, r.w * 0.18, r.h * 0.03, 1);
     drawArcEye(drawCtx, rightX, eyeY, r.w * 0.18, r.h * 0.03, 1);
   } else if (expr === 'happy') {
-    drawArcEye(drawCtx, leftX, eyeY, r.w * 0.20, r.h * 0.15, 1);
-    drawArcEye(drawCtx, rightX, eyeY, r.w * 0.20, r.h * 0.15, 1);
+    drawArcEye(drawCtx, leftX, eyeY, r.w * 0.16, r.h * 0.10, 1);
+    drawArcEye(drawCtx, rightX, eyeY, r.w * 0.16, r.h * 0.10, 1);
     drawCtx.beginPath();
-    drawCtx.moveTo(mouthX - r.w * 0.16, mouthY);
-    drawCtx.quadraticCurveTo(mouthX, mouthY + r.h * (0.18 + beat * 0.03), mouthX + r.w * 0.16, mouthY);
+    drawCtx.moveTo(mouthX - r.w * 0.11, mouthY);
+    drawCtx.quadraticCurveTo(mouthX, mouthY + r.h * (0.10 + beat * 0.015), mouthX + r.w * 0.11, mouthY);
     drawCtx.stroke();
-    drawBlush(drawCtx, r, 1 + beat * 0.3);
+    drawBlush(drawCtx, r, 0.8 + beat * 0.2);
   } else if (expr === 'shy') {
     drawArcEye(drawCtx, leftX, eyeY + r.h * 0.02, r.w * 0.17, r.h * 0.10, 1);
     drawArcEye(drawCtx, rightX, eyeY + r.h * 0.02, r.w * 0.17, r.h * 0.10, 1);
@@ -372,21 +834,21 @@ function drawExpressionFace(drawCtx, row, offsetX, offsetY, drawW, drawH, now) {
     drawCtx.stroke();
     drawBlush(drawCtx, r, 1.9);
   } else if (expr === 'sparkle') {
-    drawStarShape(drawCtx, leftX, eyeY, r.w * (0.11 + beat * 0.015), '#ffd43b');
-    drawStarShape(drawCtx, rightX, eyeY, r.w * (0.11 + beat * 0.015), '#ffd43b');
+    drawStarShape(drawCtx, leftX, eyeY, r.w * (0.085 + beat * 0.012), '#ffd43b');
+    drawStarShape(drawCtx, rightX, eyeY, r.w * (0.085 + beat * 0.012), '#ffd43b');
     strokeFace(drawCtx, '#d99400', Math.max(0.8, r.s * 1.2));
     drawCtx.stroke();
     strokeFace(drawCtx, ink, lw * 0.85);
     drawCtx.beginPath();
-    drawCtx.ellipse(mouthX, mouthY + r.h * 0.04, r.w * 0.12, r.h * (0.13 + beat * 0.03), 0, 0, Math.PI * 2);
+    drawCtx.ellipse(mouthX, mouthY + r.h * 0.035, r.w * 0.08, r.h * (0.085 + beat * 0.02), 0, 0, Math.PI * 2);
     drawCtx.fillStyle = '#b83b46';
     drawCtx.fill();
     drawCtx.stroke();
     drawSmallStar(drawCtx, r.x + r.w * 0.02, r.y + r.h * 0.10, r.w * 0.045);
     drawSmallStar(drawCtx, r.x + r.w * 0.98, r.y + r.h * 0.08, r.w * 0.045);
   } else if (expr === 'heart') {
-    drawHeart(drawCtx, leftX, eyeY, r.w * (0.20 + beat * 0.02), '#ff4f90');
-    drawHeart(drawCtx, rightX, eyeY, r.w * (0.20 + beat * 0.02), '#ff4f90');
+    drawHeart(drawCtx, leftX, eyeY, r.w * (0.15 + beat * 0.015), '#ff4f90');
+    drawHeart(drawCtx, rightX, eyeY, r.w * (0.15 + beat * 0.015), '#ff4f90');
     drawCtx.beginPath();
     drawCtx.moveTo(mouthX - r.w * 0.13, mouthY);
     drawCtx.quadraticCurveTo(mouthX, mouthY + r.h * 0.16, mouthX + r.w * 0.13, mouthY);
@@ -456,22 +918,46 @@ function drawExpressionFace(drawCtx, row, offsetX, offsetY, drawW, drawH, now) {
 function drawReactionOverlay(ctx, cx, cy) {
   // 鞭打 - 泪珠 + 揉屁股效果
   if (reactionState.whip) {
-    const { phase, startTime } = reactionState.whip;
+    const { phase, startTime, side = 1, severity = 'light' } = reactionState.whip;
+    const hitX = cx + side * 22;
+    const hitY = cy + 12;
     if (phase === 'hit') {
+      ctx.strokeStyle = severity === 'heavy' ? 'rgba(255, 96, 120, 0.92)' : 'rgba(255, 132, 120, 0.86)';
+      ctx.lineWidth = severity === 'heavy' ? 2.2 : 1.8;
+      ctx.beginPath();
+      ctx.moveTo(hitX - side * 10, hitY - 10);
+      ctx.lineTo(hitX + side * 5, hitY + 4);
+      ctx.moveTo(hitX - side * 8, hitY - 2);
+      ctx.lineTo(hitX + side * 7, hitY + 11);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 214, 94, 0.82)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(hitX - side * 14, hitY - 4);
+      ctx.lineTo(hitX - side * 20, hitY - 10);
+      ctx.moveTo(hitX - side * 10, hitY + 6);
+      ctx.lineTo(hitX - side * 17, hitY + 12);
+      ctx.stroke();
+
       ctx.fillStyle = 'rgba(100, 180, 255, 0.8)';
       ctx.beginPath();
-      ctx.ellipse(cx + 15, cy - 20, 2, 4, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx + 11, cy - 20, 2, 4, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.ellipse(cx - 12, cy - 18, 2, 3, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx - 13, cy - 18, 2, 3, 0, 0, Math.PI * 2);
       ctx.fill();
     } else if (phase === 'rub') {
       const t = (Date.now() - startTime) / 200;
       ctx.strokeStyle = 'rgba(255, 150, 150, 0.5)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(cx + Math.sin(t) * 3, cy + 35, 6, 0, Math.PI);
+      ctx.arc(cx + side * 16 + Math.sin(t) * 3, cy + 31, 6, 0, Math.PI);
       ctx.stroke();
+    } else if (phase === 'pout') {
+      ctx.fillStyle = 'rgba(255, 110, 150, 0.72)';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('...', cx + side * 14, cy - 24);
     }
   }
 
@@ -480,6 +966,10 @@ function drawReactionOverlay(ctx, cx, cy) {
     ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
     drawSmallStar(ctx, cx - 10, cy - 25, 3);
     drawSmallStar(ctx, cx + 10, cy - 25, 3);
+  } else if (reactionState.feed && reactionState.feed.phase === 'satisfied') {
+    ctx.fillStyle = 'rgba(255, 186, 214, 0.78)';
+    drawSmallStar(ctx, cx - 14, cy - 24, 2.5);
+    drawSmallStar(ctx, cx + 12, cy - 20, 2);
   }
 
   // 抚摸 - 爱心
@@ -558,6 +1048,10 @@ function draw(now) {
     digSand: 105,
     readBook: 105,
     watchTV: 105,
+    fanCooling: 112,
+    airConditioning: 112,
+    sofaLying: 102,
+    whip: 108,
     eating: 108,
     petting: 108,
     dizzy: 108,
@@ -576,6 +1070,7 @@ function draw(now) {
     stretching: 118,
     dancing: 122,
     swing: 125,
+    swimming: 122,
     jumping: 132,
     climbing: 138,
     perching: 138,
@@ -593,18 +1088,31 @@ function draw(now) {
   const offsetY = _logH - drawH;
   const isDancing = state.stateName === 'dancing';
   const isSwinging = state.stateName === 'swing';
+  const isFanCooling = state.stateName === 'fanCooling';
+  const isAirConditioning = state.stateName === 'airConditioning';
+  const isSwimming = state.stateName === 'swimming';
+  const isHungryPromptActive = Boolean(state.hungerPromptStartedAt && feedBtn.classList.contains('show'));
+  const isClimbingVisual = state.climbPhase && state.climbPhase !== 'idle';
   const dancePose = isDancing ? getDancePose(now) : null;
-  const swingPose = isSwinging ? getSwingPose(now) : null;
+  const swingPose = null;
+  const fanPose = isFanCooling ? getFanPose(now) : null;
+  const swimmingPose = null;
+  const hungryPose = isHungryPromptActive ? getHungryPromptPose(now) : null;
+  const climbPose = isClimbingVisual ? getClimbVisualPose(now) : null;
+  const whipPose = reactionState.whip ? getWhipPose(now) : null;
   const dancePivotX = offsetX + drawW * 0.5;
   const dancePivotY = offsetY + drawH * 0.68;
   const swingPivotX = offsetX + drawW * 0.5;
-  const swingPivotY = offsetY + drawH * 0.20;
+  const swingPivotY = offsetY - 8;
 
+  if (isClimbingVisual) {
+    drawClimbBackdrop(ctx, _logW, _logH, state.climbEdgeType ?? 0, state.climbPhase, now);
+  }
   if (isDancing) {
     drawDanceBackdrop(ctx, dancePivotX, offsetY + drawH, now, _logW, _logH);
   }
-  if (isSwinging) {
-    drawSwingBackdrop(ctx, swingPivotX, offsetY - 12, swingPose);
+  if (isAirConditioning) {
+    drawAirConditioningScene(ctx, _logW, _logH, now);
   }
 
   ctx.save();
@@ -632,6 +1140,46 @@ function draw(now) {
     ctx.scale(swingPose.scaleX, swingPose.scaleY);
     ctx.translate(-swingPivotX, -swingPivotY);
   }
+  if (fanPose) {
+    const fanPivotX = offsetX + drawW * 0.48;
+    const fanPivotY = offsetY + drawH * 0.62;
+    ctx.translate(fanPivotX + fanPose.x, fanPivotY + fanPose.y);
+    ctx.rotate(fanPose.rotation);
+    ctx.scale(fanPose.scaleX, fanPose.scaleY);
+    ctx.translate(-fanPivotX, -fanPivotY);
+  }
+  if (swimmingPose) {
+    const swimPivotX = offsetX + drawW * 0.5;
+    const swimPivotY = offsetY + drawH * 0.68;
+    ctx.translate(swimPivotX + swimmingPose.x, swimPivotY + swimmingPose.y);
+    ctx.rotate(swimmingPose.rotation);
+    ctx.scale(swimmingPose.scaleX, swimmingPose.scaleY);
+    ctx.translate(-swimPivotX, -swimPivotY);
+  }
+  if (climbPose) {
+    const climbPivotX = offsetX + drawW * 0.5;
+    const climbPivotY = offsetY + drawH * 0.56;
+    ctx.translate(climbPivotX + climbPose.x, climbPivotY + climbPose.y);
+    ctx.rotate(climbPose.rotation);
+    ctx.scale(climbPose.scaleX, climbPose.scaleY);
+    ctx.translate(-climbPivotX, -climbPivotY);
+  }
+  if (hungryPose) {
+    const hungryPivotX = offsetX + drawW * 0.5;
+    const hungryPivotY = offsetY + drawH * 0.62;
+    ctx.translate(hungryPivotX + hungryPose.x, hungryPivotY + hungryPose.y);
+    ctx.rotate(hungryPose.rotation);
+    ctx.scale(hungryPose.scaleX, hungryPose.scaleY);
+    ctx.translate(-hungryPivotX, -hungryPivotY);
+  }
+  if (whipPose) {
+    const whipPivotX = offsetX + drawW * 0.5;
+    const whipPivotY = offsetY + drawH * 0.66;
+    ctx.translate(whipPivotX + whipPose.x, whipPivotY + whipPose.y);
+    ctx.rotate(whipPose.rotation);
+    ctx.scale(whipPose.scaleX, whipPose.scaleY);
+    ctx.translate(-whipPivotX, -whipPivotY);
+  }
   ctx.imageSmoothingEnabled = false; // pixel art：关闭插值，保持像素锐利
   drawOutfitLayers(ctx, state.frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'behind');
   ctx.drawImage(state.sprite, state.frame * CELL_W, stateObj.row * CELL_H, CELL_W, CELL_H, offsetX, offsetY, drawW, drawH);
@@ -640,12 +1188,16 @@ function draw(now) {
   ctx.restore();
 
   // 绘制特效锚点
-  const petCX = offsetX + drawW / 2;
-  const petCY = offsetY + drawH / 2;
+  const petCX = offsetX + drawW / 2 + (dancePose?.x || 0) + (swingPose?.x || 0) + (fanPose?.x || 0) + (swimmingPose?.x || 0) + (climbPose?.x || 0) + (hungryPose?.x || 0) + (whipPose?.x || 0);
+  const petCY = offsetY + drawH / 2 + (dancePose?.y || 0) + (swingPose?.y || 0) + (fanPose?.y || 0) + (swimmingPose?.y || 0) + (climbPose?.y || 0) + (hungryPose?.y || 0) + (whipPose?.y || 0);
 
   if (isDancing) {
     drawDanceForeground(ctx, petCX, petCY, now);
   }
+  if (isHungryPromptActive) {
+    drawHungryForeground(ctx, petCX, petCY, now);
+  }
+  drawWhipModel(ctx, petCX, petCY, now);
 
   // 反应叠加
   drawReactionOverlay(ctx, petCX, petCY);
