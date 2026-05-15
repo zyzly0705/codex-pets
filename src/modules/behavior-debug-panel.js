@@ -28,6 +28,7 @@ function renderCandidateRows(snapshot) {
         gr ${bd.growth >= 0 ? '+' : ''}${bd.growth}
         meta ${bd.meta >= 0 ? '+' : ''}${bd.meta}
         bias ${bd.bias >= 0 ? '+' : ''}${bd.bias}
+        pref ${bd.preference >= 0 ? '+' : ''}${bd.preference}
         smooth ${bd.smoothed >= 0 ? '+' : ''}${bd.smoothed}
         pen -${bd.penalty}
       </div>
@@ -39,6 +40,30 @@ function renderPoolRows(snapshot) {
   if (!snapshot.poolChoices.length) return '<div class="debug-muted">urgent or single-pool choice</div>';
   return snapshot.poolChoices.map(choice => (
     `<div>${escapeHtml(choice.pool)} ${choice.score} <span class="debug-muted">${escapeHtml(choice.best)}</span></div>`
+  )).join('');
+}
+
+function renderPreferenceRows(snapshot) {
+  const weights = Object.entries(snapshot.preference?.weights || {});
+  if (!weights.length) return '<div class="debug-muted">no learned preference yet</div>';
+  return weights.map(([name, weight]) => (
+    `<div>${escapeHtml(name)} ${weight >= 0 ? '+' : ''}${weight}</div>`
+  )).join('');
+}
+
+function renderFeedbackRows(snapshot) {
+  const feedback = snapshot.preference?.recentFeedback || [];
+  if (!feedback.length) return '<div class="debug-muted">no feedback yet</div>';
+  return feedback.map(item => (
+    `<div>${escapeHtml(item.type)} ${escapeHtml(item.behaviorName)} ${item.delta >= 0 ? '+' : ''}${item.delta} -> ${item.weight}</div>`
+  )).join('');
+}
+
+function renderHistoryRows(snapshot) {
+  const history = snapshot.history || [];
+  if (!history.length) return '<div class="debug-muted">no committed behavior yet</div>';
+  return history.map(item => (
+    `<div>${escapeHtml(item.at)} ${escapeHtml(item.behaviorName)} ${item.score} <span class="debug-muted">${escapeHtml(item.pool)}</span></div>`
   )).join('');
 }
 
@@ -70,8 +95,18 @@ function renderDebugPanel(panel, snapshot) {
       <div>recent <span class="debug-muted">${escapeHtml(snapshot.recent.join(', ') || 'none')}</span></div>
     </div>
     <div class="debug-section">
+      <div class="debug-muted">learned weights</div>
+      ${renderPreferenceRows(snapshot)}
+      <div class="debug-muted">recent feedback</div>
+      ${renderFeedbackRows(snapshot)}
+    </div>
+    <div class="debug-section">
       <div class="debug-muted">pools</div>
       ${renderPoolRows(snapshot)}
+    </div>
+    <div class="debug-section">
+      <div class="debug-muted">behavior replay</div>
+      ${renderHistoryRows(snapshot)}
     </div>
     <div class="debug-section">
       <div class="debug-row debug-muted">

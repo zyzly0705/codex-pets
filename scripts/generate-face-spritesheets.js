@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const PET_DIR = path.join(__dirname, '..', 'assets', 'xiao-hong');
+const PET_DIR = path.join(__dirname, '..', 'assets', 'yoyo');
 const ACCESSORY_DIR = path.join(__dirname, '..', 'assets', 'accessories');
 const BASE_SPRITESHEET = path.join(PET_DIR, 'spritesheet.webp');
 
@@ -31,7 +31,7 @@ const FACE_IDS = ['happy', 'shy', 'sparkle', 'heart', 'sleepy'];
 // lookingAround, gifting, stretching, clapping。
 const SAFE_FACE_ROWS = new Set([0, 3, 6, 7, 8, 11, 12, 15, 23, 24, 25]);
 
-// 当前 Xiao Hong 头脸位置的统一近似锚点。后续如果做 manifest，可把这些移到 pet.json。
+// 当前 Yoyo 头脸位置的统一近似锚点。后续如果做 manifest，可把这些移到 pet.json。
 const FACE_ANCHOR = {
   x: 64,
   y: 43,

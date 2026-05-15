@@ -19,8 +19,8 @@ const NEW_ROWS = 26;
 const NEW_WIDTH = COLS * CELL_W;  // 1536
 const NEW_HEIGHT = NEW_ROWS * CELL_H; // 5408
 
-const INPUT_PATH = path.join(__dirname, '..', 'assets', 'xiao-hong', 'spritesheet.webp');
-const OUTPUT_PATH = path.join(__dirname, '..', 'assets', 'xiao-hong', 'spritesheet_expanded.png');
+const INPUT_PATH = path.join(__dirname, '..', 'assets', 'yoyo', 'spritesheet.webp');
+const OUTPUT_PATH = path.join(__dirname, '..', 'assets', 'yoyo', 'spritesheet_expanded.png');
 
 /**
  * 从原始像素数据中提取一帧

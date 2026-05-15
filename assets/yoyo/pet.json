@@ -1,0 +1,59 @@
+{
+  "id": "yoyo",
+  "displayName": "Yoyo",
+  "description": "A tiny Codex-style chibi school companion inspired by the reference portrait, with straight black bangs, a small top bun, navy vest, white shirt, and red bow.",
+  "spritesheetPath": "spritesheet.webp",
+  "asset": {
+    "spritesheetPath": "spritesheet.webp",
+    "cellWidth": 192,
+    "cellHeight": 208,
+    "columns": 8,
+    "rows": 37,
+    "scale": 0.75,
+    "anchor": { "x": 0.5, "y": 1 },
+    "recommendedSourceScale": 2
+  },
+  "states": {
+    "idle": { "row": 0, "frames": 6, "fps": 4 },
+    "runningRight": { "row": 1, "frames": 8, "fps": 8 },
+    "runningLeft": { "row": 2, "frames": 8, "fps": 8 },
+    "waving": { "row": 3, "frames": 4, "fps": 4 },
+    "jumping": { "row": 4, "frames": 5, "fps": 7 },
+    "failed": { "row": 5, "frames": 8, "fps": 4 },
+    "waiting": { "row": 6, "frames": 6, "fps": 3 },
+    "bashful": { "row": 7, "frames": 6, "speed": 250 },
+    "review": { "row": 8, "frames": 6, "fps": 4 },
+    "climbing": { "row": 9, "frames": 6, "fps": 5 },
+    "perching": { "row": 10, "frames": 4, "fps": 3 },
+    "petting": { "row": 11, "frames": 4, "fps": 4 },
+    "yawning": { "row": 12, "frames": 5, "fps": 3 },
+    "eating": { "row": 13, "frames": 6, "fps": 5 },
+    "dizzy": { "row": 14, "frames": 4, "fps": 6 },
+    "lookingAround": { "row": 15, "frames": 5, "fps": 3 },
+    "swing": { "row": 16, "frames": 8, "speed": 200 },
+    "digSand": { "row": 17, "frames": 8, "speed": 250 },
+    "readBook": { "row": 18, "frames": 8, "speed": 300 },
+    "watchTV": { "row": 19, "frames": 8, "speed": 350 },
+    "sleeping": { "row": 20, "frames": 8, "speed": 400 },
+    "dancing": { "row": 21, "frames": 8, "speed": 220 },
+    "crying": { "row": 22, "frames": 8, "speed": 250 },
+    "gifting": { "row": 23, "frames": 8, "speed": 200 },
+    "stretching": { "row": 24, "frames": 8, "speed": 300 },
+    "clapping": { "row": 25, "frames": 8, "speed": 150 },
+    "fanCooling": { "row": 26, "frames": 8, "speed": 180 },
+    "swimming": { "row": 27, "frames": 8, "speed": 210 },
+    "whip": { "row": 28, "frames": 8, "speed": 160 },
+    "airConditioning": { "row": 29, "frames": 8, "speed": 220 },
+    "sofaLying": { "row": 30, "frames": 8, "speed": 320 },
+    "typingCompanion": { "row": 32, "frames": 8, "speed": 170 }
+  },
+  "layers": {
+    "coveragePolicy": "best-effort",
+    "expectedColumns": 8,
+    "notes": "Layer spritesheets may cover fewer rows than the base sheet; the renderer skips missing rows and the asset audit reports them as warnings."
+  },
+  "render": {
+    "smoothing": false,
+    "faceAnchor": { "x": 64, "y": 43, "width": 64, "height": 44 }
+  }
+}

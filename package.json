@@ -1,6 +1,6 @@
 {
   "name": "codex-desktop-pet",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A small Windows desktop pet app for Codex pet spritesheets.",
   "main": "src/main.js",
   "scripts": {
@@ -13,9 +13,14 @@
     "generate:actions": "node scripts/generate-action-spritesheet.js",
     "generate:typing": "node scripts/add-typing-companion-row.js",
     "generate:dharma": "node scripts/add-dharma-giant-rows.js",
+    "audit:assets": "node scripts/audit-pet-assets.js",
+    "scaffold:pet": "node scripts/scaffold-pet-package.js",
+    "expand:codex-atlas": "node scripts/expand-codex-atlas-to-yoyo.js",
+    "generate:gugu-gaga": "node scripts/generate-gugu-gaga-local-spritesheet.js",
+    "import:gugu-gaga": "node scripts/import-gugu-gaga-reference-sheet.js",
     "pack": "electron-builder --dir",
     "dist:win": "electron-builder --win nsis",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\""
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\" && node scripts/validate-behavior-data.js && node scripts/smoke-ai-config.js && npm run audit:assets"
   },
   "keywords": [
     "desktop-pet",
@@ -40,11 +45,11 @@
       "assets/**/*",
       "package.json",
       "!assets/accessories/**",
-      "!assets/xiao-hong/*backup*",
-      "!assets/xiao-hong/*expanded*",
-      "!assets/xiao-hong/*before_*",
-      "!assets/xiao-hong/*before_generated*",
-      "!assets/xiao-hong/*original*",
+      "!assets/yoyo/*backup*",
+      "!assets/yoyo/*expanded*",
+      "!assets/yoyo/*before_*",
+      "!assets/yoyo/*before_generated*",
+      "!assets/yoyo/*original*",
       "!scripts/**"
     ],
     "extraMetadata": {

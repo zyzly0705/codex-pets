@@ -122,6 +122,23 @@ npm run start:keyboard:win
 
 macOS 如果没有键盘响应，请到“系统设置 → 隐私与安全性 → 辅助功能 / 输入监控”里允许当前终端或打包后的 Yoyo 应用。
 
+### 可选：开启 DeepSeek 台词增强
+
+Yoyo 默认使用本地台词。配置 DeepSeek API Key 后，自动行为会先显示本地台词，再由 DeepSeek 改写成一句更自然的短台词；如果网络失败或没有配置 key，会自动退回本地台词。
+
+```bash
+export YOYO_DEEPSEEK_API_KEY='你的 DeepSeek API Key'
+npm start
+```
+
+可选覆盖模型：
+
+```bash
+export YOYO_DEEPSEEK_MODEL='deepseek-v4-flash'
+```
+
+右键 Yoyo → 设置 → “AI 台词增强” 可以开关这个能力。不要把 API Key 写进仓库文件。
+
 ---
 
 ## 📦 打包发布
@@ -148,7 +165,7 @@ npx electron-builder --mac dmg
 
 ```
 codex-desktop-pet/
-├── assets/xiao-hong/          # 宠物素材
+├── assets/yoyo/          # 宠物素材
 │   ├── pet.json               # 动画配置（26种行为定义）
 │   ├── spritesheet.webp       # 原始精灵图
 │   └── spritesheet_expanded.webp  # 扩展精灵图（8×26格）

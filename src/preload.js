@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('petApi', {
   listPets: () => ipcRenderer.invoke('pets:list'),
   importPet: () => ipcRenderer.invoke('pet:import'),
   getWeather: () => ipcRenderer.invoke('weather:get'),
+  generateYoyoLine: (payload) => ipcRenderer.invoke('ai:yoyo-line', payload),
+  aiStatus: () => ipcRenderer.invoke('ai:status'),
   getDailyNews: (options) => ipcRenderer.invoke('news:get', options),
   getBounds: () => ipcRenderer.invoke('window:get-bounds'),
   moveBy: (delta) => ipcRenderer.invoke('window:move-by', delta),
@@ -38,6 +40,7 @@ contextBridge.exposeInMainWorld('petApi', {
   // 设置相关
   onSettingsChanged: (callback) => ipcRenderer.on('settings-changed', (_, data) => callback(data)),
   onSettingsReset: (callback) => ipcRenderer.on('settings-reset', () => callback()),
+  onBehaviorPreferencesReset: (callback) => ipcRenderer.on('behavior-preferences-reset', () => callback()),
   // 换装系统
   onOutfitChange: (cb) => ipcRenderer.on('outfit:change', (e, category, itemId) => cb(category, itemId)),
   onOutfitRandom: (cb) => ipcRenderer.on('outfit:random', () => cb()),

@@ -9,6 +9,28 @@ const dataPath = path.join(app.getPath('userData'), 'yoyo-data.json');
 const debugLogDir = path.join(app.getPath('userData'), 'logs');
 const debugLogPath = path.join(debugLogDir, 'yoyo-debug.jsonl');
 
+function loadDotEnv() {
+  for (const file of ['.env.local', '.env']) {
+    const envPath = path.join(__dirname, '..', file);
+    if (!fs.existsSync(envPath)) continue;
+    const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/u);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/u);
+      if (!match) continue;
+      const [, key, rawValue] = match;
+      if (process.env[key] !== undefined) continue;
+      process.env[key] = rawValue.replace(/^['"]|['"]$/g, '');
+    }
+  }
+}
+
+loadDotEnv();
+
+const DEEPSEEK_API_URL = process.env.YOYO_DEEPSEEK_BASE_URL || 'https://api.deepseek.com/chat/completions';
+const DEEPSEEK_MODEL = process.env.YOYO_DEEPSEEK_MODEL || 'deepseek-v4-flash';
+
 function appendDebugLog(type, payload) {
   if (!BEHAVIOR_DEBUG_ENABLED) return;
   try {
@@ -30,10 +52,66 @@ function notifyManualEffect(type, duration) {
   }
 }
 
+function sanitizeAiLine(text) {
+  return String(text || '')
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/^["'“”‘’\s]+|["'“”‘’\s]+$/g, '')
+    .slice(0, 48);
+}
+
+async function generateYoyoLine(payload = {}) {
+  if (!petData.settings.aiLinesEnabled) return { ok: false, skipped: true, reason: 'disabled' };
+  const apiKey = process.env.YOYO_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) return { ok: false, skipped: true, reason: 'missing_key' };
+
+  const behavior = String(payload.behavior || 'idle').slice(0, 40);
+  const mood = String(payload.mood || 'neutral').slice(0, 40);
+  const context = String(payload.context || '').slice(0, 120);
+  const fallback = sanitizeAiLine(payload.fallback || '');
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 3500);
+  try {
+    const response = await fetch(DEEPSEEK_API_URL, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: DEEPSEEK_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: '你是桌面宠物 Yoyo，一个4-5岁小女孩。只输出一句中文短台词，称呼用户为妈妈，语气自然撒娇但不要啰嗦，不要解释，不要加引号。',
+          },
+          {
+            role: 'user',
+            content: `行为:${behavior}\n心情:${mood}\n上下文:${context}\n参考台词:${fallback}\n请改写成一句不超过28个中文字符的台词。`,
+          },
+        ],
+        temperature: 0.8,
+        max_tokens: 60,
+      }),
+    });
+    if (!response.ok) return { ok: false, error: `deepseek_http_${response.status}` };
+    const data = await response.json();
+    const line = sanitizeAiLine(data?.choices?.[0]?.message?.content);
+    if (!line) return { ok: false, error: 'empty_line' };
+    return { ok: true, line };
+  } catch (e) {
+    return { ok: false, error: e.name === 'AbortError' ? 'timeout' : e.message };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 const DEFAULT_DATA = {
   settings: {
     autoStart: true, soundEnabled: true, reminderFreq: 'medium',
     activity: 'normal', workStartHour: 9, workEndHour: 18,
+    aiLinesEnabled: true,
   },
   growth: {
     xp: 0, level: 1, path: null, lastLoginDate: '',
@@ -44,7 +122,19 @@ const DEFAULT_DATA = {
     lastWhipTime: null, totalPetCount: 0, totalFedCount: 0, totalWhipCount: 0,
     hourlyActivity: Array(24).fill(0), totalActiveDays: 0,
     consecutiveDays: 0, lastActiveDate: null,
+    preference: {
+      behaviorWeights: {}, quietHours: [], interactionTolerance: 'normal',
+      lastFeedbackAt: null, recentFeedback: [], lastDecayDate: null,
+    },
   },
+  relationship: {
+    intimacy: 0, trust: 60, longing: 0, stage: 'first_meet',
+    firstMetDate: null, lastStageChangeDate: null, lastInteractionDate: null,
+    nicknames: ['妈妈'], milestones: [],
+  },
+  companionPlan: null,
+  dailyMemory: null,
+  dailyCards: [],
   checkin: { streak: 0, lastDate: '', totalDays: 0 },
   achievements: {
     unlocked: [],
@@ -266,11 +356,11 @@ try {
 }
 
 // ===== 全局键盘监听（uiohook-napi） =====
-// 默认开启；如果当前 macOS/Electron/Node ABI 组合不可用，会自动降级并记录日志。
-// 需要临时关闭时设置 YOYO_ENABLE_UIOHOOK=0。
+// 默认关闭；在部分 macOS/Electron 组合上，原生钩子可能触发主进程 fatal error。
+// 需要时通过 YOYO_ENABLE_UIOHOOK=1 显式开启。
 function initGlobalKeyboardHook() {
-  if (process.env.YOYO_ENABLE_UIOHOOK === '0') {
-    console.log('[uiohook] 已通过 YOYO_ENABLE_UIOHOOK=0 关闭全局键盘监听');
+  if (process.env.YOYO_ENABLE_UIOHOOK !== '1') {
+    console.log('[uiohook] 默认关闭；如需启用请设置 YOYO_ENABLE_UIOHOOK=1');
     return;
   }
   try {
@@ -385,53 +475,23 @@ function userPetsDir() {
   return path.join(app.getPath('userData'), 'pets');
 }
 
-function bundledPetDir() {
-  return path.join(__dirname, '..', 'assets', 'xiao-hong');
+function bundledPetsDir() {
+  return path.join(__dirname, '..', 'assets');
 }
 
-function ensureDefaultPet() {
-  const target = path.join(userPetsDir(), 'xiao-hong');
-  fs.mkdirSync(target, { recursive: true });
-  const defaultPetFiles = [
-    'pet.json',
-    'spritesheet.webp',
-    'spritesheet_face_happy.webp',
-    'spritesheet_face_shy.webp',
-    'spritesheet_face_sparkle.webp',
-    'spritesheet_face_heart.webp',
-    'spritesheet_face_sleepy.webp',
-    'spritesheet_hair_flower.webp',
-    'spritesheet_hair_starclip.webp',
-    'spritesheet_hair_pearlpin.webp',
-    'spritesheet_hat_ribbon.webp',
-    'spritesheet_hat_crown.webp',
-    'spritesheet_hat_catears.webp',
-    'spritesheet_hat_santa.webp',
-    'spritesheet_hat_halo.webp',
-    'spritesheet_clothes_hoodie.webp',
-    'spritesheet_clothes_dress.webp',
-    'spritesheet_clothes_cape.webp',
-    'spritesheet_clothes_sweater.webp',
-    'spritesheet_accessory_scarf.webp',
-    'spritesheet_accessory_wings.webp',
-    'spritesheet_accessory_butterfly_wings.webp',
-    'spritesheet_accessory_devil_wings.webp',
-    'spritesheet_accessory_jetpack.webp',
-    'spritesheet_accessory_star_backpack.webp',
-    'spritesheet_accessory_bow.webp',
-    'spritesheet_party.webp',
-    'spritesheet_party_behind.webp',
-    'spritesheet_angel.webp',
-    'spritesheet_angel_behind.webp',
-  ];
-  for (const file of defaultPetFiles) {
-    const source = path.join(bundledPetDir(), file);
-    const dest = path.join(target, file);
+function copyDirectoryContents(sourceDir, targetDir) {
+  fs.mkdirSync(targetDir, { recursive: true });
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    const source = path.join(sourceDir, entry.name);
+    const dest = path.join(targetDir, entry.name);
+    if (entry.isDirectory()) {
+      copyDirectoryContents(source, dest);
+      continue;
+    }
     if (!fs.existsSync(source)) continue;
     if (!fs.existsSync(dest)) {
       fs.copyFileSync(source, dest);
     } else {
-      // 若内置素材更新（文件大小不同），则覆盖旧副本
       const srcStat = fs.statSync(source);
       const dstStat = fs.statSync(dest);
       if (srcStat.size !== dstStat.size) {
@@ -441,25 +501,58 @@ function ensureDefaultPet() {
   }
 }
 
+function ensureBundledPets() {
+  const assetsDir = bundledPetsDir();
+  fs.mkdirSync(userPetsDir(), { recursive: true });
+  if (!fs.existsSync(assetsDir)) return;
+  for (const entry of fs.readdirSync(assetsDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const sourceDir = path.join(assetsDir, entry.name);
+    if (!fs.existsSync(path.join(sourceDir, 'pet.json'))) continue;
+    copyDirectoryContents(sourceDir, path.join(userPetsDir(), entry.name));
+  }
+}
+
 function readPet(dir) {
   const manifestPath = path.join(dir, 'pet.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  const spritesheetPath = path.join(dir, manifest.spritesheetPath || 'spritesheet.webp');
+  const asset = manifest.asset || {};
+  const spritesheetFile = manifest.spritesheetPath || asset.spritesheetPath || 'spritesheet.webp';
+  const spritesheetPath = path.join(dir, spritesheetFile);
   return {
     id: manifest.id || path.basename(dir),
     displayName: manifest.displayName || manifest.name || path.basename(dir),
     description: manifest.description || '',
     spritesheetPath,
-    manifestPath
+    manifestPath,
+    asset: {
+      ...asset,
+      spritesheetPath: spritesheetFile,
+    },
+    states: manifest.states || undefined,
+    layers: manifest.layers || undefined,
+    render: manifest.render || undefined,
   };
 }
 
+function isRunnablePetDir(dir) {
+  if (!fs.existsSync(path.join(dir, 'pet.json'))) return false;
+  try {
+    const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'pet.json'), 'utf8'));
+    const asset = manifest.asset || {};
+    const spritesheetFile = manifest.spritesheetPath || asset.spritesheetPath || 'spritesheet.webp';
+    return fs.existsSync(path.join(dir, spritesheetFile));
+  } catch {
+    return false;
+  }
+}
+
 function listPets() {
-  ensureDefaultPet();
+  ensureBundledPets();
   return fs.readdirSync(userPetsDir(), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => path.join(userPetsDir(), entry.name))
-    .filter((dir) => fs.existsSync(path.join(dir, 'pet.json')))
+    .filter(isRunnablePetDir)
     .map(readPet);
 }
 
@@ -630,7 +723,7 @@ function toFileUrl(filePath) {
 }
 
 function defaultSpritesheetPath() {
-  return path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
+  return path.join(userPetsDir(), 'yoyo', 'spritesheet.webp');
 }
 
 function getActiveSpritesheetPath() {
@@ -672,9 +765,9 @@ app.on('before-quit', () => {
 
 app.whenReady().then(() => {
   loadData();  // 从文件加载持久化数据
-  ensureDefaultPet();
+  ensureBundledPets();
   // 初始化默认 spritesheet 路径
-  activeSpritesheetPath = path.join(userPetsDir(), 'xiao-hong', 'spritesheet.webp');
+  activeSpritesheetPath = path.join(userPetsDir(), 'yoyo', 'spritesheet.webp');
   createWindow();
   createTray();
   initGlobalKeyboardHook();
@@ -817,9 +910,7 @@ ipcMain.handle('pet:import', async () => {
     return { ok: false, error: 'Selected pet spritesheet was not found.' };
   }
   const targetDir = path.join(userPetsDir(), pet.id);
-  fs.mkdirSync(targetDir, { recursive: true });
-  fs.copyFileSync(sourceManifest, path.join(targetDir, 'pet.json'));
-  fs.copyFileSync(pet.spritesheetPath, path.join(targetDir, path.basename(pet.spritesheetPath)));
+  copyDirectoryContents(sourceDir, targetDir);
   return { ok: true, pet: readPet(targetDir), pets: listPets() };
 });
 
@@ -872,6 +963,18 @@ ipcMain.handle('settings:reset', () => {
   }
 });
 
+ipcMain.handle('preferences:reset-behavior', () => {
+  petData.memory.preference = {
+    ...DEFAULT_DATA.memory.preference,
+    lastDecayDate: new Date().toISOString().slice(0, 10),
+  };
+  saveData();
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('behavior-preferences-reset');
+  }
+  return { ok: true };
+});
+
 // stats:get 现在直接读 petData，不再 executeJavaScript 跨窗口读 localStorage
 ipcMain.handle('stats:get', () => {
   const growth  = petData.growth;
@@ -883,6 +986,10 @@ ipcMain.handle('stats:get', () => {
     path:           growth.path  || null,
     consecutiveDays: memory.consecutiveDays || 0,
     companionDays:  Math.floor((Date.now() - firstDay) / 86400000),
+    relationship: petData.relationship || null,
+    dailyMemory: petData.dailyMemory || null,
+    dailyCards: petData.dailyCards || [],
+    companionPlan: petData.companionPlan || null,
   };
 });
 
@@ -903,6 +1010,12 @@ ipcMain.handle('debug:behavior-enabled', () => BEHAVIOR_DEBUG_ENABLED);
 ipcMain.handle('debug:log-path', () => debugLogPath);
 ipcMain.on('debug:log', (_event, type, payload) => appendDebugLog(type, payload));
 ipcMain.handle('news:get', async (_event, options = {}) => fetchDailyNews(Boolean(options.force)));
+ipcMain.handle('ai:status', () => ({
+  enabled: Boolean(petData.settings.aiLinesEnabled),
+  configured: Boolean(process.env.YOYO_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY),
+  model: DEEPSEEK_MODEL,
+}));
+ipcMain.handle('ai:yoyo-line', (_event, payload) => generateYoyoLine(payload));
 
 // 监听 renderer 发来的状态同步
 ipcMain.on('menu-state:sync', (_event, state) => {
@@ -913,6 +1026,7 @@ ipcMain.on('menu-state:sync', (_event, state) => {
 
 ipcMain.handle('context-menu:show', (event) => {
   const pets = listPets();
+  const currentPetId = petData.currentPetId || pets[0]?.id || 'yoyo';
   const petSubmenu = pets.map((pet) => ({
     label: pet.displayName,
     click: () => { mainWindow.webContents.send('menu-action', `switch-pet:${pet.id}`); }
@@ -920,102 +1034,122 @@ ipcMain.handle('context-menu:show', (event) => {
   petSubmenu.push({ type: 'separator' });
   petSubmenu.push({ label: '把新小家伙接回来...', click: () => { mainWindow.webContents.send('menu-action', 'import'); } });
 
+  const outfitMenuByPet = currentPetId === 'gugu-gaga'
+    ? {
+        label: '👗 换穿搭',
+        submenu: [
+          { label: '这只小企鹅暂时没有专属穿搭', enabled: false },
+        ]
+      }
+    : {
+        label: '👗 换穿搭',
+        submenu: [
+          { label: '🔄 随便搭一套', click: () => { mainWindow.webContents.send('outfit:random'); } },
+          { label: '🚫 清爽一点', click: () => { mainWindow.webContents.send('outfit:reset'); } },
+          { type: 'separator' },
+          {
+            label: '细选穿搭',
+            submenu: [
+              {
+                label: '发饰',
+                submenu: [
+                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'none'); } },
+                  { label: '🌸 小花发夹', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'flower'); } },
+                  { label: '⭐ 星星发卡', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'starclip'); } },
+                  { label: '🫧 珍珠发针', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'pearlpin'); } },
+                ]
+              },
+              {
+                label: '衣服',
+                submenu: [
+                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'none'); } },
+                  { label: '💙 蓝色卫衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'hoodie'); } },
+                  { label: '👗 粉色裙子', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'dress'); } },
+                  { label: '🦸 小披风', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'cape'); } },
+                  { label: '🧶 暖暖毛衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'sweater'); } },
+                  { label: '🎉 派对套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'party'); } },
+                  { label: '👼 天使套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'angel'); } },
+                ]
+              },
+              {
+                label: '小物件',
+                submenu: [
+                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'none'); } },
+                  { label: '🎀 红领结', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'bow'); } },
+                  { label: '🧣 彩虹围巾', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'scarf'); } },
+                  { label: '🪽 小翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'wings'); } },
+                  { label: '🦋 蝴蝶翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'butterfly_wings'); } },
+                  { label: '😈 小恶魔翼', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'devil_wings'); } },
+                  { label: '🚀 喷气背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'jetpack'); } },
+                  { label: '🎒 星星背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'star_backpack'); } },
+                ]
+              },
+              {
+                label: '帽子',
+                submenu: [
+                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'none'); } },
+                  { label: '🎀 蝴蝶结', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'ribbon'); } },
+                  { label: '👑 花冠', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'crown'); } },
+                  { label: '🐱 猫耳', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'catears'); } },
+                  { label: '🎅 圣诞帽', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'santa'); } },
+                  { label: '😇 光环', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'halo'); } },
+                ]
+              },
+              { type: 'separator' },
+              { label: '表情会跟心情自己变', enabled: false },
+            ]
+          },
+        ]
+      };
+
   const template = [
-    { label: '抚摸一下', click: () => { mainWindow.webContents.send('action:pet'); } },
-    { label: '鞭打！', click: () => { mainWindow.webContents.send('action:whip'); } },
-    { label: '看她法天象地', click: () => { triggerGiantEffect(); } },
+    { label: '摸摸 Yoyo', click: () => { mainWindow.webContents.send('action:pet'); } },
+    { label: menuState.dancing ? '停下跳舞' : '让她跳会舞', type: 'checkbox', checked: menuState.dancing, click: (item) => { mainWindow.webContents.send('action:dance', item.checked); } },
+    { label: menuState.following ? '别跟着我啦' : '让她跟着我', type: 'checkbox', checked: menuState.following, click: (item) => { mainWindow.webContents.send('action:follow', item.checked); } },
+    { label: menuState.sleeping ? '叫醒 Yoyo' : '让她睡会', type: 'checkbox', checked: menuState.sleeping, click: (item) => { mainWindow.webContents.send('action:sleep', item.checked); } },
     { type: 'separator' },
     {
-      label: '🎭 陪她做点事',
+      label: '一起做点事',
       submenu: [
-        { label: '让她跳会舞', type: 'checkbox', checked: menuState.dancing, click: (item) => { mainWindow.webContents.send('action:dance', item.checked); } },
-        { label: '让她跟着我', type: 'checkbox', checked: menuState.following, click: (item) => { mainWindow.webContents.send('action:follow', item.checked); } },
-        { label: '让她先睡会', type: 'checkbox', checked: menuState.sleeping, click: (item) => { mainWindow.webContents.send('action:sleep', item.checked); } },
+        { label: '吹风扇', click: () => { mainWindow.webContents.send('menu-action', 'fan-cooling'); } },
+        { label: '吹空调', click: () => { mainWindow.webContents.send('menu-action', 'air-conditioning'); } },
+        { label: '沙发躺会', click: () => { mainWindow.webContents.send('menu-action', 'sofa-lying'); } },
+        { label: '去游泳', click: () => { mainWindow.webContents.send('menu-action', 'swimming'); } },
       ]
     },
     {
-      label: '🏖️ 带她去玩',
+      label: '听她说说',
       submenu: [
-        { label: '陪她吹吹风扇', click: () => { mainWindow.webContents.send('menu-action', 'fan-cooling'); } },
-        { label: '陪她吹吹空调', click: () => { mainWindow.webContents.send('menu-action', 'air-conditioning'); } },
-        { label: '让她沙发躺会', click: () => { mainWindow.webContents.send('menu-action', 'sofa-lying'); } },
-        { label: '带她去游泳', click: () => { mainWindow.webContents.send('menu-action', 'swimming'); } },
-      ]
-    },
-    {
-      label: '📰 听她说说',
-      submenu: [
-        { label: '听她说微博热搜', click: () => { mainWindow.webContents.send('menu-action', 'daily-news'); } },
-      ]
-    },
-    { type: 'separator' },
-    {
-      label: '✨ 看她施法',
-      submenu: [
-        { label: '看她用分身术', click: () => { triggerCloneEffect(); } },
-        { label: '看她法天象地', click: () => { triggerGiantEffect(); } },
-      ]
-    },
-    { type: 'separator' },
-    {
-      label: '👗 给她换穿搭',
-      submenu: [
-        {
-          label: '给她戴发饰',
-          submenu: [
-            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'none'); } },
-            { label: '🌸 小花发夹', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'flower'); } },
-            { label: '⭐ 星星发卡', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'starclip'); } },
-            { label: '🫧 珍珠发针', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'pearlpin'); } },
-          ]
-        },
-        {
-          label: '给她换衣服',
-          submenu: [
-            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'none'); } },
-            { label: '💙 蓝色卫衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'hoodie'); } },
-            { label: '👗 粉色裙子', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'dress'); } },
-            { label: '🦸 小披风', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'cape'); } },
-            { label: '🧶 暖暖毛衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'sweater'); } },
-            { label: '🎉 派对套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'party'); } },
-            { label: '👼 天使套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'angel'); } },
-          ]
-        },
-        {
-          label: '给她配小物件',
-          submenu: [
-            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'none'); } },
-            { label: '🎀 红领结', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'bow'); } },
-            { label: '🧣 彩虹围巾', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'scarf'); } },
-            { label: '🪽 小翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'wings'); } },
-            { label: '🦋 蝴蝶翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'butterfly_wings'); } },
-            { label: '😈 小恶魔翼', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'devil_wings'); } },
-            { label: '🚀 喷气背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'jetpack'); } },
-            { label: '🎒 星星背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'star_backpack'); } },
-          ]
-        },
-        {
-          label: '给她戴帽子',
-          submenu: [
-            { label: '❌ 无', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'none'); } },
-            { label: '🎀 蝴蝶结', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'ribbon'); } },
-            { label: '👑 花冠', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'crown'); } },
-            { label: '🐱 猫耳', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'catears'); } },
-            { label: '🎅 圣诞帽', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'santa'); } },
-            { label: '😇 光环', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'halo'); } },
-          ]
-        },
-        { label: '表情会跟心情自己变', enabled: false },
+        { label: '播报今日热搜', click: () => { mainWindow.webContents.send('menu-action', 'daily-news'); } },
         { type: 'separator' },
-        { label: '🔄 帮她随便搭一套', click: () => { mainWindow.webContents.send('outfit:random'); } },
-        { label: '🚫 先让她清清爽爽', click: () => { mainWindow.webContents.send('outfit:reset'); } },
+        { label: petData.settings.aiLinesEnabled ? 'AI 台词增强：开' : 'AI 台词增强：关', enabled: false },
+      ]
+    },
+    outfitMenuByPet,
+    { type: 'separator' },
+    {
+      label: '小惊喜',
+      submenu: [
+        { label: '分身术', click: () => { triggerCloneEffect(); } },
+        { label: '法天象地', click: () => { triggerGiantEffect(); } },
+      ]
+    },
+    {
+      label: '管理 Yoyo',
+      submenu: [
+        { label: '设置与成长', click: () => openSettings() },
+        { label: '换个小家伙', submenu: petSubmenu },
       ]
     },
     { type: 'separator' },
-    { label: '换个小家伙', submenu: petSubmenu },
-    { type: 'separator' },
-    { label: '替她收拾一下', click: () => openSettings() },
-    { label: '让她先退下', click: () => { app.quit(); } }
+    {
+      label: '其他',
+      submenu: [
+        { label: '鞭打 Yoyo', click: () => { mainWindow.webContents.send('action:whip'); } },
+        { type: 'separator' },
+        { label: '退出 Yoyo', click: () => { app.quit(); } },
+      ]
+    }
   ];
   const menu = Menu.buildFromTemplate(template);
   menu.popup(BrowserWindow.fromWebContents(event.sender));

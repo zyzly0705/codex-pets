@@ -10,7 +10,8 @@ export const bubble = document.getElementById('bubble');
 export const bubbleText = bubble ? bubble.querySelector('.bubble-text') : null;
 export const feedBtn = document.getElementById('feed-btn');
 
-// ===== 常量 =====
+// ===== 默认素材常量 =====
+// 新素材应在 pet.json 的 asset/states 中声明；这里保留为内置 Yoyo 和旧宠物包的安全默认值。
 export const CELL_W = 192;
 export const CELL_H = 208;
 
@@ -165,6 +166,25 @@ export const state = {
 
 };
 
+export function getPetCell() {
+  const asset = state.currentPet?.asset || {};
+  return {
+    width: Number(asset.cellWidth) || CELL_W,
+    height: Number(asset.cellHeight) || CELL_H,
+    columns: Number(asset.columns) || 8,
+    rows: Number(asset.rows) || 0,
+  };
+}
+
+export function getPetStates() {
+  return state.currentPet?.states || STATES;
+}
+
+export function getPetStateSpec(name) {
+  const states = getPetStates();
+  return states[name] || STATES[name] || STATES.idle;
+}
+
 // ===== 精细化交互反应状态 =====
 export const reactionState = {
   drag: null,      // { velocity: {x,y}, holdStart: number, hasShaken: boolean }
@@ -218,7 +238,9 @@ export function lerp(a, b, t) {
 }
 
 export function localFileUrl(filePath) {
-  return `file://${filePath.replaceAll('\\', '/')}`;
+  const normalizedPath = String(filePath || '').replaceAll('\\', '/');
+  const withLeadingSlash = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
+  return encodeURI(`file://${withLeadingSlash}`);
 }
 
 // ===== 每日标记系统 =====

@@ -1,6 +1,8 @@
 import { state, setState, say, speechQueue, SPEECH_PRIORITY, hasDailyFlag, setDailyFlag } from './core-state.js';
 import { stateMachine } from './state-machine.js';
 import { debugLog } from './debug-log.js';
+import { maybeEnhanceLine } from './ai-dialogue.js';
+import { recordDailyEvent } from './daily-memory.js';
 
 function formatNewsBrief(items) {
   const normalizedItems = (items || [])
@@ -43,6 +45,8 @@ export async function checkDailyNewsBroadcast(force = false) {
     state.behaviorEndTime = Date.now() + 8000;
     setState('review');
     speechQueue.enqueue(msg, 8000, SPEECH_PRIORITY.IMPORTANT);
+    maybeEnhanceLine({ behavior: 'newsBroadcast', fallback: msg, duration: 8000, context: '新闻播报摘要' });
+    recordDailyEvent('reminder', { kind: 'news' });
     debugLog('news_broadcast', {
       ok: true,
       force,

@@ -1,5 +1,5 @@
 // outfit-system.js - 分层换装 spritesheet
-import { state, say, playSound, localFileUrl } from './core-state.js';
+import { state, say, playSound, localFileUrl, getPetCell } from './core-state.js';
 import { set } from './store-client.js';
 import { logOutfitLayers } from './debug-log.js';
 
@@ -47,6 +47,28 @@ export const ACCESSORY_CATALOG = {
     { id: 'heart',   name: '爱心眼',  unlock: 'streak_30' },
     { id: 'sleepy',  name: '困困',    unlock: 'default' },
   ],
+};
+
+const GUGU_GAGA_CATALOG = {
+  hair: [
+    { id: 'none', name: '无' },
+  ],
+  hat: [
+    { id: 'none', name: '无' },
+  ],
+  accessory: [
+    { id: 'none', name: '无' },
+  ],
+  clothes: [
+    { id: 'none', name: '无' },
+  ],
+  face: [
+    { id: 'none', name: '默认' },
+  ],
+};
+
+const PET_OUTFIT_CATALOGS = {
+  'gugu-gaga': GUGU_GAGA_CATALOG,
 };
 
 const OUTFIT_DEFAULTS = { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' };
@@ -128,6 +150,25 @@ const DRAW_ORDER = [
   { category: 'hair', position: 'front' },
 ];
 
+function getCurrentCatalog() {
+  return PET_OUTFIT_CATALOGS[state.currentPet?.id] || ACCESSORY_CATALOG;
+}
+
+function getAllowedIds(category) {
+  return new Set((getCurrentCatalog()[category] || [{ id: 'none' }]).map(item => item.id));
+}
+
+function sanitizeOutfitForCurrentPet() {
+  const nextOutfit = { ...OUTFIT_DEFAULTS, ...state.currentOutfit };
+  for (const category of Object.keys(OUTFIT_DEFAULTS)) {
+    if (!getAllowedIds(category).has(nextOutfit[category])) {
+      nextOutfit[category] = 'none';
+    }
+  }
+  nextOutfit.face = 'none';
+  state.currentOutfit = nextOutfit;
+}
+
 function siblingSpritesheet(fileName) {
   if (!state.currentPet || !fileName) return state.currentPet?.spritesheetPath;
   return state.currentPet.spritesheetPath.replace(/[^/\\]+$/, fileName);
@@ -183,6 +224,7 @@ async function applyOutfitLayers() {
 
 export function applyOutfitSpritesheet() {
   if (!state.currentPet) return;
+  sanitizeOutfitForCurrentPet();
   const nextPath = getVariantSpritesheetPath();
   applyOutfitLayers();
   if (!nextPath || state.activeSpritesheetPath === nextPath) return;
@@ -219,6 +261,9 @@ function saveOutfit() {
 
 function equipItem(category, itemId) {
   state.currentOutfit = { ...OUTFIT_DEFAULTS, ...state.currentOutfit };
+  if (!getAllowedIds(category).has(itemId)) {
+    itemId = 'none';
+  }
   if (category === 'face') {
     state.currentOutfit.face = 'none';
     saveOutfit();
@@ -230,15 +275,16 @@ function equipItem(category, itemId) {
 
 function normalizeOutfit() {
   state.currentOutfit = { ...OUTFIT_DEFAULTS, ...state.currentOutfit };
-  state.currentOutfit.face = 'none';
+  sanitizeOutfitForCurrentPet();
 }
 
 export function drawOutfitLayers(drawCtx, frame, row, offsetX, offsetY, drawW, drawH, position = 'front') {
   const now = performance.now() / 1000;
+  const cell = getPetCell();
   for (const layer of state.outfitLayerImages || []) {
     if (layer.position !== position || !layer.image?.complete) continue;
-    const maxCol = Math.floor(layer.image.naturalWidth / 192) - 1;
-    const maxRow = Math.floor(layer.image.naturalHeight / 208) - 1;
+    const maxCol = Math.floor(layer.image.naturalWidth / cell.width) - 1;
+    const maxRow = Math.floor(layer.image.naturalHeight / cell.height) - 1;
     if (frame > maxCol || row > maxRow) continue;
     drawCtx.save();
     const cx = offsetX + drawW / 2;
@@ -270,7 +316,7 @@ export function drawOutfitLayers(drawCtx, frame, row, offsetX, offsetY, drawW, d
       drawCtx.translate(-cx, -(offsetY + drawH * 0.22));
     }
 
-    drawCtx.drawImage(layer.image, frame * 192, row * 208, 192, 208, offsetX, offsetY, drawW, drawH);
+    drawCtx.drawImage(layer.image, frame * cell.width, row * cell.height, cell.width, cell.height, offsetX, offsetY, drawW, drawH);
     drawCtx.restore();
   }
 }
@@ -300,7 +346,7 @@ export function initOutfitSystem() {
   window.petApi.onOutfitChange((category, itemId) => {
     equipItem(category, itemId);
     applyOutfitSpritesheet();
-    const catalog = ACCESSORY_CATALOG[category];
+    const catalog = getCurrentCatalog()[category];
     const item = catalog ? catalog.find(i => i.id === itemId) : null;
     if (itemId !== 'none') {
       say(`换上${item ? item.name : '新装'}成品啦~`);
@@ -313,14 +359,19 @@ export function initOutfitSystem() {
   window.petApi.onOutfitRandom(() => {
     const categories = Object.keys(OUTFIT_DEFAULTS).filter(cat => cat !== 'face');
     state.currentOutfit = { ...OUTFIT_DEFAULTS };
+    const currentCatalog = getCurrentCatalog();
     for (const cat of categories) {
       if (Math.random() > 0.65) continue;
-      const items = ACCESSORY_CATALOG[cat].filter(i => i.id !== 'none');
+      const items = (currentCatalog[cat] || []).filter(i => i.id !== 'none');
+      if (!items.length) continue;
       const random = items[Math.floor(Math.random() * items.length)];
       state.currentOutfit[cat] = random.id;
     }
     if (Object.values(state.currentOutfit).every(itemId => itemId === 'none')) {
-      state.currentOutfit.hat = 'ribbon';
+      const fallbackHat = (currentCatalog.hat || []).find(item => item.id !== 'none');
+      if (fallbackHat) {
+        state.currentOutfit.hat = fallbackHat.id;
+      }
     }
     saveOutfit();
     applyOutfitSpritesheet();

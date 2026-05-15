@@ -19,6 +19,14 @@ function createDefaultMemory() {
     totalActiveDays: 0,
     consecutiveDays: 0,
     lastActiveDate: null,
+    preference: {
+      behaviorWeights: {},
+      quietHours: [],
+      interactionTolerance: 'normal',
+      lastFeedbackAt: null,
+      recentFeedback: [],
+      lastDecayDate: null,
+    },
   };
 }
 
@@ -31,6 +39,11 @@ export function initMemory() {
     yoyoMemory = { ...createDefaultMemory(), ...saved };
     if (!yoyoMemory.hourlyActivity || yoyoMemory.hourlyActivity.length !== 24) {
       yoyoMemory.hourlyActivity = new Array(24).fill(0);
+    }
+    if (!yoyoMemory.preference) {
+      yoyoMemory.preference = createDefaultMemory().preference;
+    } else {
+      yoyoMemory.preference = { ...createDefaultMemory().preference, ...yoyoMemory.preference };
     }
   }
 }

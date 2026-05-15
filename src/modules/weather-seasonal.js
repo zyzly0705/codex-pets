@@ -2,6 +2,8 @@
 import { state, WEATHER_CODES, say, setState, speechQueue, SPEECH_PRIORITY } from './core-state.js';
 import { incrementAchievementStat, trackFeatureUsed } from './growth-system.js';
 import { stateMachine } from './state-machine.js';
+import { sayWithAi } from './ai-dialogue.js';
+import { recordDailyEvent } from './daily-memory.js';
 
 // ===== 季节微粒子系统 =====
 export const SEASON_PARTICLES = {
@@ -136,20 +138,20 @@ export async function refreshWeatherContext() {
         setState(mood.state);
       }
       const placePrefix = result.place ? `${result.place}天气：` : '';
-      say(`${placePrefix}${mood.text}`);
+      sayWithAi({ behavior: 'weatherMood', fallback: `${placePrefix}${mood.text}`, context: '天气提醒' });
       checkWeatherReminders(result);
       // 延迟触发行为决策（由 behavior-engine 处理）
       return;
     }
     setState('review');
-    say(result.error || '天气没有取到，Yoyo先按时间陪妈妈～');
+    sayWithAi({ behavior: 'weatherFallback', fallback: result.error || '天气没有取到，Yoyo先按时间陪妈妈～' });
   } catch {
     setState('review');
-    say('天气暂时看不了，Yoyo先陪妈妈～');
+    sayWithAi({ behavior: 'weatherFallback', fallback: '天气暂时看不了，Yoyo先陪妈妈～' });
   }
   const fallback = timeMood();
   setState(fallback.state);
-  say(fallback.text);
+  sayWithAi({ behavior: 'timeMood', fallback: fallback.text, context: '时间问候' });
 }
 
 // ===== 天气智能提醒系统 =====
@@ -193,6 +195,7 @@ export function checkWeatherReminders(weatherData) {
       state.behaviorEndTime = Date.now() + 6000;
       setState('review');
       speechQueue.enqueue(msg, 6000, SPEECH_PRIORITY.IMPORTANT);
+      recordDailyEvent('reminder', { kind: 'weather' });
       setTimeout(() => {
         if (state.currentBehavior === 'weatherReminder') {
           state.currentBehavior = null;

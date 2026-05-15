@@ -1,13 +1,17 @@
 // interaction.js - 拖拽 + 喂食 + 右键菜单响应 + 键盘响应 + 鞭打
 import { state, canvas, feedBtn, say, setState, playSound, randomFrom, speechQueue, SPEECH_PRIORITY, isOnCooldown, setCooldown, cooldowns, FEED_SCALE_DURATION, FEED_SCALE_MAX, CLICK_MAX_DIST, CLICK_MAX_TIME, localFileUrl, globalTimers, STATES, reactionState } from './core-state.js';
+import { get, set } from './store-client.js';
 import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
 import { applyEmotionEvent, emotionSay, PET_DIALOGUES, WHIP_DIALOGUES, FEED_DIALOGUES } from './emotion-system.js';
 import { yoyoMemory, saveMemory, addXP, trackGrowthStat, incrementAchievementStat, trackFeatureUsed, MEMORY_LINES } from './growth-system.js';
 import { cancelClimb } from './climbing.js';
-import { petNeeds, behaviorEngineTick, HUNGER_MESSAGES } from './behavior-engine.js';
+import { petNeeds, behaviorEngineTick, HUNGER_MESSAGES, recordBehaviorFeedback } from './behavior-engine.js';
 import { applyFaceSpritesheet } from './outfit-system.js';
 import { checkDailyNewsBroadcast } from './news-broadcast.js';
 import { debugLog } from './debug-log.js';
+import { relationshipEvent, maybeSpeakRelationshipStageEvent } from './relationship-system.js';
+import { recordDailyEvent } from './daily-memory.js';
+import { normalizePetManifest } from './pet-manifest.js';
 
 // ===== 喂食相关消息 =====
 const DISMISS_MESSAGES = [
@@ -44,6 +48,10 @@ function canStartTypingCompanion(now) {
 // ===== 重置闲置 =====
 export function resetInteraction() {
   state.lastInteractionTime = Date.now();
+  recordBehaviorFeedback('manual', name);
+  relationshipEvent('manual', 1);
+  maybeSpeakRelationshipStageEvent();
+  recordDailyEvent('interaction', { kind: 'manual' });
   if (stateMachine.isClimbing) {
     cancelClimb();
   }
@@ -132,6 +140,10 @@ function doSquashBounce() {
 // ===== 鞭打 =====
 export function whipPet() {
   if (stateMachine.isWhipping) return;
+  recordBehaviorFeedback('whip');
+  relationshipEvent('whip', 1);
+  maybeSpeakRelationshipStageEvent();
+  recordDailyEvent('interaction', { kind: 'whip' });
 
   state.whipCount++;
   clearTimeout(state.whipResetTimeout);
@@ -444,9 +456,15 @@ export function initInteraction() {
     // 拖拽结束反应
     if (dist >= CLICK_MAX_DIST || elapsed >= CLICK_MAX_TIME) {
       say(wasShaken ? '呜…头好晕好晕…' : '安全着陆～嘿嘿！', 2500);
+      recordBehaviorFeedback(wasShaken ? 'whip' : 'drag');
+      recordDailyEvent('interaction', { kind: 'drag' });
     }
 
     if (dist < CLICK_MAX_DIST && elapsed < CLICK_MAX_TIME) {
+      recordBehaviorFeedback('pet');
+      relationshipEvent('pet', 2);
+      maybeSpeakRelationshipStageEvent();
+      recordDailyEvent('interaction', { kind: 'pet' });
       petNeeds.boredom = Math.max(0, petNeeds.boredom - 15);
       petNeeds.playfulness = Math.min(100, petNeeds.playfulness + 10);
       state.lastInteractionTime = Date.now();
@@ -512,6 +530,10 @@ export function initInteraction() {
   feedBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     resetInteraction();
+    recordBehaviorFeedback('feed');
+    relationshipEvent('feed', 1.5);
+    maybeSpeakRelationshipStageEvent();
+    recordDailyEvent('interaction', { kind: 'feed' });
     clearTimeout(state.dismissTimeout);
 
     // 喂食反应：兴奋阶段
@@ -649,6 +671,10 @@ export function initInteraction() {
   // 抚摸动作
   window.petApi.onAction(() => {
     resetInteraction();
+    recordBehaviorFeedback('pet');
+    relationshipEvent('pet', 2);
+    maybeSpeakRelationshipStageEvent();
+    recordDailyEvent('interaction', { kind: 'pet' });
     petNeeds.boredom = Math.max(0, petNeeds.boredom - 15);
     petNeeds.playfulness = Math.min(100, petNeeds.playfulness + 10);
     state.lastInteractionTime = Date.now();
@@ -773,22 +799,24 @@ export function initInteraction() {
     state.keyboardActiveUntil = now + KEYBOARD_COMPANION_DURATION;
     stateMachine.transition(ACTION_STATES.TYPING_COMPANION);
     setState('typingCompanion');
-    debugLog('keyboard_companion_started', {
+      debugLog('keyboard_companion_started', {
       interruptedBehavior,
       duration: KEYBOARD_COMPANION_DURATION,
     });
+    recordDailyEvent('work', { amount: 1 });
   });
 }
 
 // ===== 加载宠物 =====
 export async function loadPets() {
   state.pets = await window.petApi.listPets();
-  await choosePet(state.pets[0]?.id);
+  await choosePet(get('currentPetId') || state.pets[0]?.id);
 }
 
 export async function choosePet(id) {
-  state.currentPet = state.pets.find((pet) => pet.id === id) || state.pets[0];
+  state.currentPet = normalizePetManifest(state.pets.find((pet) => pet.id === id) || state.pets[0]);
   if (!state.currentPet) return;
+  set('currentPetId', state.currentPet.id);
   state.sprite = new Image();
   state.sprite.onload = () => {
     state.activeSpritesheetPath = state.currentPet.spritesheetPath;

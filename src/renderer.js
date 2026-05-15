@@ -4,7 +4,7 @@ import { state, globalTimers, say, setState, randomFrom, initCoreState } from '.
 import { stateMachine } from './modules/state-machine.js';
 import { updateEmotion } from './modules/emotion-system.js';
 import { memoryOnStartup, memoryDrivenGreeting, initCheckinSystem, yoyoGrowth, addXP, trackFeatureUsed, initMemory, initGrowth } from './modules/growth-system.js';
-import { startBehaviorEngine, behaviorEngineTick } from './modules/behavior-engine.js';
+import { startBehaviorEngine, behaviorEngineTick, resetBehaviorPreferences } from './modules/behavior-engine.js';
 import { initInteraction, loadPets, resetInteraction } from './modules/interaction.js';
 import { initClimbSystem } from './modules/climbing.js';
 import { refreshWeatherContext } from './modules/weather-seasonal.js';
@@ -13,6 +13,9 @@ import { initOutfitSystem } from './modules/outfit-system.js';
 import { startRenderLoop } from './modules/render-engine.js';
 import { startEntryAnimation } from './modules/startup-animation.js';
 import { initBehaviorDebugPanel } from './modules/behavior-debug-panel.js';
+import { initRelationship, relationshipEvent, maybeSpeakRelationshipStageEvent } from './modules/relationship-system.js';
+import { initCompanionPlanner } from './modules/companion-planner.js';
+import { initDailyMemory, getStartupMemoryLine } from './modules/daily-memory.js';
 
 // ===== 一次性 localStorage → Store 数据迁移 =====
 function migrateFromLocalStorage() {
@@ -67,6 +70,12 @@ if (window.petApi && window.petApi.onSettingsReset) {
   window.petApi.onSettingsReset(() => {
     // 主进程已重置文件 store，直接重载即可
     location.reload();
+  });
+}
+
+if (window.petApi && window.petApi.onBehaviorPreferencesReset) {
+  window.petApi.onBehaviorPreferencesReset(() => {
+    resetBehaviorPreferences();
   });
 }
 
@@ -131,6 +140,9 @@ async function init() {
   initCoreState();
   initMemory();
   initGrowth();
+  initRelationship();
+  initCompanionPlanner();
+  initDailyMemory();
 
   // 4. 用 store 中的设置覆盖运行时状态
   const settings = get('settings');
@@ -159,6 +171,8 @@ async function init() {
 
   // 启动记忆系统
   memoryOnStartup();
+  relationshipEvent('daily_start', 1);
+  maybeSpeakRelationshipStageEvent();
 
   // 启动时检测特殊日期和里程碑
   setTimeout(() => {
@@ -169,7 +183,13 @@ async function init() {
 
   // 记忆驱动的问候
   setTimeout(() => {
-    memoryDrivenGreeting();
+    const line = getStartupMemoryLine();
+    if (line) {
+      setState('waving');
+      say(line, 8000);
+    } else {
+      memoryDrivenGreeting();
+    }
   }, 6000);
 
   // 每日签到系统

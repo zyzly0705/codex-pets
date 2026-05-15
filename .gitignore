@@ -2,6 +2,8 @@ node_modules/
 dist/
 out/
 *.log
+.env
+.env.*
 .qoder/
 assets/xiao-hong/spritesheet_expanded.png
 assets/xiao-hong/spritesheet_expanded.webp

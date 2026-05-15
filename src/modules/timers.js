@@ -8,6 +8,7 @@ import { resetInteraction } from './interaction.js';
 import { behaviorEngineTick, SPECIAL_DATES, getMothersDay } from './behavior-engine.js';
 import { get, set } from './store-client.js';
 import { checkDailyNewsBroadcast } from './news-broadcast.js';
+import { recordDailyEvent, maybeSpeakDailySummary } from './daily-memory.js';
 
 // ===== 定时提醒系统 =====
 // 根据设置动态生成提醒列表（上下班时间可配置）
@@ -36,6 +37,7 @@ export function checkGoodNight() {
   const nightKey = `goodnight_${new Date().toDateString()}`;
   if (hour >= 23 && !hasDailyFlag(nightKey)) {
     setDailyFlag(nightKey);
+    if (maybeSpeakDailySummary()) return;
     setState('yawning');
     say('妈妈晚安～做个好梦，明天见！', 8000);
     setTimeout(() => {
@@ -78,6 +80,7 @@ function checkDailyReminders() {
         setState(reminder.state);
       }
       say(msg);
+      recordDailyEvent('reminder', { kind: reminder.id.startsWith('work') ? 'work' : 'life' });
       state.triggeredReminders.add(reminder.id);
       resetInteraction();
       break;
@@ -209,8 +212,11 @@ export function initTimers() {
       addXP(2);
       incrementAchievementStat('totalHours', 1);
       trackGrowthStat('companionTime', 1);
+      recordDailyEvent('activeMinutes', { amount: 60 });
     }
   }, 65000));
+
+  globalTimers.push(setInterval(maybeSpeakDailySummary, 10 * 60 * 1000));
 
   // 每5分钟自动保存记忆
   globalTimers.push(setInterval(() => {

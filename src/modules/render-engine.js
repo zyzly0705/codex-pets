@@ -1,5 +1,5 @@
 // render-engine.js - Canvas 渲染主循环（drawFrame, 动画帧计算）
-import { state, canvas, ctx, bubble, feedBtn, STATES, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, playSound, reactionState } from './core-state.js';
+import { state, canvas, ctx, bubble, feedBtn, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, playSound, reactionState, getPetCell, getPetStateSpec } from './core-state.js';
 import { drawOutfitLayers } from './outfit-system.js';
 import { getEmotionExpression, yoyoEmotion } from './emotion-system.js';
 import { updateSeasonalParticles, drawSeasonalParticles } from './weather-seasonal.js';
@@ -997,18 +997,21 @@ function draw(now) {
   const deltaTime = state.lastDrawTime ? (now - state.lastDrawTime) : 16;
   state.lastDrawTime = now;
 
-  let stateObj = STATES[state.stateName];
-  const maxRow = Math.floor(state.sprite.naturalHeight / CELL_H) - 1;
+  const cell = getPetCell();
+  let stateObj = getPetStateSpec(state.stateName);
+  const maxRow = Math.floor(state.sprite.naturalHeight / cell.height) - 1;
   if (stateObj.row > maxRow) {
     state.stateName = 'idle';
-    stateObj = STATES.idle;
+    stateObj = getPetStateSpec('idle');
     state.frame = 0;
   }
+  const maxCol = Math.floor(state.sprite.naturalWidth / cell.width) - 1;
   const frameInterval = stateObj.speed || (1000 / stateObj.fps);
   if (!state.lastFrameAt || now - state.lastFrameAt >= frameInterval) {
     state.frame = (state.frame + 1) % stateObj.frames;
     state.lastFrameAt = now;
   }
+  const frame = Math.min(state.frame, maxCol);
 
   // 脚步声频率控制
   if (state.stateName === 'runningRight' || state.stateName === 'runningLeft') {
@@ -1079,7 +1082,7 @@ function draw(now) {
   const feedOffset = (scale - 1) * 15;
   if (bubble) bubble.style.setProperty('--bubble-bottom', `${bubbleBottom + feedOffset}px`);
 
-  const DRAW_SCALE = 0.75;
+  const DRAW_SCALE = Number(state.currentPet?.asset?.scale) || 0.75;
   const drawW = _logW * DRAW_SCALE;
   const drawH = _logH * DRAW_SCALE;
   const centerX = _logW / 2;
@@ -1181,10 +1184,10 @@ function draw(now) {
     ctx.translate(-whipPivotX, -whipPivotY);
   }
   ctx.imageSmoothingEnabled = false; // pixel art：关闭插值，保持像素锐利
-  drawOutfitLayers(ctx, state.frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'behind');
-  ctx.drawImage(state.sprite, state.frame * CELL_W, stateObj.row * CELL_H, CELL_W, CELL_H, offsetX, offsetY, drawW, drawH);
+  drawOutfitLayers(ctx, frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'behind');
+  ctx.drawImage(state.sprite, frame * cell.width, stateObj.row * cell.height, cell.width, cell.height, offsetX, offsetY, drawW, drawH);
   drawExpressionFace(ctx, stateObj.row, offsetX, offsetY, drawW, drawH, now);
-  drawOutfitLayers(ctx, state.frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'front');
+  drawOutfitLayers(ctx, frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'front');
   ctx.restore();
 
   // 绘制特效锚点

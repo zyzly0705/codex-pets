@@ -6,29 +6,29 @@
  * 运行时只按当前动作帧裁切整张透明图层，保证每个动作行的锚点都已离线校准。
  *
  * 产物：
- * - assets/xiao-hong/spritesheet_clothes_hoodie.webp
- * - assets/xiao-hong/spritesheet_clothes_dress.webp
- * - assets/xiao-hong/spritesheet_clothes_cape.webp
- * - assets/xiao-hong/spritesheet_clothes_sweater.webp
- * - assets/xiao-hong/spritesheet_hair_flower.webp
- * - assets/xiao-hong/spritesheet_hair_starclip.webp
- * - assets/xiao-hong/spritesheet_hair_pearlpin.webp
- * - assets/xiao-hong/spritesheet_hat_ribbon.webp
- * - assets/xiao-hong/spritesheet_hat_crown.webp
- * - assets/xiao-hong/spritesheet_hat_catears.webp
- * - assets/xiao-hong/spritesheet_hat_santa.webp
- * - assets/xiao-hong/spritesheet_hat_halo.webp
- * - assets/xiao-hong/spritesheet_accessory_scarf.webp
- * - assets/xiao-hong/spritesheet_accessory_wings.webp
- * - assets/xiao-hong/spritesheet_accessory_butterfly_wings.webp
- * - assets/xiao-hong/spritesheet_accessory_devil_wings.webp
- * - assets/xiao-hong/spritesheet_accessory_jetpack.webp
- * - assets/xiao-hong/spritesheet_accessory_star_backpack.webp
- * - assets/xiao-hong/spritesheet_accessory_bow.webp
- * - assets/xiao-hong/spritesheet_party.webp
- * - assets/xiao-hong/spritesheet_party_behind.webp
- * - assets/xiao-hong/spritesheet_angel.webp
- * - assets/xiao-hong/spritesheet_angel_behind.webp
+ * - assets/yoyo/spritesheet_clothes_hoodie.webp
+ * - assets/yoyo/spritesheet_clothes_dress.webp
+ * - assets/yoyo/spritesheet_clothes_cape.webp
+ * - assets/yoyo/spritesheet_clothes_sweater.webp
+ * - assets/yoyo/spritesheet_hair_flower.webp
+ * - assets/yoyo/spritesheet_hair_starclip.webp
+ * - assets/yoyo/spritesheet_hair_pearlpin.webp
+ * - assets/yoyo/spritesheet_hat_ribbon.webp
+ * - assets/yoyo/spritesheet_hat_crown.webp
+ * - assets/yoyo/spritesheet_hat_catears.webp
+ * - assets/yoyo/spritesheet_hat_santa.webp
+ * - assets/yoyo/spritesheet_hat_halo.webp
+ * - assets/yoyo/spritesheet_accessory_scarf.webp
+ * - assets/yoyo/spritesheet_accessory_wings.webp
+ * - assets/yoyo/spritesheet_accessory_butterfly_wings.webp
+ * - assets/yoyo/spritesheet_accessory_devil_wings.webp
+ * - assets/yoyo/spritesheet_accessory_jetpack.webp
+ * - assets/yoyo/spritesheet_accessory_star_backpack.webp
+ * - assets/yoyo/spritesheet_accessory_bow.webp
+ * - assets/yoyo/spritesheet_party.webp
+ * - assets/yoyo/spritesheet_party_behind.webp
+ * - assets/yoyo/spritesheet_angel.webp
+ * - assets/yoyo/spritesheet_angel_behind.webp
  *
  * 用法：node scripts/generate-outfit-spritesheets.js
  */
@@ -37,16 +37,24 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const PET_DIR = path.join(__dirname, '..', 'assets', 'xiao-hong');
+const PET_DIR = path.join(__dirname, '..', 'assets', 'yoyo');
 const ACCESSORY_DIR = path.join(__dirname, '..', 'assets', 'accessories');
 const BASE_SPRITESHEET = path.join(PET_DIR, 'spritesheet.webp');
 
 const CELL_W = 192;
 const CELL_H = 208;
 
-const HEAD_BODY_STATES = new Set([0, 3, 4, 6, 7, 8, 11, 12, 13, 15, 21, 23, 24, 25]);
+const HEAD_BODY_STATES = new Set([
+  0, 3, 4, 6, 7, 8, 11, 12, 13, 15, 21, 23, 24, 25,
+  // fanCooling, airConditioning, typingCompanion: upright companion poses.
+  26, 29, 32,
+]);
 const RUN_STATES = new Set([1, 2]);
-const LOW_BODY_STATES = new Set([5, 14, 20, 22]);
+const LOW_BODY_STATES = new Set([
+  5, 14, 20, 22,
+  // swimming, whip, sofaLying: lower/leaning poses need lower anchors.
+  27, 28, 30,
+]);
 const SITTING_STATES = new Set([10, 17, 18, 19]);
 const CLIMB_STATES = new Set([9]);
 const BODY_STATES = new Set([...HEAD_BODY_STATES, ...RUN_STATES, ...LOW_BODY_STATES, ...SITTING_STATES]);

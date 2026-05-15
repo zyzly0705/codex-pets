@@ -36,6 +36,9 @@
     .stat-box { background: #fff5f5; border-radius: 8px; padding: 8px 10px; text-align: center; }
     .stat-num { font-size: 20px; font-weight: 700; color: #e91e63; line-height: 1; }
     .stat-label { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .memory-line { font-size: 12px; color: #555; line-height: 1.45; background: #fff5f5; border-radius: 8px; padding: 8px 10px; }
+    .mini-list { font-size: 11px; color: #999; line-height: 1.6; margin-top: 6px; }
+    .memory-card { border-top: 1px solid #f5d5df; padding-top: 6px; margin-top: 6px; font-size: 11px; color: #777; line-height: 1.45; }
     .level-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
     .level-badge { background: linear-gradient(135deg, #e91e63, #ff6090); color: white; border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 600; }
     .xp-bar-wrap { flex: 1; background: #f0f0f0; border-radius: 6px; height: 8px; overflow: hidden; }
@@ -45,6 +48,8 @@
     /* danger */
     .danger-btn { width: 100%; padding: 9px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 4px; }
     .danger-btn:hover { background: #d32f2f; }
+    .secondary-btn { width: 100%; padding: 9px; background: #fff; color: #e91e63; border: 1px solid #ffc1d6; border-radius: 8px; cursor: pointer; font-size: 13px; margin: 4px 0 8px; }
+    .secondary-btn:hover { background: #fff5f5; }
   </style>
 </head>
 <body>
@@ -66,6 +71,18 @@
     </div>
   </div>
 
+  <!-- 关系与今日记忆 -->
+  <div class="card">
+    <div class="card-title">关系与今日</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num" id="relStage">—</div><div class="stat-label">关系阶段</div></div>
+      <div class="stat-box"><div class="stat-num" id="relTrust">—</div><div class="stat-label">信任</div></div>
+    </div>
+    <div class="memory-line" id="dailySummary" style="margin-top:8px;">今天还没有留下小记忆。</div>
+    <div class="mini-list" id="planSummary"></div>
+    <div id="memoryCards"></div>
+  </div>
+
   <!-- 基础设置 -->
   <div class="card">
     <div class="card-title">基础</div>
@@ -76,6 +93,10 @@
     <div class="row">
       <div><div class="label">音效</div><div class="desc">脚步声、笑声等</div></div>
       <label class="toggle"><input type="checkbox" id="soundEnabled" checked><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div><div class="label">AI 台词增强</div><div class="desc" id="aiStatusText">DeepSeek 短台词改写</div></div>
+      <label class="toggle"><input type="checkbox" id="aiLinesEnabled" checked><span class="slider"></span></label>
     </div>
   </div>
 
@@ -120,6 +141,7 @@
     </div>
   </div>
 
+  <button class="secondary-btn" id="resetPreferenceBtn">清除行为偏好学习</button>
   <button class="danger-btn" id="resetBtn">重置所有数据</button>
 
   <script>
@@ -144,6 +166,7 @@
       const s = data.settings || {};
       document.getElementById('autoStart').checked    = s.autoStart !== false;
       document.getElementById('soundEnabled').checked = s.soundEnabled !== false;
+      document.getElementById('aiLinesEnabled').checked = s.aiLinesEnabled !== false;
       document.getElementById('reminderFreq').value   = s.reminderFreq || 'medium';
       document.getElementById('activity').value       = s.activity || 'normal';
       document.getElementById('workStartHour').value  = s.workStartHour ?? 9;
@@ -171,6 +194,47 @@
         : `${curXP - minXP} / ${nextXP - minXP} XP`;
       document.getElementById('statDays').textContent   = `${companionDays}`;
       document.getElementById('statStreak').textContent = `${memory.consecutiveDays ?? 0}`;
+
+      const relationship = data.relationship || {};
+      const stageNames = {
+        first_meet: '初遇',
+        familiar: '熟悉',
+        attached: '依赖',
+        tacit: '默契',
+        exclusive: '专属',
+      };
+      document.getElementById('relStage').textContent = stageNames[relationship.stage] || '初遇';
+      document.getElementById('relTrust').textContent = `${Math.round(relationship.trust ?? 60)}`;
+
+      const daily = data.dailyMemory || {};
+      const interactions = daily.interactions || {};
+      const summary = daily.summaryLine
+        || `今天摸摸 ${interactions.pet || 0} 次，喂食 ${interactions.feed || 0} 次。`;
+      document.getElementById('dailySummary').textContent = summary;
+
+      const plan = data.companionPlan || {};
+      const budgets = plan.budgets || {};
+      const used = plan.used || {};
+      document.getElementById('planSummary').textContent =
+        `今日节奏：${plan.mode || '未生成'} · 说话 ${used.talk || 0}/${budgets.talk || 0} · 玩耍 ${used.play || 0}/${budgets.play || 0}`;
+
+      const cards = [data.dailyMemory, ...(data.dailyCards || [])]
+        .filter(Boolean)
+        .filter((item, index, arr) => arr.findIndex(other => other.date === item.date) === index)
+        .slice(0, 7);
+      document.getElementById('memoryCards').innerHTML = cards.map(card => {
+        const line = card.summaryLine || '这一天还没有写完小日记。';
+        const petCount = card.petCount ?? card.interactions?.pet ?? 0;
+        const activeMinutes = card.activeMinutes || 0;
+        return `<div class="memory-card">${card.date || '今天'} · 陪伴 ${activeMinutes} 分钟 · 摸摸 ${petCount} 次<br>${line}</div>`;
+      }).join('');
+    });
+
+    ipcRenderer.invoke('ai:status').then(status => {
+      const text = status.configured
+        ? `DeepSeek 已配置：${status.model}`
+        : '未配置 API Key 时自动使用本地台词';
+      document.getElementById('aiStatusText').textContent = text;
     });
 
     // ===== 保存设置 =====
@@ -178,6 +242,7 @@
       ipcRenderer.invoke('settings:save', {
         autoStart:      document.getElementById('autoStart').checked,
         soundEnabled:   document.getElementById('soundEnabled').checked,
+        aiLinesEnabled: document.getElementById('aiLinesEnabled').checked,
         reminderFreq:   document.getElementById('reminderFreq').value,
         activity:       document.getElementById('activity').value,
         workStartHour:  parseInt(document.getElementById('workStartHour').value),
@@ -185,6 +250,12 @@
       });
     }
     document.querySelectorAll('input, select').forEach(el => el.addEventListener('change', save));
+
+    document.getElementById('resetPreferenceBtn').addEventListener('click', () => {
+      if (confirm('只清除 Yoyo 学到的行为偏好，成长和记忆会保留。确定吗？')) {
+        ipcRenderer.invoke('preferences:reset-behavior');
+      }
+    });
 
     // ===== 重置 =====
     document.getElementById('resetBtn').addEventListener('click', () => {

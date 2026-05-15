@@ -3,7 +3,7 @@ const path = require('path');
 const sharp = require('sharp');
 
 const ROOT = path.join(__dirname, '..');
-const PET_DIR = path.join(ROOT, 'assets', 'xiao-hong');
+const PET_DIR = path.join(ROOT, 'assets', 'yoyo');
 const SHEET = path.join(PET_DIR, 'spritesheet.webp');
 const BACKUP = path.join(PET_DIR, 'spritesheet_before_dharma_rows.webp');
 const CELL_W = 192;

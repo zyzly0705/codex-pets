@@ -276,7 +276,7 @@ codex-desktop-pet/
 │   ├── effect.html       # 全屏飘落特效页面
 │   ├── giant-effect.html # 法天象地巨大化特效页面
 │   └── clone-effect.html # 分身术特效页面
-├── assets/xiao-hong/     # 默认宠物素材
+├── assets/yoyo/     # 默认宠物素材
 │   ├── pet.json          # 宠物配置清单
 │   └── spritesheet.webp  # 精灵图（8列×N行，每帧 192×208）
 ├── scripts/
@@ -292,7 +292,7 @@ codex-desktop-pet/
 ```
 ~/.config/codex-desktop-pet/   (macOS: ~/Library/Application Support/codex-desktop-pet/)
 ├── pets/                      # 用户宠物素材副本
-│   └── xiao-hong/
+│   └── yoyo/
 │       ├── pet.json
 │       └── spritesheet.webp
 └── yoyo-settings.json         # 持久化设置
