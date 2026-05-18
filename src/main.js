@@ -112,6 +112,7 @@ const DEFAULT_DATA = {
     autoStart: true, soundEnabled: true, reminderFreq: 'medium',
     activity: 'normal', workStartHour: 9, workEndHour: 18,
     aiLinesEnabled: true,
+    workMode: 'balanced',
   },
   growth: {
     xp: 0, level: 1, path: null, lastLoginDate: '',
@@ -532,6 +533,7 @@ function readPet(dir) {
     states: manifest.states || undefined,
     layers: manifest.layers || undefined,
     render: manifest.render || undefined,
+    capabilities: manifest.capabilities || undefined,
   };
 }
 
@@ -1026,119 +1028,78 @@ ipcMain.on('menu-state:sync', (_event, state) => {
 
 ipcMain.handle('context-menu:show', (event) => {
   const pets = listPets();
-  const currentPetId = petData.currentPetId || pets[0]?.id || 'yoyo';
+  const currentFormId = petData.currentFormId || petData.currentPetId || pets[0]?.id || 'yoyo';
   const petSubmenu = pets.map((pet) => ({
     label: pet.displayName,
-    click: () => { mainWindow.webContents.send('menu-action', `switch-pet:${pet.id}`); }
+    click: () => { mainWindow.webContents.send('menu-action', `switch-form:${pet.id}`); }
   }));
   petSubmenu.push({ type: 'separator' });
-  petSubmenu.push({ label: '把新小家伙接回来...', click: () => { mainWindow.webContents.send('menu-action', 'import'); } });
+  petSubmenu.push({ label: '导入新角色或形态...', click: () => { mainWindow.webContents.send('menu-action', 'import'); } });
 
-  const outfitMenuByPet = currentPetId === 'gugu-gaga'
+  const currentForm = pets.find((pet) => pet.id === currentFormId) || pets[0];
+  const currentCapabilities = currentForm?.capabilities || {};
+  const outfitSupported = currentCapabilities.outfit !== false && currentForm?.id !== 'gugu-gaga';
+  const appearanceMenuByPet = !outfitSupported
     ? {
-        label: '👗 换穿搭',
+        label: '🎀 角色外观',
         submenu: [
-          { label: '这只小企鹅暂时没有专属穿搭', enabled: false },
+          { label: '这个形态暂时没有专属外观', enabled: false },
         ]
       }
     : {
-        label: '👗 换穿搭',
+        label: '🎀 角色外观',
         submenu: [
-          { label: '🔄 随便搭一套', click: () => { mainWindow.webContents.send('outfit:random'); } },
-          { label: '🚫 清爽一点', click: () => { mainWindow.webContents.send('outfit:reset'); } },
+          { label: '🎲 随机换个样子', click: () => { mainWindow.webContents.send('outfit:random'); } },
+          { label: '🌸 日常套装', click: () => { mainWindow.webContents.send('outfit:preset', 'daily'); } },
+          { label: '🧶 温暖套装', click: () => { mainWindow.webContents.send('outfit:preset', 'warm'); } },
+          { label: '🦸 小披风套装', click: () => { mainWindow.webContents.send('outfit:preset', 'cape'); } },
+          { label: '🎄 节日套装', click: () => { mainWindow.webContents.send('outfit:preset', 'holiday'); } },
+          { label: '✨ 开心庆祝装', click: () => { mainWindow.webContents.send('outfit:preset', 'celebration'); } },
           { type: 'separator' },
-          {
-            label: '细选穿搭',
-            submenu: [
-              {
-                label: '发饰',
-                submenu: [
-                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'none'); } },
-                  { label: '🌸 小花发夹', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'flower'); } },
-                  { label: '⭐ 星星发卡', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'starclip'); } },
-                  { label: '🫧 珍珠发针', click: () => { mainWindow.webContents.send('outfit:change', 'hair', 'pearlpin'); } },
-                ]
-              },
-              {
-                label: '衣服',
-                submenu: [
-                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'none'); } },
-                  { label: '💙 蓝色卫衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'hoodie'); } },
-                  { label: '👗 粉色裙子', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'dress'); } },
-                  { label: '🦸 小披风', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'cape'); } },
-                  { label: '🧶 暖暖毛衣', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'sweater'); } },
-                  { label: '🎉 派对套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'party'); } },
-                  { label: '👼 天使套装', click: () => { mainWindow.webContents.send('outfit:change', 'clothes', 'angel'); } },
-                ]
-              },
-              {
-                label: '小物件',
-                submenu: [
-                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'none'); } },
-                  { label: '🎀 红领结', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'bow'); } },
-                  { label: '🧣 彩虹围巾', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'scarf'); } },
-                  { label: '🪽 小翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'wings'); } },
-                  { label: '🦋 蝴蝶翅膀', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'butterfly_wings'); } },
-                  { label: '😈 小恶魔翼', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'devil_wings'); } },
-                  { label: '🚀 喷气背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'jetpack'); } },
-                  { label: '🎒 星星背包', click: () => { mainWindow.webContents.send('outfit:change', 'accessory', 'star_backpack'); } },
-                ]
-              },
-              {
-                label: '帽子',
-                submenu: [
-                  { label: '无', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'none'); } },
-                  { label: '🎀 蝴蝶结', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'ribbon'); } },
-                  { label: '👑 花冠', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'crown'); } },
-                  { label: '🐱 猫耳', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'catears'); } },
-                  { label: '🎅 圣诞帽', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'santa'); } },
-                  { label: '😇 光环', click: () => { mainWindow.webContents.send('outfit:change', 'hat', 'halo'); } },
-                ]
-              },
-              { type: 'separator' },
-              { label: '表情会跟心情自己变', enabled: false },
-            ]
-          },
+          { label: '🌿 恢复默认', click: () => { mainWindow.webContents.send('outfit:reset'); } },
         ]
       };
 
+  const workMode = petData.settings.workMode || 'balanced';
+  const workModeMenu = {
+    label: '🧭 工作节奏',
+    submenu: [
+      { label: `${workMode === 'focus' ? '✓ ' : ''}专注中`, click: () => { mainWindow.webContents.send('menu-action', 'work-mode:focus'); } },
+      { label: `${workMode === 'balanced' ? '✓ ' : ''}轻松工作`, click: () => { mainWindow.webContents.send('menu-action', 'work-mode:balanced'); } },
+      { label: `${workMode === 'overtime' ? '✓ ' : ''}加班中`, click: () => { mainWindow.webContents.send('menu-action', 'work-mode:overtime'); } },
+      { label: `${workMode === 'wrapup' ? '✓ ' : ''}准备收工`, click: () => { mainWindow.webContents.send('menu-action', 'work-mode:wrapup'); } },
+      { type: 'separator' },
+      { label: '🫗 现在提醒我休息', click: () => { mainWindow.webContents.send('menu-action', 'manual-break'); } },
+      { label: '🌙 今天辛苦了', click: () => { mainWindow.webContents.send('menu-action', 'end-of-day'); } },
+    ]
+  };
+
   const template = [
-    { label: '摸摸 Yoyo', click: () => { mainWindow.webContents.send('action:pet'); } },
-    { label: menuState.dancing ? '停下跳舞' : '让她跳会舞', type: 'checkbox', checked: menuState.dancing, click: (item) => { mainWindow.webContents.send('action:dance', item.checked); } },
-    { label: menuState.following ? '别跟着我啦' : '让她跟着我', type: 'checkbox', checked: menuState.following, click: (item) => { mainWindow.webContents.send('action:follow', item.checked); } },
-    { label: menuState.sleeping ? '叫醒 Yoyo' : '让她睡会', type: 'checkbox', checked: menuState.sleeping, click: (item) => { mainWindow.webContents.send('action:sleep', item.checked); } },
+    {
+      label: '💛 陪我一下',
+      submenu: [
+        { label: '摸摸 Yoyo', click: () => { mainWindow.webContents.send('action:pet'); } },
+        { label: menuState.following ? '别跟着我啦' : '让她跟着我', type: 'checkbox', checked: menuState.following, click: (item) => { mainWindow.webContents.send('action:follow', item.checked); } },
+        { label: menuState.sleeping ? '叫醒 Yoyo' : '让她休息一下', type: 'checkbox', checked: menuState.sleeping, click: (item) => { mainWindow.webContents.send('action:sleep', item.checked); } },
+      ]
+    },
     { type: 'separator' },
-    {
-      label: '一起做点事',
-      submenu: [
-        { label: '吹风扇', click: () => { mainWindow.webContents.send('menu-action', 'fan-cooling'); } },
-        { label: '吹空调', click: () => { mainWindow.webContents.send('menu-action', 'air-conditioning'); } },
-        { label: '沙发躺会', click: () => { mainWindow.webContents.send('menu-action', 'sofa-lying'); } },
-        { label: '去游泳', click: () => { mainWindow.webContents.send('menu-action', 'swimming'); } },
-      ]
-    },
-    {
-      label: '听她说说',
-      submenu: [
-        { label: '播报今日热搜', click: () => { mainWindow.webContents.send('menu-action', 'daily-news'); } },
-        { type: 'separator' },
-        { label: petData.settings.aiLinesEnabled ? 'AI 台词增强：开' : 'AI 台词增强：关', enabled: false },
-      ]
-    },
-    outfitMenuByPet,
+    workModeMenu,
+    appearanceMenuByPet,
     { type: 'separator' },
     {
       label: '小惊喜',
       submenu: [
         { label: '分身术', click: () => { triggerCloneEffect(); } },
         { label: '法天象地', click: () => { triggerGiantEffect(); } },
+        { label: menuState.dancing ? '停下跳舞' : '让她跳会舞', type: 'checkbox', checked: menuState.dancing, click: (item) => { mainWindow.webContents.send('action:dance', item.checked); } },
       ]
     },
     {
       label: '管理 Yoyo',
       submenu: [
         { label: '设置与成长', click: () => openSettings() },
-        { label: '换个小家伙', submenu: petSubmenu },
+        { label: '切换形态', submenu: petSubmenu },
       ]
     },
     { type: 'separator' },

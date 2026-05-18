@@ -139,6 +139,15 @@
         <option value="active">活泼</option>
       </select>
     </div>
+    <div class="row" style="margin-top:10px;">
+      <div><div class="label">工作模式</div><div class="desc">决定提醒强度和陪伴节奏</div></div>
+      <select id="workMode">
+        <option value="focus">专注中</option>
+        <option value="balanced" selected>轻松工作</option>
+        <option value="overtime">加班中</option>
+        <option value="wrapup">准备收工</option>
+      </select>
+    </div>
   </div>
 
   <button class="secondary-btn" id="resetPreferenceBtn">清除行为偏好学习</button>
@@ -169,6 +178,7 @@
       document.getElementById('aiLinesEnabled').checked = s.aiLinesEnabled !== false;
       document.getElementById('reminderFreq').value   = s.reminderFreq || 'medium';
       document.getElementById('activity').value       = s.activity || 'normal';
+      document.getElementById('workMode').value       = s.workMode || 'balanced';
       document.getElementById('workStartHour').value  = s.workStartHour ?? 9;
       document.getElementById('workEndHour').value    = s.workEndHour ?? 18;
 
@@ -245,6 +255,7 @@
         aiLinesEnabled: document.getElementById('aiLinesEnabled').checked,
         reminderFreq:   document.getElementById('reminderFreq').value,
         activity:       document.getElementById('activity').value,
+        workMode:       document.getElementById('workMode').value,
         workStartHour:  parseInt(document.getElementById('workStartHour').value),
         workEndHour:    parseInt(document.getElementById('workEndHour').value),
       });

@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('petApi', {
   onBehaviorPreferencesReset: (callback) => ipcRenderer.on('behavior-preferences-reset', () => callback()),
   // 换装系统
   onOutfitChange: (cb) => ipcRenderer.on('outfit:change', (e, category, itemId) => cb(category, itemId)),
+  onOutfitPreset: (cb) => ipcRenderer.on('outfit:preset', (e, presetId) => cb(presetId)),
   onOutfitRandom: (cb) => ipcRenderer.on('outfit:random', () => cb()),
   onOutfitReset: (cb) => ipcRenderer.on('outfit:reset', () => cb()),
   // ===== 统一 Store API =====

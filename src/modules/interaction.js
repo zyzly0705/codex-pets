@@ -1,6 +1,5 @@
 // interaction.js - 拖拽 + 喂食 + 右键菜单响应 + 键盘响应 + 鞭打
-import { state, canvas, feedBtn, say, setState, playSound, randomFrom, speechQueue, SPEECH_PRIORITY, isOnCooldown, setCooldown, cooldowns, FEED_SCALE_DURATION, FEED_SCALE_MAX, CLICK_MAX_DIST, CLICK_MAX_TIME, localFileUrl, globalTimers, STATES, reactionState } from './core-state.js';
-import { get, set } from './store-client.js';
+import { state, canvas, feedBtn, say, setState, playSound, randomFrom, speechQueue, SPEECH_PRIORITY, isOnCooldown, setCooldown, cooldowns, FEED_SCALE_DURATION, FEED_SCALE_MAX, CLICK_MAX_DIST, CLICK_MAX_TIME, localFileUrl, globalTimers, STATES, reactionState, petCapabilityEnabled, petBehaviorAllowed } from './core-state.js';
 import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
 import { applyEmotionEvent, emotionSay, PET_DIALOGUES, WHIP_DIALOGUES, FEED_DIALOGUES } from './emotion-system.js';
 import { yoyoMemory, saveMemory, addXP, trackGrowthStat, incrementAchievementStat, trackFeatureUsed, MEMORY_LINES } from './growth-system.js';
@@ -12,6 +11,7 @@ import { debugLog } from './debug-log.js';
 import { relationshipEvent, maybeSpeakRelationshipStageEvent } from './relationship-system.js';
 import { recordDailyEvent } from './daily-memory.js';
 import { normalizePetManifest } from './pet-manifest.js';
+import { set, get } from './store-client.js';
 
 // ===== 喂食相关消息 =====
 const DISMISS_MESSAGES = [
@@ -48,7 +48,7 @@ function canStartTypingCompanion(now) {
 // ===== 重置闲置 =====
 export function resetInteraction() {
   state.lastInteractionTime = Date.now();
-  recordBehaviorFeedback('manual', name);
+  recordBehaviorFeedback('manual');
   relationshipEvent('manual', 1);
   maybeSpeakRelationshipStageEvent();
   recordDailyEvent('interaction', { kind: 'manual' });
@@ -212,6 +212,10 @@ export function whipPet() {
 
 // ===== 跳舞模式 =====
 export function toggleDance() {
+  if (!petCapabilityEnabled('dance')) {
+    say('这个形态今天不想跳舞，先安静陪妈妈吧～');
+    return;
+  }
   if (stateMachine.isDancing) {
     stateMachine.transition(ACTION_STATES.IDLE);
     clearInterval(state.danceTimer);
@@ -249,6 +253,10 @@ export function toggleDance() {
 
 // ===== 睡眠模式 =====
 export function toggleSleep() {
+  if (!petCapabilityEnabled('sleep')) {
+    say('这个形态先不睡，继续陪妈妈待着～');
+    return;
+  }
   if (stateMachine.isSleeping) {
     stateMachine.setGlobalMode(GLOBAL_MODES.INTERACTIVE);
     STATES.idle.fps = 4;
@@ -619,7 +627,7 @@ export function initInteraction() {
           state.pets = result.pets;
           await choosePet(result.pet.id);
           setState('jumping');
-          say('哇！Yoyo有新衣服了！');
+          say('哇！Yoyo有新的角色样子啦！');
         } else if (result.error) {
           setState('failed');
           say(result.error);
@@ -665,6 +673,31 @@ export function initInteraction() {
       case 'daily-news':
         await checkDailyNewsBroadcast(true);
         break;
+      case 'manual-break':
+        setState('stretching');
+        say('妈妈先活动一下吧，Yoyo陪你缓一缓～', 7000);
+        break;
+      case 'end-of-day':
+        setState('clapping');
+        say('今天辛苦啦，妈妈已经做得很好了～', 8000);
+        break;
+      default:
+        if (action.startsWith('work-mode:')) {
+          const mode = action.slice('work-mode:'.length);
+          const settings = { ...(get('settings') || state.yoyoSettings || {}) };
+          settings.workMode = mode;
+          set('settings', settings);
+          state.yoyoSettings = settings;
+          const modeMessages = {
+            focus: '好哦，Yoyo安静陪你专注一会儿～',
+            balanced: '收到，今天就轻轻陪着妈妈工作～',
+            overtime: '妈妈辛苦了，今晚Yoyo会更体贴一点。',
+            wrapup: '准备收工啦，Yoyo陪你慢慢放松下来～',
+          };
+          setState(mode === 'wrapup' ? 'sofaLying' : mode === 'focus' ? 'review' : 'waving');
+          say(modeMessages[mode] || 'Yoyo记住现在的节奏啦～', 7000);
+          break;
+        }
     }
   });
 
@@ -810,19 +843,24 @@ export function initInteraction() {
 // ===== 加载宠物 =====
 export async function loadPets() {
   state.pets = await window.petApi.listPets();
-  await choosePet(get('currentPetId') || state.pets[0]?.id);
+  await choosePet(get('currentFormId') || get('currentPetId') || state.pets[0]?.id);
 }
 
 export async function choosePet(id) {
   state.currentPet = normalizePetManifest(state.pets.find((pet) => pet.id === id) || state.pets[0]);
   if (!state.currentPet) return;
-  set('currentPetId', state.currentPet.id);
+  state.currentFormId = state.currentPet.id;
+  set('currentFormId', state.currentPet.id);
   state.sprite = new Image();
   state.sprite.onload = () => {
     state.activeSpritesheetPath = state.currentPet.spritesheetPath;
     applyFaceSpritesheet();
     setState('waving');
-    say(`Yoyo来陪妈妈啦～`);
+    if (state.currentPet.id === 'gugu-gaga') {
+      say('Gaga形态来陪妈妈一下下～');
+    } else {
+      say('Yoyo来陪妈妈啦～');
+    }
   };
   state.sprite.src = localFileUrl(state.currentPet.spritesheetPath);
   // 通知主进程更新当前 spritesheet 路径（供特效窗口使用）

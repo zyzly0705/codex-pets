@@ -72,6 +72,13 @@ const PET_OUTFIT_CATALOGS = {
 };
 
 const OUTFIT_DEFAULTS = { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' };
+const OUTFIT_PRESETS = {
+  daily: { hair: 'flower', hat: 'none', accessory: 'bow', clothes: 'hoodie', face: 'none' },
+  warm: { hair: 'pearlpin', hat: 'none', accessory: 'scarf', clothes: 'sweater', face: 'none' },
+  cape: { hair: 'starclip', hat: 'none', accessory: 'none', clothes: 'cape', face: 'none' },
+  holiday: { hair: 'none', hat: 'santa', accessory: 'scarf', clothes: 'sweater', face: 'none' },
+  celebration: { hair: 'starclip', hat: 'ribbon', accessory: 'bow', clothes: 'party', face: 'none' },
+};
 
 const BASE_SPRITESHEET_VARIANTS = {
   face: {
@@ -259,6 +266,18 @@ function saveOutfit() {
   set('outfit', state.currentOutfit);
 }
 
+function applyPreset(presetId) {
+  const preset = OUTFIT_PRESETS[presetId];
+  if (!preset) return false;
+  state.currentOutfit = {
+    ...OUTFIT_DEFAULTS,
+    ...preset,
+  };
+  sanitizeOutfitForCurrentPet();
+  saveOutfit();
+  return true;
+}
+
 function equipItem(category, itemId) {
   state.currentOutfit = { ...OUTFIT_DEFAULTS, ...state.currentOutfit };
   if (!getAllowedIds(category).has(itemId)) {
@@ -357,27 +376,23 @@ export function initOutfitSystem() {
   });
 
   window.petApi.onOutfitRandom(() => {
-    const categories = Object.keys(OUTFIT_DEFAULTS).filter(cat => cat !== 'face');
-    state.currentOutfit = { ...OUTFIT_DEFAULTS };
-    const currentCatalog = getCurrentCatalog();
-    for (const cat of categories) {
-      if (Math.random() > 0.65) continue;
-      const items = (currentCatalog[cat] || []).filter(i => i.id !== 'none');
-      if (!items.length) continue;
-      const random = items[Math.floor(Math.random() * items.length)];
-      state.currentOutfit[cat] = random.id;
+    const presetIds = Object.keys(OUTFIT_PRESETS);
+    const randomPreset = presetIds[Math.floor(Math.random() * presetIds.length)];
+    if (applyPreset(randomPreset)) {
+      applyOutfitSpritesheet();
+      say('Yoyo换了套新样子，喜欢吗~');
     }
-    if (Object.values(state.currentOutfit).every(itemId => itemId === 'none')) {
-      const fallbackHat = (currentCatalog.hat || []).find(item => item.id !== 'none');
-      if (fallbackHat) {
-        state.currentOutfit.hat = fallbackHat.id;
-      }
-    }
-    saveOutfit();
-    applyOutfitSpritesheet();
-    say('随机搭配完成！好看吗~');
     playSound('giggle');
   });
+
+  if (window.petApi.onOutfitPreset) {
+    window.petApi.onOutfitPreset((presetId) => {
+      if (!applyPreset(presetId)) return;
+      applyOutfitSpritesheet();
+      say('换好啦，今天这样陪妈妈~');
+      playSound('giggle');
+    });
+  }
 
   window.petApi.onOutfitReset(() => {
     state.currentOutfit = { ...OUTFIT_DEFAULTS };

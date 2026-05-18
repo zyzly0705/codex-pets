@@ -16,18 +16,21 @@ function buildDailyReminders() {
   const s = state.yoyoSettings || {};
   const startH = s.workStartHour ?? 9;
   const endH   = s.workEndHour   ?? 18;
+  const workMode = s.workMode || 'balanced';
   // 上班提醒提前 10 分钟
   const startRemindH = startH === 0 ? 23 : startH - 1;
   const startRemindM = 50;
   return [
-    { id: 'work-start', hour: startRemindH, minute: startRemindM, state: 'waving', messages: ['妈妈早上好呀！今天也要加油鸭～', '新的一天开始啦！妈妈冲鸭冲鸭！', '妈妈出发上班啦～Yoyo在家乖乖等你回来！'] },
-    { id: 'drink-10',   hour: 10, minute: 0, state: 'review',  messages: ['妈妈该喝水啦～身体要棒棒的！', '妈妈！水杯是不是空了呀？快去接水！', '喝口水吧～Yoyo提醒妈妈补充水分！'] },
-    { id: 'lunch',      hour: 12, minute: 0, state: 'waving',  messages: ['妈妈妈妈！该吃饭啦，Yoyo也饿了～', '午饭时间到！妈妈吃点好的犒劳自己～', '中午啦！妈妈快去吃饭！不许饿着肚子哦！'] },
-    { id: 'drink-14',   hour: 14, minute: 0, state: 'review',  messages: ['下午啦～妈妈喝口水提提神吧！', '妈妈！Yoyo又来提醒喝水啦～', '喝口水嘛～妈妈下午也要元气满满！'] },
-    { id: 'drink-16',   hour: 16, minute: 0, state: 'review',  messages: ['妈妈！Yoyo又来啦～该喝水咯！', '快下班了！喝口水坚持一下下～', '妈妈别忘了喝水哦～Yoyo很认真的在提醒！'] },
-    { id: 'work-end',   hour: endH, minute: 0, state: 'jumping', messages: ['妈妈辛苦啦～该收工回家陪Yoyo啦！', '下班啦下班啦！妈妈快回来快回来～', '妈妈别加班了！Yoyo想你想你～'] },
-    { id: 'dinner',     hour: 19, minute: 0, state: 'waving',  messages: ['妈妈该吃晚饭啦，不许饿肚子哦！', '晚饭时间到！妈妈吃点热乎乎的～', '妈妈～Yoyo肚子又饿了，一起吃饭饭吧！'] },
-    { id: 'drink-20',   hour: 20, minute: 0, state: 'review',  messages: ['妈妈该喝水啦～晚上也要补水哦！', '妈妈！睡前喝口水～对身体好！', '喝口水吧～妈妈今天辛苦啦！'] },
+    { id: 'work-start', hour: startRemindH, minute: startRemindM, state: 'waving', messages: workMode === 'focus'
+      ? ['专注模式开始啦，Yoyo会安静陪着你。', '妈妈开始工作吧，Yoyo守在旁边～']
+      : ['妈妈早上好呀！今天也要加油鸭～', '新的一天开始啦！妈妈冲鸭冲鸭！'] },
+    { id: 'drink-10',   hour: 10, minute: 0, state: 'review',  messages: ['妈妈该喝水啦～身体要棒棒的！', '喝口水吧，Yoyo想让妈妈轻松一点～'] },
+    { id: 'lunch',      hour: 12, minute: 0, state: 'waving',  messages: ['妈妈妈妈！该吃饭啦，Yoyo也饿了～', '中午啦！妈妈快去吃饭！不许饿着肚子哦！'] },
+    { id: 'drink-14',   hour: 14, minute: 0, state: 'review',  messages: ['下午啦～妈妈喝口水提提神吧！', '妈妈！Yoyo又来提醒喝水啦～'] },
+    { id: 'work-end',   hour: endH, minute: 0, state: 'jumping', messages: workMode === 'overtime'
+      ? ['妈妈辛苦啦，今晚别太勉强自己，好吗？', '加班也要慢一点，Yoyo陪着你。']
+      : ['妈妈辛苦啦～该收工回家陪Yoyo啦！', '下班啦下班啦！妈妈快回来快回来～'] },
+    { id: 'wrap-up',    hour: Math.max(17, endH - 1), minute: 30, state: 'sofaLying', messages: ['可以慢慢收尾啦，Yoyo陪你放松下来～', '今天已经做得很好了，别急，慢慢收工。'] },
   ];
 }
 
@@ -69,9 +72,9 @@ function checkDailyReminders() {
   for (const reminder of buildDailyReminders()) {
     if (currentHour === reminder.hour && currentMinute === reminder.minute && !state.triggeredReminders.has(reminder.id)) {
       if (state.yoyoSettings.reminderFreq === 'low') {
-        if (!['work-start', 'lunch', 'work-end'].includes(reminder.id)) continue;
+        if (!['work-start', 'lunch', 'work-end', 'wrap-up'].includes(reminder.id)) continue;
       } else if (state.yoyoSettings.reminderFreq === 'medium') {
-        if (['drink-14', 'drink-16', 'drink-20'].includes(reminder.id)) continue;
+        if (['drink-14'].includes(reminder.id)) continue;
       }
       const msg = reminder.messages[Math.floor(Math.random() * reminder.messages.length)];
       if (reminder.id === 'work-start') {

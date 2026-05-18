@@ -69,6 +69,7 @@ export const state = {
   // 宠物管理
   pets: [],
   currentPet: null,
+  currentFormId: null,
   sprite: new Image(),
   activeSpritesheetPath: '',
   outfitLayerImages: [],
@@ -132,7 +133,7 @@ export const state = {
   currentActiveApp: { isWPS: false, title: '' },
 
   // 设置
-  yoyoSettings: { autoStart: true, soundEnabled: true, reminderFreq: 'medium', activity: 'normal' },
+  yoyoSettings: { autoStart: true, soundEnabled: true, reminderFreq: 'medium', activity: 'normal', workMode: 'balanced' },
 
   // 行为引擎
   currentBehavior: null,
@@ -178,6 +179,23 @@ export function getPetCell() {
 
 export function getPetStates() {
   return state.currentPet?.states || STATES;
+}
+
+export function getPetCapabilities() {
+  return state.currentPet?.capabilities || {};
+}
+
+export function petCapabilityEnabled(key, fallback = true) {
+  const capabilities = getPetCapabilities();
+  if (!Object.prototype.hasOwnProperty.call(capabilities, key)) return fallback;
+  return capabilities[key] !== false;
+}
+
+export function petBehaviorAllowed(name) {
+  const capabilities = getPetCapabilities();
+  const allowlist = capabilities.behaviorAllowlist;
+  if (!Array.isArray(allowlist) || allowlist.length === 0) return true;
+  return allowlist.includes(name);
 }
 
 export function getPetStateSpec(name) {
@@ -336,8 +354,10 @@ export function toggleMute() {
 
 // ===== store 初始化（在 initStore() 完成后调用）=====
 export function initCoreState() {
+  const legacyFormId = get('currentFormId') ?? get('currentPetId') ?? null;
   state.isMuted       = get('muted')      ?? false;
   state.shownTips     = get('shownTips')  ?? [];
+  state.currentFormId = legacyFormId;
   state.currentOutfit = {
     hair: 'none',
     hat: 'none',
@@ -346,6 +366,10 @@ export function initCoreState() {
     face: 'none',
     ...(get('outfit') ?? {}),
   };
+  if (get('currentPetId') !== undefined) {
+    set('currentFormId', legacyFormId);
+    localStorage.removeItem('currentPetId');
+  }
 }
 
 // ===== sprite状态 → StateMachine ACTION_STATE 映射 =====

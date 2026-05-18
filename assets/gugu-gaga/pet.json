@@ -1,7 +1,7 @@
 {
   "id": "gugu-gaga",
-  "displayName": "咕咕嘎嘎",
-  "description": "Prototype package for 咕咕嘎嘎, an original meme-like chibi penguin-suit companion. The current local spritesheet is a runnable placeholder and should be replaced by a higher-fidelity reference-matched atlas.",
+  "displayName": "Yoyo · Gaga 形态",
+  "description": "A special Gaga form for Yoyo, used as a short-lived work companion / surprise form rather than a fully separate main character. The current local spritesheet is a runnable placeholder and should be replaced by a higher-fidelity reference-matched atlas.",
   "spritesheetPath": "spritesheet.webp",
   "asset": {
     "spritesheetPath": "spritesheet.webp",
@@ -191,6 +191,13 @@
       "width": 64,
       "height": 44
     }
+  },
+  "capabilities": {
+    "outfit": false,
+    "weather": false,
+    "news": false,
+    "sleep": false,
+    "dance": false
   },
   "personality": {
     "archetype": "silly penguin sidekick",

@@ -1,4 +1,4 @@
-import { state, setState, say, speechQueue, SPEECH_PRIORITY, hasDailyFlag, setDailyFlag } from './core-state.js';
+import { state, setState, say, speechQueue, SPEECH_PRIORITY, hasDailyFlag, setDailyFlag, petCapabilityEnabled, petBehaviorAllowed } from './core-state.js';
 import { stateMachine } from './state-machine.js';
 import { debugLog } from './debug-log.js';
 import { maybeEnhanceLine } from './ai-dialogue.js';
@@ -19,6 +19,10 @@ function formatNewsBrief(items) {
 }
 
 export async function checkDailyNewsBroadcast(force = false) {
+  if (!petCapabilityEnabled('news') || !petBehaviorAllowed('newsBroadcast')) {
+    if (force) say('这个形态今天不播新闻哦～', 4000);
+    return;
+  }
   if (!window.petApi?.getDailyNews) return;
   if (!force && stateMachine.isSleeping) return;
 

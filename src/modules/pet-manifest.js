@@ -20,6 +20,7 @@ export function normalizePetManifest(pet = {}) {
   const states = { ...STATES, ...(pet.states || {}) };
   const layers = pet.layers || {};
   const render = pet.render || {};
+  const capabilities = pet.capabilities || {};
 
   return {
     ...pet,
@@ -27,7 +28,7 @@ export function normalizePetManifest(pet = {}) {
     states,
     layers,
     render,
-    spritesheetPath: pet.spritesheetPath,
+    capabilities,
+    spritesheetPath: asset.spritesheetPath,
   };
 }
-
