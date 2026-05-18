@@ -1,6 +1,6 @@
 // renderer.js - 主入口：import 所有模块，初始化，启动
 import { initStore, get, set, batch } from './modules/store-client.js';
-import { state, globalTimers, say, setState, randomFrom, initCoreState } from './modules/core-state.js';
+import { state, globalTimers, say, setState, randomFrom, initCoreState, isStartupQuiet } from './modules/core-state.js';
 import { stateMachine } from './modules/state-machine.js';
 import { updateEmotion } from './modules/emotion-system.js';
 import { memoryOnStartup, memoryDrivenGreeting, initCheckinSystem, yoyoGrowth, addXP, trackFeatureUsed, initMemory, initGrowth } from './modules/growth-system.js';
@@ -147,13 +147,11 @@ async function init() {
   // 4. 用 store 中的设置覆盖运行时状态
   const settings = get('settings');
   if (settings) state.yoyoSettings = settings;
+  state.startupQuietUntil = Date.now() + 90000;
 
   // 5. 首次启动引导（改用 store 而非 localStorage）
   if (!get('hasSeenGuide')) {
-    setTimeout(() => {
-      say('妈妈好！右键点Yoyo可以一起玩哦～');
-      set('hasSeenGuide', true);
-    }, 3000);
+    set('hasSeenGuide', true);
   }
 
   // 初始化交互系统（注册事件监听）
@@ -176,13 +174,16 @@ async function init() {
 
   // 启动时检测特殊日期和里程碑
   setTimeout(() => {
-    checkGoodMorning();
-    checkSpecialDate();
-    checkCompanionMilestone();
+    if (!isStartupQuiet()) {
+      checkGoodMorning();
+      checkSpecialDate();
+      checkCompanionMilestone();
+    }
   }, 4000);
 
   // 记忆驱动的问候
   setTimeout(() => {
+    if (isStartupQuiet()) return;
     const line = getStartupMemoryLine();
     if (line) {
       setState('waving');
@@ -204,8 +205,8 @@ async function init() {
   startEntryAnimation();
   if (!sessionStorage.getItem('yoyo_entered')) {
     setTimeout(() => {
-      say('Yoyo来啦～', 3000);
-    }, 2000);
+      say('Yoyo来陪妈妈啦～', 2400);
+    }, 1200);
   }
 
   // 启动行为决策引擎

@@ -1,5 +1,5 @@
 // behavior-engine.js - BEHAVIORS 数组 + tick 逻辑 + 冷却 + 评分
-import { state, WEATHER_CODES, randomFrom, say, setState, speechQueue, feedBtn, isOnCooldown, setCooldown, SPEECH_PRIORITY, globalTimers } from './core-state.js';
+import { state, WEATHER_CODES, randomFrom, say, setState, speechQueue, feedBtn, isOnCooldown, setCooldown, SPEECH_PRIORITY, globalTimers, isStartupQuiet } from './core-state.js';
 import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
 import { applyEmotionEvent, applyEmotionModifier, yoyoEmotion } from './emotion-system.js';
 import { yoyoGrowth, yoyoMemory, getLevel, applyGrowthModifiers, incrementAchievementStat, trackFeatureUsed, trackGrowthStat, daysSinceLastPet, hoursSinceLastWhip, isInBusyHour, MEMORY_LINES } from './growth-system.js';
@@ -569,6 +569,7 @@ export function getMothersDay(year) {
 }
 
 function maybeShowFeatureTip() {
+  if (isStartupQuiet()) return;
   const now = Date.now();
   const interval = (2 + Math.random() * 2) * 60 * 60 * 1000;
   if (now - state.lastTipTime < interval) return;
@@ -1173,6 +1174,7 @@ export function getBehaviorDebugSnapshot() {
 
 // ===== 决策引擎主循环 =====
 export async function behaviorEngineTick() {
+  if (isStartupQuiet()) return;
   checkSeasonalParticleTrigger();
 
   if (stateMachine.actionState === ACTION_STATES.TYPING_COMPANION && Date.now() > state.keyboardActiveUntil) {

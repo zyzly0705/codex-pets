@@ -50,7 +50,11 @@
   "layers": {
     "coveragePolicy": "best-effort",
     "expectedColumns": 8,
-    "notes": "Layer spritesheets may cover fewer rows than the base sheet; the renderer skips missing rows and the asset audit reports them as warnings."
+    "notes": "Current outfit layer spritesheets are legacy placeholders and are marked outdated for redesign. Do not treat the existing layer sheets as final visual assets."
+  },
+  "artStatus": {
+    "outfitLayers": "outdated",
+    "notes": "Yoyo outfit assets need a full visual redesign before being treated as production-ready."
   },
   "render": {
     "smoothing": false,

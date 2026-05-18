@@ -1052,9 +1052,8 @@ ipcMain.handle('context-menu:show', (event) => {
           { label: '🎲 随机换个样子', click: () => { mainWindow.webContents.send('outfit:random'); } },
           { label: '🌸 日常套装', click: () => { mainWindow.webContents.send('outfit:preset', 'daily'); } },
           { label: '🧶 温暖套装', click: () => { mainWindow.webContents.send('outfit:preset', 'warm'); } },
-          { label: '🦸 小披风套装', click: () => { mainWindow.webContents.send('outfit:preset', 'cape'); } },
+          { label: '🎀 蝴蝶结套装', click: () => { mainWindow.webContents.send('outfit:preset', 'ribbon'); } },
           { label: '🎄 节日套装', click: () => { mainWindow.webContents.send('outfit:preset', 'holiday'); } },
-          { label: '✨ 开心庆祝装', click: () => { mainWindow.webContents.send('outfit:preset', 'celebration'); } },
           { type: 'separator' },
           { label: '🌿 恢复默认', click: () => { mainWindow.webContents.send('outfit:reset'); } },
         ]

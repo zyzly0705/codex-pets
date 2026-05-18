@@ -165,6 +165,9 @@ export const state = {
   // 换装
   currentOutfit: { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' },  // 由 initCoreState() 填入
 
+  // 启动安静窗口
+  startupQuietUntil: 0,
+
 };
 
 export function getPetCell() {
@@ -201,6 +204,10 @@ export function petBehaviorAllowed(name) {
 export function getPetStateSpec(name) {
   const states = getPetStates();
   return states[name] || STATES[name] || STATES.idle;
+}
+
+export function isStartupQuiet() {
+  return Date.now() < Number(state.startupQuietUntil || 0);
 }
 
 // ===== 精细化交互反应状态 =====
@@ -354,10 +361,9 @@ export function toggleMute() {
 
 // ===== store 初始化（在 initStore() 完成后调用）=====
 export function initCoreState() {
-  const legacyFormId = get('currentFormId') ?? get('currentPetId') ?? null;
   state.isMuted       = get('muted')      ?? false;
   state.shownTips     = get('shownTips')  ?? [];
-  state.currentFormId = legacyFormId;
+  state.currentFormId = 'yoyo';
   state.currentOutfit = {
     hair: 'none',
     hat: 'none',
@@ -366,10 +372,7 @@ export function initCoreState() {
     face: 'none',
     ...(get('outfit') ?? {}),
   };
-  if (get('currentPetId') !== undefined) {
-    set('currentFormId', legacyFormId);
-    localStorage.removeItem('currentPetId');
-  }
+  set('currentFormId', 'yoyo');
 }
 
 // ===== sprite状态 → StateMachine ACTION_STATE 映射 =====

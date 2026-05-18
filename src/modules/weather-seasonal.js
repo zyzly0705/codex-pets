@@ -1,5 +1,5 @@
 // weather-seasonal.js - 天气获取/提醒 + 季节粒子 + 天气代码映射
-import { state, WEATHER_CODES, say, setState, speechQueue, SPEECH_PRIORITY, petCapabilityEnabled, petBehaviorAllowed } from './core-state.js';
+import { state, WEATHER_CODES, say, setState, speechQueue, SPEECH_PRIORITY, petCapabilityEnabled, petBehaviorAllowed, isStartupQuiet } from './core-state.js';
 import { incrementAchievementStat, trackFeatureUsed } from './growth-system.js';
 import { stateMachine } from './state-machine.js';
 import { sayWithAi } from './ai-dialogue.js';
@@ -134,7 +134,9 @@ export async function refreshWeatherContext() {
     if (canWeatherTakeOverState()) {
       setState(fallback.state);
     }
-    sayWithAi({ behavior: 'timeMood', fallback: fallback.text, context: '时间问候' });
+    if (!isStartupQuiet()) {
+      sayWithAi({ behavior: 'timeMood', fallback: fallback.text, context: '时间问候' });
+    }
     return;
   }
   try {
@@ -145,21 +147,29 @@ export async function refreshWeatherContext() {
       if (canWeatherTakeOverState()) {
         setState(mood.state);
       }
-      const placePrefix = result.place ? `${result.place}天气：` : '';
-      sayWithAi({ behavior: 'weatherMood', fallback: `${placePrefix}${mood.text}`, context: '天气提醒' });
-      checkWeatherReminders(result);
+      if (!isStartupQuiet()) {
+        const placePrefix = result.place ? `${result.place}天气：` : '';
+        sayWithAi({ behavior: 'weatherMood', fallback: `${placePrefix}${mood.text}`, context: '天气提醒' });
+        checkWeatherReminders(result);
+      }
       // 延迟触发行为决策（由 behavior-engine 处理）
       return;
     }
     setState('review');
-    sayWithAi({ behavior: 'weatherFallback', fallback: result.error || '天气没有取到，Yoyo先按时间陪妈妈～' });
+    if (!isStartupQuiet()) {
+      sayWithAi({ behavior: 'weatherFallback', fallback: result.error || '天气没有取到，Yoyo先按时间陪妈妈～' });
+    }
   } catch {
     setState('review');
-    sayWithAi({ behavior: 'weatherFallback', fallback: '天气暂时看不了，Yoyo先陪妈妈～' });
+    if (!isStartupQuiet()) {
+      sayWithAi({ behavior: 'weatherFallback', fallback: '天气暂时看不了，Yoyo先陪妈妈～' });
+    }
   }
   const fallback = timeMood();
   setState(fallback.state);
-  sayWithAi({ behavior: 'timeMood', fallback: fallback.text, context: '时间问候' });
+  if (!isStartupQuiet()) {
+    sayWithAi({ behavior: 'timeMood', fallback: fallback.text, context: '时间问候' });
+  }
 }
 
 // ===== 天气智能提醒系统 =====

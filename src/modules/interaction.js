@@ -843,7 +843,7 @@ export function initInteraction() {
 // ===== 加载宠物 =====
 export async function loadPets() {
   state.pets = await window.petApi.listPets();
-  await choosePet(get('currentFormId') || get('currentPetId') || state.pets[0]?.id);
+  await choosePet('yoyo');
 }
 
 export async function choosePet(id) {
