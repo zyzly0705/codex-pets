@@ -1,18 +1,26 @@
 {
   "name": "codex-desktop-pet",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "description": "A small Windows desktop pet app for Codex pet spritesheets.",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
+    "test": "node --test tests/*.test.mjs",
     "start:debug": "YOYO_BEHAVIOR_DEBUG=1 electron .",
     "start:keyboard": "YOYO_ENABLE_UIOHOOK=1 electron .",
     "start:keyboard:win": "set YOYO_ENABLE_UIOHOOK=1&& electron .",
-    "generate:faces": "node scripts/generate-face-spritesheets.js",
-    "generate:outfits": "node scripts/generate-outfit-spritesheets.js",
     "generate:actions": "node scripts/generate-action-spritesheet.js",
     "generate:typing": "node scripts/add-typing-companion-row.js",
     "generate:dharma": "node scripts/add-dharma-giant-rows.js",
+    "design:performance": "node scripts/design-performance-aseprite.js",
+    "design:mini-scenes": "node scripts/design-mini-scenes-aseprite.js",
+    "import:ai-scenes": "node scripts/import-ai-scene-strips.js",
+    "import:reference-sheet": "node scripts/import-reference-sheet.js",
+    "import:reference-strips": "node scripts/import-reference-action-strips.js",
+    "qa:animations": "node scripts/qa-animation-previews.js",
+    "export:aseprite": "node scripts/export-aseprite-assets.js",
+    "build:pet-assets": "node scripts/build-pet-assets.js",
+    "build:home-assets": "node scripts/build-home-assets.js",
     "audit:assets": "node scripts/audit-pet-assets.js",
     "scaffold:pet": "node scripts/scaffold-pet-package.js",
     "expand:codex-atlas": "node scripts/expand-codex-atlas-to-yoyo.js",
@@ -20,7 +28,7 @@
     "import:gugu-gaga": "node scripts/import-gugu-gaga-reference-sheet.js",
     "pack": "electron-builder --dir",
     "dist:win": "electron-builder --win nsis",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\" && node scripts/validate-behavior-data.js && node scripts/smoke-ai-config.js && npm run audit:assets"
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/home.js && node --check src/pixi-effect-stage.js && node -e \"const fs=require('fs'),cp=require('child_process');fs.readdirSync('src/main').filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node --check src/main/'+f,{stdio:'inherit'}))\" && node -e \"const fs=require('fs'),cp=require('child_process');fs.readdirSync('src/shared').filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node --check src/shared/'+f,{stdio:'inherit'}))\" && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\" && node scripts/validate-behavior-data.js && node scripts/smoke-ai-config.js && npm run audit:assets"
   },
   "keywords": [
     "desktop-pet",
@@ -42,9 +50,17 @@
     },
     "files": [
       "src/**/*",
-      "assets/**/*",
+      "assets/*/pet.json",
+      "assets/*/spritesheet.webp",
+      "assets/yoyo/effects/**/*",
+      "assets/yoyo/home/**/*",
       "package.json",
-      "!assets/accessories/**",
+      "!**/*.md",
+      "!**/docs/**",
+      "!**/test/**",
+      "!**/tests/**",
+      "!**/*.map",
+      "!assets/**/contact-sheet.*",
       "!assets/yoyo/*backup*",
       "!assets/yoyo/*expanded*",
       "!assets/yoyo/*before_*",
@@ -74,15 +90,20 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Codex Desktop Pet"
     },
-    "publish": [{
-      "provider": "github",
-      "owner": "zyzly0705",
-      "repo": "codex-pets"
-    }]
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "zyzly0705",
+        "repo": "codex-pets"
+      }
+    ]
   },
   "dependencies": {
+    "@pixi/particle-emitter": "^5.0.10",
     "electron-updater": "^6.1.0",
     "node-window-manager": "^2.2.4",
+    "pixi-filters": "^6.1.5",
+    "pixi.js": "^8.18.1",
     "uiohook-napi": "^1.5.5"
   }
 }

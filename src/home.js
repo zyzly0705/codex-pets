@@ -1,0 +1,761 @@
+const SHARED = window.YOYO_ACTIONS || {};
+
+const NEEDS = SHARED.NEEDS || [
+  { key: 'satiety', label: '饱腹', className: 'satiety' },
+  { key: 'cleanliness', label: '清洁', className: 'cleanliness' },
+  { key: 'mood', label: '心情', className: 'mood' },
+  { key: 'energy', label: '体力', className: 'energy' },
+  { key: 'affection', label: '亲密', className: 'affection' },
+];
+
+const CARE_ACTIONS = SHARED.CARE_ACTIONS || {
+  feed: { label: '喂饭', icon: 'food', stateName: 'eating', homeScene: 'default', homeBubble: '吃饱啦' },
+  bath: { label: '洗澡', icon: 'bath', stateName: 'fanCooling', homeScene: 'rainy', homeBubble: '清爽' },
+  sleep: { label: '休息', icon: 'bed', stateName: 'sleeping', homeScene: 'night', homeBubble: '晚安' },
+  play: { label: '陪玩', icon: 'toy', stateName: 'dancing', homeScene: 'party', homeBubble: '再来' },
+  pet: { label: '摸摸', icon: 'heart', stateName: 'petting', homeScene: 'default', homeBubble: '贴贴' },
+};
+
+const ROOM_SCENES = SHARED.ROOM_SCENES || {
+  default: { label: '日常小屋', asset: '../assets/yoyo/home/room-stage-v2.webp' },
+  night: { label: '夜晚小屋', asset: '../assets/yoyo/home/room-stage-night.webp' },
+  rainy: { label: '雨天小屋', asset: '../assets/yoyo/home/room-stage-rainy.webp' },
+  party: { label: '派对小屋', asset: '../assets/yoyo/home/room-stage-party.webp' },
+};
+
+const ACTION_HINTS = SHARED.ACTION_HINTS || {
+  feed: '饿了',
+  bath: '想洗澡',
+  sleep: '困了',
+  play: '想玩',
+  pet: '抱抱',
+};
+
+const HOME_STATES = SHARED.HOME_STATES || {
+  idle: { row: 0, frames: 6, fps: 4 },
+  waiting: { row: 6, frames: 6, fps: 3 },
+  bashful: { row: 7, frames: 6, fps: 4 },
+  petting: { row: 11, frames: 4, fps: 4 },
+  yawning: { row: 12, frames: 5, fps: 3 },
+  eating: { row: 13, frames: 6, fps: 5 },
+  fanCooling: { row: 26, frames: 8, fps: 5 },
+  sleeping: { row: 20, frames: 8, fps: 3 },
+  dancing: { row: 21, frames: 8, fps: 5 },
+  crying: { row: 22, frames: 8, fps: 4 },
+  jumping: { row: 4, frames: 5, fps: 7 },
+  concert: { row: 37, frames: 8, fps: 6 },
+  heartSign: { row: 38, frames: 8, fps: 5 },
+  nascentSoul: { row: 39, frames: 8, fps: 4 },
+};
+
+const DECOR_DEFAULTS = {
+  fairyLights: true,
+  floorStars: false,
+  softGlow: true,
+  keepsakes: false,
+};
+
+const HOME_EVENT_LINES = {
+  morning: ['妈妈早安！新的一天开始啦～', '早上好妈妈！Yoyo等你好久了！', '妈妈早！今天也要元气满满哦～'],
+  afternoon: ['妈妈来啦！Yoyo好想你哦～', '妈妈终于回来了！Yoyo有点等不住了～', '妈妈妈妈！快来看Yoyo！'],
+  evening: ['妈妈辛苦啦～Yoyo在等你呢！', '妈妈回来了！Yoyo一直在守着小屋哦！', '傍晚啦～妈妈今天过得好吗？'],
+  night: ['妈妈晚安～做个好梦哦！', '夜深啦，妈妈早点休息呀～', '妈妈，Yoyo等你睡着了再睡～'],
+  comeback: ['妈妈回来啦！Yoyo好高兴！', '妈妈！你去哪啦，Yoyo等了你好久！', '妈妈终于回来了！要摸摸Yoyo吗？'],
+};
+
+const CARE_FOLLOWUP_LINES = {
+  feed: ['吃饱饱了～谢谢妈妈！', '好香好香！妈妈做的最好吃！', '嗯嗯嗯！Yoyo吃得好开心～'],
+  bath: ['好清爽呀～像小花一样香！', '洗完澡好舒服～Yoyo要飞起来了！', '干干净净的Yoyo最可爱了！'],
+  sleep: ['嗯…妈妈晚安…呼…', '好困好困…Yoyo要睡了…zZ', 'Yoyo闭眼睛了…妈妈轻点哦…'],
+  play: ['哇！好好玩！再来再来！', '耶耶耶！Yoyo最喜欢和妈妈玩了！', '妈妈陪Yoyo玩最幸福啦！'],
+  pet: ['嘿嘿～妈妈的手好温暖！', '再摸一下嘛！Yoyo还没够呢～', '妈妈摸摸！Yoyo要飞上天啦！'],
+};
+
+const STATUS_BUBBLES = {
+  urgent: '妈妈快看看我',
+  'needs-care': '想你陪陪我',
+  close: '贴贴',
+  steady: '',
+};
+
+const DEFAULT_ACTIONS = SHARED.listCareActions
+  ? SHARED.listCareActions()
+  : Object.entries(CARE_ACTIONS).map(([id, action]) => ({
+    id,
+    label: action.label,
+    icon: action.icon,
+    stateName: action.stateName,
+    homeScene: action.homeScene,
+    homeBubble: action.homeBubble,
+    recommended: false,
+  }));
+
+const els = {
+  shell: document.querySelector('.home-shell'),
+  roomStage: document.querySelector('.room-stage'),
+  roomArt: document.getElementById('room-art'),
+  canvas: document.getElementById('home-pet'),
+  bubble: document.getElementById('life-bubble-text'),
+  tip: document.getElementById('home-tip'),
+  needsList: document.getElementById('needs-list'),
+  refresh: document.getElementById('refresh-life'),
+  ctrlToggle: document.getElementById('ctrl-toggle'),
+  ctrlPanel: document.getElementById('ctrl-panel'),
+  sceneButtons: Array.from(document.querySelectorAll('[data-room-scene]')),
+  decorButtons: Array.from(document.querySelectorAll('[data-decor]')),
+  hotspots: Array.from(document.querySelectorAll('.room-hotspot')),
+  profile: {
+    level: document.getElementById('profile-level'),
+    intimacy: document.getElementById('profile-intimacy'),
+  },
+};
+
+const sprite = new Image();
+let lastLife = null;
+let activeRoomScene = 'default';
+let selectedRoomScene = '';
+let homePrefs = { selectedScene: '', decor: { ...DECOR_DEFAULTS }, visitCount: 0, lastVisitAt: 0 };
+let effectTimer = 0;
+let uiIdleTimer = 0;
+let homeAnimation = { stateName: 'idle', action: '', until: 0, startedAt: 0 };
+
+function pct(value) {
+  return Math.round(Math.max(0, Math.min(100, Number(value) || 0)));
+}
+
+let _typewriterTimer = null;
+function typewriteBubble(text, onDone) {
+  if (!els.bubble) return;
+  if (_typewriterTimer) clearInterval(_typewriterTimer);
+  els.bubble.textContent = '';
+  els.bubble.classList.add('typing');
+  const speed = text.length <= 8 ? 55 : 85;
+  let i = 0;
+  _typewriterTimer = setInterval(() => {
+    els.bubble.textContent = text.slice(0, ++i);
+    if (i >= text.length) {
+      clearInterval(_typewriterTimer);
+      _typewriterTimer = null;
+      els.bubble.classList.remove('typing');
+      if (onDone) onDone();
+    }
+  }, speed);
+}
+
+function randomFrom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function currentScene(life = lastLife) {
+  return homeAnimation.action || life?.redirectedAction || life?.recommendedAction || '';
+}
+
+function defaultRoomScene(life = lastLife) {
+  const hour = new Date().getHours();
+  const isWeekend = [0, 6].includes(new Date().getDay());
+  if (life?.status === 'urgent') return 'rainy';
+  if (hour >= 22 || hour < 6) return 'night';
+  const mood = pct(life?.mood);
+  const energy = pct(life?.energy);
+  if (mood < 35 || energy < 30) return 'night';
+  if (isWeekend && mood > 65) return 'party';
+  return 'default';
+}
+
+function roomSceneForAction(action) {
+  return CARE_ACTIONS[action]?.homeScene || '';
+}
+
+function roomSceneForLife(life = lastLife) {
+  const actionScene = roomSceneForAction(currentScene(life));
+  if (actionScene) return actionScene;
+  if (selectedRoomScene) return selectedRoomScene;
+  return defaultRoomScene(life);
+}
+
+function setRoomScene(sceneName) {
+  const nextScene = ROOM_SCENES[sceneName] ? sceneName : 'default';
+  els.roomStage.dataset.room = nextScene;
+  for (const button of els.sceneButtons) {
+    button.classList.toggle('active', button.dataset.roomScene === nextScene);
+  }
+  if (nextScene === activeRoomScene) return;
+  activeRoomScene = nextScene;
+  const nextUrl = new URL(ROOM_SCENES[nextScene].asset, window.location.href).href;
+  els.roomArt.classList.add('switching');
+  els.roomArt.onload = () => {
+    els.roomArt.classList.remove('switching');
+  };
+  els.roomArt.src = nextUrl;
+}
+
+function saveHomePrefs() {
+  if (!window.petApi?.storeSet) return;
+  window.petApi.storeSet('home', homePrefs).catch(() => {});
+}
+
+function chooseRoomScene(sceneName) {
+  selectedRoomScene = ROOM_SCENES[sceneName] ? sceneName : '';
+  homePrefs.selectedScene = selectedRoomScene;
+  saveHomePrefs();
+  renderScene(lastLife);
+}
+
+function applyDecor() {
+  const decor = { ...DECOR_DEFAULTS, ...(homePrefs.decor || {}) };
+  homePrefs.decor = decor;
+  els.roomStage.dataset.decorFairy = String(Boolean(decor.fairyLights));
+  els.shell.dataset.decorStars = String(Boolean(decor.floorStars));
+  els.shell.dataset.decorGlow = String(Boolean(decor.softGlow));
+  els.shell.dataset.decorKeepsakes = String(Boolean(decor.keepsakes));
+  for (const button of els.decorButtons) {
+    button.classList.toggle('active', Boolean(decor[button.dataset.decor]));
+  }
+}
+
+function toggleDecor(key) {
+  homePrefs.decor = { ...DECOR_DEFAULTS, ...(homePrefs.decor || {}) };
+  homePrefs.decor[key] = !homePrefs.decor[key];
+  applyDecor();
+  saveHomePrefs();
+}
+
+function setRoomEffect(action, duration = 5200) {
+  clearTimeout(effectTimer);
+  els.roomStage.dataset.effect = action || '';
+  if (action) {
+    effectTimer = setTimeout(() => {
+      if (homeAnimation.action !== action) return;
+      els.roomStage.dataset.effect = '';
+    }, duration);
+  }
+}
+
+function renderScene(life = lastLife) {
+  const scene = currentScene(life);
+  els.roomStage.dataset.scene = scene;
+  setRoomScene(roomSceneForLife(life));
+  for (const hotspot of els.hotspots) {
+    hotspot.classList.toggle('active', Boolean(scene && hotspot.dataset.action === scene));
+  }
+}
+
+function drawPet(now = performance.now()) {
+  const ctx = els.canvas.getContext('2d');
+  ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+  if (!sprite.complete || !sprite.naturalWidth) return;
+  if (homeAnimation.until && Date.now() > homeAnimation.until) {
+    homeAnimation = { stateName: 'idle', action: '', until: 0, startedAt: now };
+    setRoomEffect('');
+    renderScene();
+  }
+  const stateName = HOME_STATES[homeAnimation.stateName] ? homeAnimation.stateName : 'idle';
+  const meta = HOME_STATES[stateName];
+  const elapsed = Math.max(0, now - homeAnimation.startedAt);
+  const frame = Math.floor(elapsed / (1000 / meta.fps)) % meta.frames;
+  ctx.drawImage(sprite, frame * 192, meta.row * 208, 192, 208, 0, 0, 192, 208);
+}
+
+function startHomeAnimation(stateName = 'idle', action = '', duration = 5200) {
+  homeAnimation = {
+    stateName: HOME_STATES[stateName] ? stateName : 'idle',
+    action,
+    until: duration > 0 ? Date.now() + duration : 0,
+    startedAt: performance.now(),
+  };
+  setRoomEffect(action, duration);
+  renderScene();
+}
+
+function tickPet(now) {
+  drawPet(now);
+  requestAnimationFrame(tickPet);
+}
+
+// 道具 action → hotspot 元素映射
+const ACTION_HOTSPOT = {
+  feed: document.querySelector('.hotspot-food'),
+  bath: document.querySelector('.hotspot-bath'),
+  sleep: document.querySelector('.hotspot-bed'),
+  play: document.querySelector('.hotspot-toy'),
+  pet: document.querySelector('.hotspot-heart'),
+};
+
+function renderNeeds(life) {
+  els.needsList.innerHTML = '';
+  // 清除所有热区注意力状态
+  for (const hs of els.hotspots) {
+    hs.classList.remove('needs-attention', 'urgent-attention');
+  }
+  for (const need of NEEDS) {
+    const value = pct(life[need.key]);
+    const orb = document.createElement('div');
+    orb.className = `need-orb ${need.className}`;
+    orb.style.setProperty('--value', value);
+    orb.dataset.value = value;
+    orb.tabIndex = 0;
+    orb.setAttribute('aria-label', `${need.label} ${value}`);
+    orb.title = `${need.label} ${value}`;
+    const tip = document.createElement('span');
+    tip.className = 'need-tip';
+    tip.textContent = `${need.label} ${value}`;
+    orb.appendChild(tip);
+    if (life.lowestNeed?.key === need.key && value < 70) {
+      orb.classList.add(value < 42 ? 'need-care' : 'watch');
+    }
+    els.needsList.appendChild(orb);
+  }
+  // 驱动热区注意力状态
+  if (life.lowestNeed?.key && life.lowestNeed.value < 70) {
+    const actionKey = NEEDS.find(n => n.key === life.lowestNeed.key)?.key;
+    // need.key → care action 映射
+    const needToAction = { satiety: 'feed', cleanliness: 'bath', energy: 'sleep', mood: 'play', affection: 'pet' };
+    const action = needToAction[actionKey];
+    const hs = action && ACTION_HOTSPOT[action];
+    if (hs) {
+      hs.classList.add(life.lowestNeed.value < 42 ? 'urgent-attention' : 'needs-attention');
+    }
+  }
+}
+
+function hourEventLine() {
+  const hour = new Date().getHours();
+  if (homePrefs.visitCount > 1 && Date.now() - Number(homePrefs.lastVisitAt || 0) > 6 * 60 * 60 * 1000) {
+    return randomFrom(HOME_EVENT_LINES.comeback);
+  }
+  if (hour < 6 || hour >= 22) return randomFrom(HOME_EVENT_LINES.night);
+  if (hour < 11) return randomFrom(HOME_EVENT_LINES.morning);
+  if (hour < 18) return randomFrom(HOME_EVENT_LINES.afternoon);
+  return randomFrom(HOME_EVENT_LINES.evening);
+}
+
+function showVisitEvent() {
+  const line = hourEventLine();
+  if (!line) return;
+  const lifeBubble = document.getElementById('life-bubble');
+  if (lifeBubble) {
+    lifeBubble.classList.add('care-bounce');
+    lifeBubble.addEventListener('animationend', () => lifeBubble.classList.remove('care-bounce'), { once: true });
+  }
+  typewriteBubble(line, () => {
+    setTimeout(() => {
+      if (!currentScene(lastLife)) {
+        const fallback = shortBubble(lastLife || { status: 'steady' });
+        if (fallback) typewriteBubble(fallback);
+        else els.bubble.textContent = fallback;
+      }
+    }, 4200);
+  });
+}
+
+function renderProfile(profile = {}) {
+  els.profile.level.textContent = Number(profile.level || 1);
+  els.profile.intimacy.textContent = Math.round(Number(profile.intimacy || 0));
+}
+
+function shortBubble(life) {
+  if (life.action && CARE_ACTIONS[life.action]) return CARE_ACTIONS[life.action].homeBubble;
+  const actionId = life.redirectedAction || life.recommendedAction;
+  if (ACTION_HINTS[actionId]) return ACTION_HINTS[actionId];
+  return STATUS_BUBBLES[life.status] || STATUS_BUBBLES.steady;
+}
+
+function renderLife(life) {
+  lastLife = life;
+  const status = life.status || 'steady';
+  els.shell.dataset.status = status;
+  els.bubble.textContent = shortBubble(life);
+  if (life.action) startHomeAnimation(life.stateName, life.action, life.blocked ? 2800 : 5600);
+  else renderScene(life);
+  renderNeeds(life);
+  renderProfile(life.profile);
+}
+
+async function refreshLife() {
+  try {
+    const life = await window.petApi.getLife();
+    renderLife(life);
+  } catch (error) {
+    els.bubble.textContent = '断线了';
+  }
+}
+
+async function loadHomePrefs() {
+  try {
+    const data = await window.petApi.storeLoad();
+    homePrefs = {
+      ...homePrefs,
+      ...(data?.home || {}),
+      decor: { ...DECOR_DEFAULTS, ...(data?.home?.decor || {}) },
+    };
+    selectedRoomScene = ROOM_SCENES[homePrefs.selectedScene] ? homePrefs.selectedScene : '';
+    homePrefs.visitCount = Number(homePrefs.visitCount || 0) + 1;
+    homePrefs.lastVisitAt = Date.now();
+    applyDecor();
+    saveHomePrefs();
+  } catch {
+    applyDecor();
+  }
+}
+
+function wakeUi() {
+  els.shell.classList.remove('idle-ui');
+  clearTimeout(uiIdleTimer);
+  uiIdleTimer = setTimeout(() => {
+    els.shell.classList.add('idle-ui');
+  }, 3600);
+}
+
+function showTipFor(element) {
+  const text = element?.dataset?.tip || element?.getAttribute?.('aria-label') || '';
+  if (!text) return;
+  const stageRect = els.roomStage.getBoundingClientRect();
+  const rect = element.getBoundingClientRect();
+  els.tip.textContent = text;
+  els.tip.style.left = `${rect.left - stageRect.left + rect.width / 2}px`;
+  els.tip.style.top = `${rect.top - stageRect.top}px`;
+  els.tip.classList.add('visible');
+}
+
+function hideTip() {
+  els.tip.classList.remove('visible');
+}
+
+function bindTip(element) {
+  element.addEventListener('pointerenter', () => showTipFor(element));
+  element.addEventListener('pointermove', () => showTipFor(element));
+  element.addEventListener('pointerleave', hideTip);
+  element.addEventListener('mouseenter', () => showTipFor(element));
+  element.addEventListener('mousemove', () => showTipFor(element));
+  element.addEventListener('mouseleave', hideTip);
+  element.addEventListener('focus', () => showTipFor(element));
+  element.addEventListener('blur', hideTip);
+}
+
+async function care(action) {
+  if (!action) return;
+  startHomeAnimation(CARE_ACTIONS[action]?.stateName || 'idle', action, 5200);
+  const lifeBubble = document.getElementById('life-bubble');
+  if (lifeBubble) {
+    lifeBubble.classList.remove('care-bounce');
+    void lifeBubble.offsetWidth;
+    lifeBubble.classList.add('care-bounce');
+    lifeBubble.addEventListener('animationend', () => lifeBubble.classList.remove('care-bounce'), { once: true });
+  }
+  typewriteBubble(CARE_ACTIONS[action]?.homeBubble || '好呀');
+  // 护理中临时禁用热区
+  for (const hs of els.hotspots) hs.style.pointerEvents = 'none';
+  try {
+    const life = await window.petApi.careForYoyo(action);
+    if (life.ok === false) {
+      typewriteBubble('还不行哦…');
+      return;
+    }
+    renderLife(life);
+    const followLines = CARE_FOLLOWUP_LINES[action];
+    if (followLines) {
+      setTimeout(() => {
+        if (lifeBubble) {
+          lifeBubble.classList.remove('care-bounce');
+          void lifeBubble.offsetWidth;
+          lifeBubble.classList.add('care-bounce');
+          lifeBubble.addEventListener('animationend', () => lifeBubble.classList.remove('care-bounce'), { once: true });
+        }
+        typewriteBubble(randomFrom(followLines));
+      }, 2400);
+    }
+  } catch (error) {
+    typewriteBubble('失败了…');
+  } finally {
+    for (const hs of els.hotspots) hs.style.pointerEvents = '';
+  }
+}
+
+sprite.onload = () => drawPet();
+sprite.src = new URL('../assets/yoyo/home/yoyo-home-sheet.webp', window.location.href).href;
+
+for (const scene of Object.values(ROOM_SCENES)) {
+  const img = new Image();
+  img.src = new URL(scene.asset, window.location.href).href;
+}
+
+for (const hotspot of els.hotspots) {
+  hotspot.addEventListener('click', () => care(hotspot.dataset.action));
+  bindTip(hotspot);
+}
+for (const button of els.sceneButtons) {
+  button.addEventListener('click', () => chooseRoomScene(button.dataset.roomScene));
+  bindTip(button);
+}
+for (const button of els.decorButtons) {
+  button.addEventListener('click', () => toggleDecor(button.dataset.decor));
+  bindTip(button);
+}
+
+// ctrl-panel 开关
+if (els.ctrlToggle && els.ctrlPanel) {
+  els.ctrlToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = els.ctrlPanel.classList.toggle('open');
+    els.ctrlPanel.setAttribute('aria-hidden', String(!open));
+    els.ctrlToggle.classList.toggle('active', open);
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#room-controls')) {
+      els.ctrlPanel.classList.remove('open');
+      els.ctrlPanel.setAttribute('aria-hidden', 'true');
+      els.ctrlToggle.classList.remove('active');
+    }
+  });
+}
+
+for (const eventName of ['mousemove', 'pointerdown', 'keydown', 'focusin']) {
+  window.addEventListener(eventName, wakeUi, { passive: true });
+}
+els.refresh.addEventListener('click', refreshLife);
+bindTip(els.refresh);
+if (window.petApi?.onLifeChanged) {
+  window.petApi.onLifeChanged((life) => renderLife(life));
+}
+
+loadHomePrefs()
+  .then(refreshLife)
+  .then(showVisitEvent);
+wakeUi();
+requestAnimationFrame(tickPet);
+
+// ====================================================================
+// 演唱会：Let it Go
+// ====================================================================
+(function initConcert() {
+  const btn = document.getElementById('concert-launcher');
+  if (!btn) return;
+
+  const LYRICS = [
+    '♪ The snow glows white on the mountain tonight~',
+    '♪ Not a footprint to be seen~',
+    '♪ A kingdom of isolation~',
+    '♪ And it looks like I\'m the queen~',
+    '♪ Let it go, let it go~',
+    '♪ Can\'t hold it back anymore~',
+    '♪ Let it go, let it go~',
+    '♪ Turn away and slam the door~',
+    '♪ I don\'t care what they\'re going to say~',
+    '♪ Let the storm rage on~',
+    '♪ The cold never bothered me anyway~ ✨',
+  ];
+
+  let concertActive = false;
+  let lyricIndex = 0;
+  let lyricTimer = null;
+  let snowInterval = null;
+  const stage = document.querySelector('.room-stage');
+
+  function createSnowflake() {
+    const flake = document.createElement('span');
+    flake.className = 'concert-snow';
+    flake.textContent = ['❄️', '⭐', '✨', '💎'][Math.floor(Math.random() * 4)];
+    flake.style.left = Math.random() * 100 + '%';
+    flake.style.animationDuration = (2 + Math.random() * 3) + 's';
+    flake.style.fontSize = (12 + Math.random() * 14) + 'px';
+    stage.appendChild(flake);
+    flake.addEventListener('animationend', () => flake.remove());
+  }
+
+  function startConcert() {
+    if (concertActive) return;
+    concertActive = true;
+    lyricIndex = 0;
+    btn.disabled = true;
+
+    stage.classList.add('concert-mode');
+    startHomeAnimation('concert', 'concert', 0); // duration=0 → 持续播放
+
+    // 歌词滚动
+    function showNextLyric() {
+      if (lyricIndex >= LYRICS.length) {
+        endConcert();
+        return;
+      }
+      typewriteBubble(LYRICS[lyricIndex]);
+      lyricIndex++;
+      lyricTimer = setTimeout(showNextLyric, 3200);
+    }
+    showNextLyric();
+
+    // 雪花粒子
+    snowInterval = setInterval(createSnowflake, 400);
+  }
+
+  function endConcert() {
+    concertActive = false;
+    clearTimeout(lyricTimer);
+    clearInterval(snowInterval);
+    stage.classList.remove('concert-mode');
+    startHomeAnimation('clapping', '', 3000);
+    typewriteBubble('谢谢大家！Yoyo爱你们！🎤✨');
+    setTimeout(() => {
+      btn.disabled = false;
+      startHomeAnimation('idle', '', 0);
+    }, 3500);
+  }
+
+  btn.addEventListener('click', startConcert);
+  bindTip(btn);
+})();
+
+// ====================================================================
+// 换装系统
+// ====================================================================
+(function initWardrobe() {
+  const ACCESSORIES = {
+    hat: [
+      { id: 'hat_crown',    emoji: '👑', label: '皇冠',   unlockAt: 0,   pos: { top: '-14px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'hat_catears',  emoji: '🐱', label: '猫耳',   unlockAt: 0,   pos: { top: '-8px',  left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'hat_halo',     emoji: '😇', label: '光环',   unlockAt: 20,  pos: { top: '-12px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'hat_santa',    emoji: '🎅', label: '圣诞帽', unlockAt: 50,  pos: { top: '-10px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'hat_ribbon',   emoji: '🎀', label: '蝴蝶结', unlockAt: 100, pos: { top: '-6px',  left: '50%', transform: 'translateX(-50%)' } },
+    ],
+    face: [
+      { id: 'face_happy',   emoji: '😊', label: '开心脸', unlockAt: 0,   pos: { top: '28px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'face_heart',   emoji: '🥰', label: '爱心眼', unlockAt: 10,  pos: { top: '28px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'face_shy',     emoji: '😳', label: '害羞脸', unlockAt: 30,  pos: { top: '28px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'face_sparkle', emoji: '🤩', label: '闪亮眼', unlockAt: 80,  pos: { top: '28px', left: '50%', transform: 'translateX(-50%)' } },
+    ],
+    clothes: [
+      { id: 'clothes_bow',      emoji: '🎀', label: '领结',   unlockAt: 0,   pos: { top: '68px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'clothes_hoodie',   emoji: '🧥', label: '连帽衫', unlockAt: 15,  pos: { top: '62px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'clothes_sweater',  emoji: '👕', label: '毛衣',   unlockAt: 40,  pos: { top: '62px', left: '50%', transform: 'translateX(-50%)' } },
+      { id: 'clothes_dress',    emoji: '👗', label: '裙子',   unlockAt: 70,  pos: { top: '62px', left: '50%', transform: 'translateX(-50%)' } },
+    ],
+    hair: [
+      { id: 'hair_flower',   emoji: '🌸', label: '小花',   unlockAt: 0,   pos: { top: '4px', left: '72%' } },
+      { id: 'hair_starclip', emoji: '⭐', label: '星星夹', unlockAt: 25,  pos: { top: '4px', left: '72%' } },
+      { id: 'hair_pearlpin', emoji: '🔮', label: '珍珠发饰', unlockAt: 60, pos: { top: '4px', left: '72%' } },
+    ],
+  };
+
+  const drawer = document.getElementById('wardrobe-drawer');
+  const launcherBtn = document.getElementById('wardrobe-launcher');
+  const closeBtn = document.getElementById('wardrobe-close');
+  const tabsEl = document.getElementById('wardrobe-tabs');
+  const gridEl = document.getElementById('wardrobe-grid');
+  const resetBtn = document.getElementById('wardrobe-reset');
+  const accessoryLayer = document.getElementById('accessory-layer');
+
+  if (!drawer || !launcherBtn || !gridEl || !accessoryLayer) return;
+
+  let currentTab = 'hat';
+  // equipped: { hat: id|null, face: id|null, clothes: id|null, hair: id|null }
+  let equipped = { hat: null, face: null, clothes: null, hair: null };
+  let currentIntimacy = 0;
+
+  // 读取已保存的配件
+  async function loadEquipped() {
+    try {
+      const data = await window.petApi.storeLoad();
+      const saved = data?.wardrobe?.equipped;
+      if (saved) equipped = { hat: null, face: null, clothes: null, hair: null, ...saved };
+    } catch {}
+    renderAccessoryLayer();
+  }
+
+  async function saveEquipped() {
+    try {
+      await window.petApi.storeSet('wardrobe', { equipped });
+    } catch {}
+  }
+
+  function findAccessory(id) {
+    for (const items of Object.values(ACCESSORIES)) {
+      const found = items.find(a => a.id === id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function renderAccessoryLayer() {
+    accessoryLayer.innerHTML = '';
+    for (const [, id] of Object.entries(equipped)) {
+      if (!id) continue;
+      const acc = findAccessory(id);
+      if (!acc) continue;
+      const span = document.createElement('span');
+      span.className = 'accessory-item';
+      span.textContent = acc.emoji;
+      span.title = acc.label;
+      Object.assign(span.style, acc.pos);
+      accessoryLayer.appendChild(span);
+    }
+  }
+
+  function renderGrid() {
+    gridEl.innerHTML = '';
+    const items = ACCESSORIES[currentTab] || [];
+    for (const acc of items) {
+      const locked = acc.unlockAt > currentIntimacy;
+      const active = equipped[currentTab] === acc.id;
+      const btn = document.createElement('button');
+      btn.className = 'wacc-btn' + (active ? ' active' : '') + (locked ? ' locked' : '');
+      btn.title = locked ? `亲密度 ${acc.unlockAt} 解锁` : acc.label;
+      btn.innerHTML = `<span class="wacc-emoji">${acc.emoji}</span><span class="wacc-label">${acc.label}</span>${locked ? `<span class="wacc-lock">🔒${acc.unlockAt}</span>` : ''}`;
+      if (!locked) {
+        btn.addEventListener('click', () => {
+          equipped[currentTab] = active ? null : acc.id;
+          saveEquipped();
+          renderGrid();
+          renderAccessoryLayer();
+          typewriteBubble(active ? '好的，摘掉啦～' : randomFrom(['好可爱！', '哇！Yoyo变漂亮了！', '喜欢！']));
+        });
+      }
+      gridEl.appendChild(btn);
+    }
+  }
+
+  // 标签切换
+  tabsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.wtab');
+    if (!btn) return;
+    tabsEl.querySelectorAll('.wtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    renderGrid();
+  });
+
+  // 清除配件
+  resetBtn.addEventListener('click', () => {
+    equipped = { hat: null, face: null, clothes: null, hair: null };
+    saveEquipped();
+    renderGrid();
+    renderAccessoryLayer();
+    typewriteBubble('嗯…回到素颜啦～');
+  });
+
+  // 开关抽屉
+  launcherBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = drawer.classList.toggle('open');
+    drawer.setAttribute('aria-hidden', String(!open));
+    if (open) renderGrid();
+  });
+  closeBtn.addEventListener('click', () => {
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#wardrobe-drawer') && !e.target.closest('#wardrobe-launcher')) {
+      drawer.classList.remove('open');
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  // 亲密度更新时重渲格子（解锁新配件）
+  if (window.petApi?.onLifeChanged) {
+    window.petApi.onLifeChanged((life) => {
+      currentIntimacy = Math.round(Number(life?.profile?.intimacy || 0));
+      if (drawer.classList.contains('open')) renderGrid();
+    });
+  }
+
+  loadEquipped();
+})();

@@ -4,91 +4,196 @@
   <meta charset="UTF-8" />
   <title>Effect</title>
   <style>
-    * { margin: 0; padding: 0; }
-    html, body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: transparent;
-    }
-    /* 外层包裹：负责水平摇摆 */
-    .particle-wrap {
-      position: fixed;
-      top: -60px;
-      pointer-events: none;
-      z-index: 99999;
-      animation: sway ease-in-out infinite;
-    }
-    /* 内层：负责垂直下落 */
-    .particle {
-      display: block;
-      animation: fall linear forwards;
-    }
-    @keyframes fall {
-      0% {
-        transform: translateY(0) rotate(0deg) scale(1);
-        opacity: 1;
-      }
-      80% {
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(110vh) rotate(360deg) scale(0.6);
-        opacity: 0;
-      }
-    }
-    @keyframes sway {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(var(--sway-amt, 15px)); }
-      75% { transform: translateX(calc(var(--sway-amt, 15px) * -1)); }
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100vw; height: 100vh; overflow: hidden; background: transparent; }
+    canvas { position: fixed; inset: 0; pointer-events: none; }
   </style>
 </head>
 <body>
+<canvas id="c"></canvas>
 <script>
   const params = new URLSearchParams(window.location.search);
-  const type = params.get('type') || 'flower';
+  const type   = params.get('type') || 'flower';
 
-  const EMOJIS = {
-    flower: ['🌸', '🌺', '🌷', '💐', '🌹', '🏵️', '💮', '🌼'],
-    candy: ['🍬', '🍭', '🍫', '🧁', '🎂', '🍰', '🍩', '🍪'],
-    heart: ['❤️', '💕', '💖', '💗', '💝', '💓', '🩷', '🫶']
+  const CONFIGS = {
+    flower: {
+      emojis:  ['🌸', '🌺', '🌷', '🌹', '💮', '🌼', '🏵️', '💐'],
+      colors:  ['#ff9ec4','#ffb3d1','#ffd6e8','#ff7eb8','#ffaad4','#ffe4f0','#ff69b4','#ffc0cb'],
+      glowColor: 'rgba(255,160,200,0.18)',
+    },
+    candy: {
+      emojis:  ['🍬', '🍭', '🍫', '🧁', '🍰', '🍩', '🍪', '🎂'],
+      colors:  ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8','#f06595','#74c0fc'],
+      glowColor: 'rgba(255,180,80,0.15)',
+    },
+    heart: {
+      emojis:  ['❤️', '💕', '💖', '💗', '💝', '💓', '🩷', '🫶'],
+      colors:  ['#ff4d6d','#ff758f','#ff8fa3','#ffb3c1','#ff0a54','#c9184a','#ff4d6d','#fb6f92'],
+      glowColor: 'rgba(255,80,120,0.18)',
+    },
   };
 
-  const emojis = EMOJIS[type] || EMOJIS.flower;
-  const COUNT = 45;
+  const cfg    = CONFIGS[type] || CONFIGS.flower;
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+  const W      = canvas.width  = window.innerWidth;
+  const H      = canvas.height = window.innerHeight;
 
-  function createParticle(delay) {
-    const wrap = document.createElement('div');
-    wrap.className = 'particle-wrap';
+  const GRAVITY    = 0.28;
+  const DRAG       = 0.992;
+  const TOTAL_MS   = 5800;
+  const startedAt  = performance.now();
 
-    const el = document.createElement('span');
-    el.className = 'particle';
-    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  // ── 预渲染 emoji 到离屏 canvas ──
+  const EMOJI_SIZE = 32;
+  const emojiCache = {};
+  function getEmojiCanvas(emoji) {
+    if (emojiCache[emoji]) return emojiCache[emoji];
+    const oc = document.createElement('canvas');
+    oc.width = oc.height = EMOJI_SIZE * 2;
+    const oc2 = oc.getContext('2d');
+    oc2.font = `${EMOJI_SIZE}px serif`;
+    oc2.textAlign = 'center';
+    oc2.textBaseline = 'middle';
+    oc2.fillText(emoji, EMOJI_SIZE, EMOJI_SIZE);
+    emojiCache[emoji] = oc;
+    return oc;
+  }
+  cfg.emojis.forEach(getEmojiCanvas);
 
-    const x = Math.random() * 100;
-    const size = 20 + Math.random() * 24;
-    const duration = 2.5 + Math.random() * 3;
-    const swayDuration = 1.5 + Math.random() * 2;
-    const swayAmt = Math.round(10 + Math.random() * 20);
+  // ── 粒子类 ──
+  class Particle {
+    constructor(x, y, isEmoji) {
+      this.x  = x;
+      this.y  = y;
+      this.isEmoji = isEmoji;
 
-    wrap.style.left = x + 'vw';
-    wrap.style.setProperty('--sway-amt', swayAmt + 'px');
-    wrap.style.animationDuration = swayDuration + 's';
-    wrap.style.animationDelay = delay + 's';
+      // 速度：扇形向上射出
+      const angle = (Math.random() * 160 + 10) * Math.PI / 180; // 10°~170°，向上半圆
+      const speed = 6 + Math.random() * 14;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = -Math.abs(Math.sin(angle)) * speed; // 确保向上
 
-    el.style.fontSize = size + 'px';
-    el.style.animationDuration = duration + 's';
-    el.style.animationDelay = delay + 's';
+      // 旋转
+      this.rot    = Math.random() * Math.PI * 2;
+      this.rotV   = (Math.random() - 0.5) * 0.28;
+      // 纸片翻转（scaleX 0→1→-1→1 循环）
+      this.flip   = Math.random() * Math.PI * 2;
+      this.flipV  = (Math.random() - 0.5) * 0.18;
 
-    wrap.appendChild(el);
-    document.body.appendChild(wrap);
+      if (isEmoji) {
+        this.emoji  = cfg.emojis[Math.floor(Math.random() * cfg.emojis.length)];
+        this.size   = 22 + Math.random() * 20;
+      } else {
+        this.color  = cfg.colors[Math.floor(Math.random() * cfg.colors.length)];
+        this.w      = 6 + Math.random() * 10;
+        this.h      = 4 + Math.random() * 6;
+      }
+
+      this.alpha  = 1;
+      this.life   = 1; // 1→0
+      this.decay  = 0.004 + Math.random() * 0.006;
+      this.dead   = false;
+    }
+
+    update() {
+      this.vx *= DRAG;
+      this.vy  = this.vy * DRAG + GRAVITY;
+      this.x  += this.vx;
+      this.y  += this.vy;
+      this.rot += this.rotV;
+      this.flip += this.flipV;
+      this.life -= this.decay;
+      // 出屏或生命耗尽
+      if (this.life <= 0 || this.y > H + 60) this.dead = true;
+      this.alpha = Math.max(0, this.life);
+    }
+
+    draw(ctx) {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rot);
+      const scaleX = Math.cos(this.flip); // 纸片翻转
+
+      if (this.isEmoji) {
+        const sz = this.size;
+        ctx.scale(scaleX, 1);
+        const ec = getEmojiCanvas(this.emoji);
+        ctx.drawImage(ec, -sz / 2, -sz / 2, sz, sz);
+      } else {
+        ctx.scale(scaleX, 1);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+      }
+      ctx.restore();
+    }
   }
 
-  for (let i = 0; i < COUNT; i++) {
-    const delay = Math.random() * 3;
-    createParticle(delay);
+  // ── 粒子池 ──
+  let particles = [];
+
+  // 发射一波
+  function burst(cx, cy, count) {
+    for (let i = 0; i < count; i++) {
+      const isEmoji = Math.random() < 0.28; // 28% emoji，其余彩色纸屑
+      const jx = cx + (Math.random() - 0.5) * 60;
+      const jy = cy + (Math.random() - 0.5) * 20;
+      particles.push(new Particle(jx, jy, isEmoji));
+    }
   }
+
+  // 预定发射波次
+  const waves = [
+    { t: 0,    cx: W * 0.5,  count: 60 },
+    { t: 180,  cx: W * 0.25, count: 50 },
+    { t: 180,  cx: W * 0.75, count: 50 },
+    { t: 420,  cx: W * 0.15, count: 40 },
+    { t: 420,  cx: W * 0.85, count: 40 },
+    { t: 700,  cx: W * 0.4,  count: 45 },
+    { t: 700,  cx: W * 0.6,  count: 45 },
+    { t: 1100, cx: W * 0.5,  count: 55 },
+    { t: 1600, cx: W * 0.3,  count: 35 },
+    { t: 1600, cx: W * 0.7,  count: 35 },
+    { t: 2200, cx: W * 0.5,  count: 40 },
+  ];
+  let waveIdx = 0;
+
+  // ── 主循环 ──
+  function tick(now) {
+    const elapsed = now - startedAt;
+
+    // 触发待发射波
+    while (waveIdx < waves.length && elapsed >= waves[waveIdx].t) {
+      const w = waves[waveIdx];
+      const cy = H * (0.55 + Math.random() * 0.25); // 从屏幕中下部射出
+      burst(w.cx, cy, w.count);
+      waveIdx++;
+    }
+
+    // 清空（透明背景不能用 clearRect 直接填色，要真正清空）
+    ctx.clearRect(0, 0, W, H);
+
+    // 轻微全屏光晕（随爆炸节奏）
+    if (elapsed < 2500) {
+      const glowAlpha = Math.max(0, 0.08 - elapsed / 2500 * 0.08);
+      ctx.fillStyle = cfg.glowColor.replace('0.18', String(glowAlpha));
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // 更新 + 绘制粒子
+    particles = particles.filter(p => !p.dead);
+    for (const p of particles) {
+      p.update();
+      p.draw(ctx);
+    }
+
+    if (elapsed < TOTAL_MS || particles.length > 0) {
+      requestAnimationFrame(tick);
+    }
+  }
+
+  requestAnimationFrame(tick);
 </script>
 </body>
 </html>

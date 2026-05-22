@@ -51,14 +51,29 @@ Yoyo 当前不以这些方向为主：
 
 ## ✨ 功能特点
 
+### 🏠 Yoyo 小屋
+
+全新的「小屋」模式，进入小屋时桌宠自动隐藏，关闭小屋后桌宠重新出现，两个 Yoyo 不再同时存在。
+
+- **道具热区交互**：食盆 / 浴盆 / 小床 / 玩具箱 / 摸摸，常态可见，需求低时脉冲提示
+- **自动场景切换**：根据时间、心情、体力、周末自动切换日常 / 夜晚 / 雨天 / 派对四个场景
+- **小屋设置面板**：右上角 ✦ 按钮折叠展开，统一管理场景和装饰
+- **换装系统**：👗 按钮打开衣橱，4 大分类（帽子/表情/衣服/发饰）共 16 款配件，亲密度解锁，emoji 叠层渲染无拼接感
+- **5 款小游戏**：🎮 按钮进入，打地鼠 / 接食物 / 猜心情 / 找不同 / 节奏拍，游戏结束 Yoyo 有对应情绪反应
+- **演唱会模式**：🎤 按钮触发 Let it Go 演唱会，冰雪女王造型 + 歌词字幕 + ❄️ 雪花粒子
+
+### 🔔 系统通知
+
+- **需求低推送**：饱腹 / 心情 / 体力 / 清洁任一低于 30 时推系统通知，点击直接打开小屋
+- **每日唤醒**：8:00–20:00 之间每天首次推一次「Yoyo 在等你」，30 分钟冷却
+- **Urgent 专属文案**：状态危急时推更紧迫的通知
+
 ### 🧠 三层行为引擎
-- **StateMachine 三层架构**：`globalMode`（全局模式）→ `actionState`（行为状态）→ `effects`（叠加特效），统一管理所有状态转换
+- **StateMachine 三层架构**：`globalMode`（全局模式）→ `actionState`（行为状态）→ `effects`（叠加特效）
 - **Utility AI 效用决策**：每 2 秒评估所有候选行为，评分流水线 `utilityFn → applyEmotionModifier → applyGrowthModifiers`
-- **互斥组管理**：movement / interaction / specialty / punish 四组互斥，`canTransition()` 自动判断
-- **统一锁管理 + 冷却同步**：`StateMachine.locks` 替代散落的 boolean 标志，菜单冷却实时同步
+- **互斥组管理**：movement / interaction / specialty / punish 四组互斥
 - **四维需求系统**：energy / boredom / hunger / playfulness 随时间自然衰减
-- **定时器编排优化**：延迟启动、错开周期，天气更新即时触发行为决策
-- **26 种动画状态**：行走、奔跑、跳跃、睡觉、吃东西、跳舞……栩栩如生
+- **26+ 种动画状态**：行走、奔跑、跳跃、睡觉、吃东西、跳舞……栩栩如生
 
 ### 💖 情感系统
 - **PAD 三维情感模型**（Pleasure-Arousal-Dominance）
@@ -94,10 +109,11 @@ Yoyo 当前不以这些方向为主：
 - **天气 + 时段问候**：早安 / 午好 / 晚安，随天气变化表情
 
 ### 🎆 特效系统
+- **撒花特效重制**：Canvas 物理模拟，11 波分批烟花式射出，emoji + 彩色纸屑混合，真实重力 + 纸片翻转
+- **分身术重制**：3 波错开飞散 → 弧线旋转漂浮 → 收拢成爱心阵型 → 主体比心 → 粉色粒子爆炸（5.2秒）
+- **法相天地重制（韩立结婴版）**：灵气漩涡蓄力 → 金丹爆闪破壳 → 元婴飘出上升 + 雷劫 + 金柱 → 元婴落回合体 + 冲击波（7秒）
 - 满屏飘落特效：花瓣🌸 / 糖果🍬 / 心心❤️
-- 法天象地巨大化特效（Lv.4 解锁，全屏放大 + 粒子爆发）
 - 旋转飞入启动动画（首次启动，3 圈旋转 + easeOut 着陆 + 拖尾粒子）
-- 分身术特效（签到连击/成就解锁触发）
 - 纪念日 / 升级时自动触发，浪漫满分
 
 ### 🔔 音效系统
@@ -209,7 +225,7 @@ codex-desktop-pet/
 │   ├── spritesheet.webp       # 原始精灵图
 │   └── spritesheet_expanded.webp  # 扩展精灵图（8×26格）
 ├── src/
-│   ├── modules/               # ES Module 架构（12个模块）
+│   ├── modules/               # ES Module 架构
 │   │   ├── core-state.js      # 共享状态与常量（所有模块的基础层）
 │   │   ├── state-machine.js   # 三层状态机引擎（globalMode/actionState/effects）
 │   │   ├── emotion-system.js  # PAD 情感模型 + 大五人格
@@ -222,9 +238,12 @@ codex-desktop-pet/
 │   │   ├── outfit-system.js   # 换装系统
 │   │   ├── render-engine.js   # Canvas 渲染引擎 + 辫子物理
 │   │   ├── startup-animation.js # 旋转飞入启动动画
-│   │   └── clone-system.js    # 分身术特效
+│   │   ├── relationship-system.js # 关系系统
+│   │   ├── companion-planner.js # 陪伴计划
+│   │   └── daily-memory.js    # 每日记忆
 │   ├── renderer.js            # 模块入口（初始化与编排）
-│   ├── main.js                # Electron 主进程（窗口/托盘/IPC）
+│   ├── main.js                # Electron 主进程入口（启动/装配）
+│   ├── main/                  # 主进程领域模块（Store/窗口/菜单/宠物/特效/天气/AI/系统）
 │   ├── preload.js             # IPC 桥接
 │   ├── index.html             # 宠物主窗口
 │   ├── effect.html            # 特效覆盖窗口（花瓣/糖果/心心）
@@ -237,6 +256,17 @@ codex-desktop-pet/
 ├── package.json
 └── README.md
 ```
+
+## 素材扩展约定
+
+本项目基于 Codex `hatch-pet` 的宠物素材流程，但运行时已经扩展为桌面陪伴应用：
+
+- `hatch-pet` 负责生成基础宠物、动作行和 QA。
+- 本项目负责 Electron 运行时、行为系统、多 sheet 组合和 look 套装切换。
+- 后续新增动作优先使用独立 action sheet，不再继续膨胀主 `spritesheet.webp`。
+- 后续换装必须生成完整 look sheet，不再支持自由装饰叠加。
+
+更多规则见 `docs/Asset-Runtime-Plan.md`。
 
 ---
 

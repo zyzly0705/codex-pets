@@ -3,6 +3,16 @@
   "displayName": "Yoyo · Gaga 形态",
   "description": "A special Gaga form for Yoyo, used as a short-lived work companion / surprise form rather than a fully separate main character. The current local spritesheet is a runnable placeholder and should be replaced by a higher-fidelity reference-matched atlas.",
   "spritesheetPath": "spritesheet.webp",
+  "sheets": {
+    "base": "spritesheet.webp"
+  },
+  "looks": {
+    "default": {
+      "name": "默认",
+      "spritesheetPath": "spritesheet.webp"
+    }
+  },
+  "defaultLook": "default",
   "asset": {
     "spritesheetPath": "spritesheet.webp",
     "cellWidth": 192,
@@ -177,11 +187,6 @@
       "frames": 8,
       "speed": 170
     }
-  },
-  "layers": {
-    "coveragePolicy": "best-effort",
-    "expectedColumns": 8,
-    "notes": "Optional layer spritesheets should match the base sheet dimensions when present."
   },
   "render": {
     "smoothing": false,

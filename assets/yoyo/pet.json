@@ -3,6 +3,21 @@
   "displayName": "Yoyo",
   "description": "A tiny Codex-style chibi school companion inspired by the reference portrait, with straight black bangs, a small top bun, navy vest, white shirt, and red bow.",
   "spritesheetPath": "spritesheet.webp",
+  "sheets": {
+    "base": "spritesheet.webp"
+  },
+  "looks": {
+    "default": {
+      "name": "默认",
+      "spritesheetPath": "spritesheet.webp"
+    },
+    "gaga": {
+      "name": "Gaga 形态",
+      "spritesheetPath": "../gugu-gaga/spritesheet.webp",
+      "description": "Yoyo's short-lived silly Gaga form."
+    }
+  },
+  "defaultLook": "default",
   "asset": {
     "spritesheetPath": "spritesheet.webp",
     "cellWidth": 192,
@@ -29,7 +44,7 @@
     "yawning": { "row": 12, "frames": 5, "fps": 3 },
     "eating": { "row": 13, "frames": 6, "fps": 5 },
     "dizzy": { "row": 14, "frames": 4, "fps": 6 },
-    "lookingAround": { "row": 15, "frames": 5, "fps": 3 },
+    "lookingAround": { "row": 15, "frames": 8, "fps": 3 },
     "swing": { "row": 16, "frames": 8, "speed": 200 },
     "digSand": { "row": 17, "frames": 8, "speed": 250 },
     "readBook": { "row": 18, "frames": 8, "speed": 300 },
@@ -47,14 +62,9 @@
     "sofaLying": { "row": 30, "frames": 8, "speed": 320 },
     "typingCompanion": { "row": 32, "frames": 8, "speed": 170 }
   },
-  "layers": {
-    "coveragePolicy": "best-effort",
-    "expectedColumns": 8,
-    "notes": "Current outfit layer spritesheets are legacy placeholders and are marked outdated for redesign. Do not treat the existing layer sheets as final visual assets."
-  },
   "artStatus": {
-    "outfitLayers": "outdated",
-    "notes": "Yoyo outfit assets need a full visual redesign before being treated as production-ready."
+    "looks": "default-plus-gaga-form",
+    "notes": "Looks are complete form sheets. Gaga is treated as a Yoyo form rather than a separate main character."
   },
   "render": {
     "smoothing": false,
