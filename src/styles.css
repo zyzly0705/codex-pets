@@ -93,6 +93,66 @@ body {
     /* 微笑嘴巴 */
     radial-gradient(ellipse at 8px 11px, #ff6b8a 2px, transparent 2px);
   border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+/* 微表情变体：通过 data-expr 属性驱动 */
+.bubble-avatar[data-expr="happy"]::after {
+  background:
+    radial-gradient(ellipse at 5px 6px, #4a3548 1.5px 1.5px, transparent 1.5px),
+    radial-gradient(ellipse at 11px 6px, #4a3548 1.5px 1.5px, transparent 1.5px),
+    /* 大弧形嘴 */
+    radial-gradient(ellipse at 8px 13px, #ff6b8a 2.5px, transparent 2.5px);
+}
+.bubble-avatar[data-expr="sparkle"]::after {
+  /* 星形眼用 ✦ emoji 替代，覆盖 ::after */
+  content: '✨';
+  background: none;
+  top: 3px; left: 4px;
+  width: auto; height: auto;
+  font-size: 14px;
+  line-height: 1;
+}
+.bubble-avatar[data-expr="heart"]::after {
+  content: '🥰';
+  background: none;
+  top: 3px; left: 3px;
+  width: auto; height: auto;
+  font-size: 14px;
+  line-height: 1;
+}
+.bubble-avatar[data-expr="sad"]::after {
+  background:
+    radial-gradient(ellipse at 5px 7px, #4a3548 1.5px, transparent 1.5px),
+    radial-gradient(ellipse at 11px 7px, #4a3548 1.5px, transparent 1.5px),
+    /* 下弧嘴（悲伤） */
+    radial-gradient(ellipse at 8px 9px, #ff6b8a 2px, transparent 2px);
+  /* 泪珠 */
+  box-shadow: 3px 9px 0 1px rgba(88, 190, 255, 0.7), 12px 9px 0 1px rgba(88, 190, 255, 0.7);
+}
+.bubble-avatar[data-expr="angry"]::after {
+  content: '😠';
+  background: none;
+  top: 3px; left: 3px;
+  width: auto; height: auto;
+  font-size: 14px;
+  line-height: 1;
+}
+.bubble-avatar[data-expr="sleepy"]::after {
+  content: '😴';
+  background: none;
+  top: 3px; left: 3px;
+  width: auto; height: auto;
+  font-size: 14px;
+  line-height: 1;
+}
+.bubble-avatar[data-expr="shy"]::after {
+  content: '🥺';
+  background: none;
+  top: 3px; left: 3px;
+  width: auto; height: auto;
+  font-size: 14px;
+  line-height: 1;
 }
 
 /* 气泡主体 */
@@ -168,6 +228,91 @@ body {
   pointer-events: auto;
   transform: scale(1) translateY(0);
   animation: feed-pulse 1.1s ease-in-out infinite;
+}
+
+/* 桌面照顾提示：只在需求下降时露出一个轻量入口 */
+.care-cue {
+  position: absolute;
+  right: 20px;
+  bottom: 80px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 180, 200, 0.54);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.96), rgba(255, 245, 249, 0.9) 62%, rgba(255, 222, 232, 0.9));
+  color: #9f3157;
+  cursor: pointer;
+  box-shadow:
+    0 5px 16px rgba(196, 92, 130, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  z-index: 11;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.84) translateY(5px);
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.care-cue.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+.care-cue.urgent {
+  border-color: rgba(238, 120, 112, 0.68);
+  box-shadow:
+    0 6px 18px rgba(214, 80, 92, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: care-cue-breathe 1.35s ease-in-out infinite;
+}
+
+.care-cue.pending {
+  opacity: 0.74;
+  transform: scale(0.94) translateY(1px);
+  pointer-events: none;
+}
+
+.care-cue-icon {
+  display: block;
+  font-size: 17px;
+  line-height: 30px;
+  text-align: center;
+}
+
+.care-cue::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 38px;
+  top: 50%;
+  max-width: 92px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #5b3a4e;
+  font-size: 10.5px;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(80, 40, 58, 0.14);
+  opacity: 0;
+  transform: translateY(-50%) translateX(4px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  pointer-events: none;
+}
+
+.care-cue:hover::after,
+.care-cue:focus-visible::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+@keyframes care-cue-breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.07) translateY(-2px); }
 }
 
 @keyframes feed-fly {

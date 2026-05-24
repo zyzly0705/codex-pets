@@ -1,0 +1,12 @@
+{
+  "id": "clone-heart",
+  "engine": "pixi-stage",
+  "version": 5,
+  "durationMs": 2100,
+  "cloneCount": 9,
+  "palette": {
+    "primary": "#ffd580",
+    "secondary": "#ff9f7a",
+    "accent": "#fff7cf"
+  }
+}

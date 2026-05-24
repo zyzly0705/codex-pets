@@ -1,0 +1,470 @@
+{
+  "sofaLying": [
+    {
+      "frame": 0,
+      "sourceFrame": 0,
+      "rect": {
+        "left": 20,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 6,
+        "minY": 11,
+        "maxX": 162,
+        "maxY": 106,
+        "width": 157,
+        "height": 96,
+        "count": 12365
+      },
+      "cellBox": {
+        "minX": 0,
+        "minY": 59,
+        "maxX": 191,
+        "maxY": 182,
+        "width": 192,
+        "height": 124,
+        "count": 20139
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/00.png"
+    },
+    {
+      "frame": 1,
+      "sourceFrame": 1,
+      "rect": {
+        "left": 183,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 0,
+        "minY": 12,
+        "maxX": 162,
+        "maxY": 106,
+        "width": 163,
+        "height": 95,
+        "count": 11730
+      },
+      "cellBox": {
+        "minX": 13,
+        "minY": 60,
+        "maxX": 191,
+        "maxY": 182,
+        "width": 179,
+        "height": 123,
+        "count": 18877
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/01.png"
+    },
+    {
+      "frame": 2,
+      "sourceFrame": 2,
+      "rect": {
+        "left": 347,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 0,
+        "minY": 16,
+        "maxX": 162,
+        "maxY": 106,
+        "width": 163,
+        "height": 91,
+        "count": 11455
+      },
+      "cellBox": {
+        "minX": 13,
+        "minY": 62,
+        "maxX": 191,
+        "maxY": 179,
+        "width": 179,
+        "height": 118,
+        "count": 18303
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/02.png"
+    },
+    {
+      "frame": 3,
+      "sourceFrame": 3,
+      "rect": {
+        "left": 510,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 0,
+        "minY": 14,
+        "maxX": 159,
+        "maxY": 106,
+        "width": 160,
+        "height": 93,
+        "count": 11060
+      },
+      "cellBox": {
+        "minX": 9,
+        "minY": 61,
+        "maxX": 191,
+        "maxY": 180,
+        "width": 183,
+        "height": 120,
+        "count": 18178
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/03.png"
+    },
+    {
+      "frame": 4,
+      "sourceFrame": 4,
+      "rect": {
+        "left": 673,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 8,
+        "minY": 16,
+        "maxX": 158,
+        "maxY": 106,
+        "width": 151,
+        "height": 91,
+        "count": 11508
+      },
+      "cellBox": {
+        "minX": 1,
+        "minY": 62,
+        "maxX": 191,
+        "maxY": 179,
+        "width": 191,
+        "height": 118,
+        "count": 19238
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/04.png"
+    },
+    {
+      "frame": 5,
+      "sourceFrame": 5,
+      "rect": {
+        "left": 837,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 7,
+        "minY": 24,
+        "maxX": 160,
+        "maxY": 107,
+        "width": 154,
+        "height": 84,
+        "count": 11447
+      },
+      "cellBox": {
+        "minX": 0,
+        "minY": 67,
+        "maxX": 191,
+        "maxY": 174,
+        "width": 192,
+        "height": 108,
+        "count": 18938
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/05.png"
+    },
+    {
+      "frame": 6,
+      "sourceFrame": 4,
+      "rect": {
+        "left": 673,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 8,
+        "minY": 16,
+        "maxX": 158,
+        "maxY": 106,
+        "width": 151,
+        "height": 91,
+        "count": 11508
+      },
+      "cellBox": {
+        "minX": 1,
+        "minY": 62,
+        "maxX": 191,
+        "maxY": 179,
+        "width": 191,
+        "height": 118,
+        "count": 19238
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/06.png"
+    },
+    {
+      "frame": 7,
+      "sourceFrame": 2,
+      "rect": {
+        "left": 347,
+        "top": 1178,
+        "width": 163,
+        "height": 123
+      },
+      "box": {
+        "minX": 0,
+        "minY": 16,
+        "maxX": 162,
+        "maxY": 106,
+        "width": 163,
+        "height": 91,
+        "count": 11455
+      },
+      "cellBox": {
+        "minX": 13,
+        "minY": 62,
+        "maxX": 191,
+        "maxY": 179,
+        "width": 179,
+        "height": 118,
+        "count": 18303
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/sofaLying/07.png"
+    }
+  ],
+  "swimming": [
+    {
+      "frame": 0,
+      "sourceFrame": 0,
+      "rect": {
+        "left": 20,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 6,
+        "minY": 13,
+        "maxX": 162,
+        "maxY": 110,
+        "width": 157,
+        "height": 98,
+        "count": 10228
+      },
+      "cellBox": {
+        "minX": 0,
+        "minY": 59,
+        "maxX": 191,
+        "maxY": 182,
+        "width": 192,
+        "height": 124,
+        "count": 16348
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/00.png"
+    },
+    {
+      "frame": 1,
+      "sourceFrame": 1,
+      "rect": {
+        "left": 183,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 15,
+        "minY": 11,
+        "maxX": 162,
+        "maxY": 110,
+        "width": 148,
+        "height": 100,
+        "count": 9603
+      },
+      "cellBox": {
+        "minX": 8,
+        "minY": 57,
+        "maxX": 191,
+        "maxY": 185,
+        "width": 184,
+        "height": 129,
+        "count": 15859
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/01.png"
+    },
+    {
+      "frame": 2,
+      "sourceFrame": 2,
+      "rect": {
+        "left": 347,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 0,
+        "minY": 20,
+        "maxX": 162,
+        "maxY": 110,
+        "width": 163,
+        "height": 91,
+        "count": 9206
+      },
+      "cellBox": {
+        "minX": 9,
+        "minY": 64,
+        "maxX": 191,
+        "maxY": 178,
+        "width": 183,
+        "height": 115,
+        "count": 14697
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/02.png"
+    },
+    {
+      "frame": 3,
+      "sourceFrame": 3,
+      "rect": {
+        "left": 510,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 14,
+        "minY": 17,
+        "maxX": 162,
+        "maxY": 110,
+        "width": 149,
+        "height": 94,
+        "count": 9059
+      },
+      "cellBox": {
+        "minX": 8,
+        "minY": 61,
+        "maxX": 191,
+        "maxY": 181,
+        "width": 184,
+        "height": 121,
+        "count": 14856
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/03.png"
+    },
+    {
+      "frame": 4,
+      "sourceFrame": 4,
+      "rect": {
+        "left": 673,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 0,
+        "minY": 16,
+        "maxX": 158,
+        "maxY": 110,
+        "width": 159,
+        "height": 95,
+        "count": 9453
+      },
+      "cellBox": {
+        "minX": 4,
+        "minY": 61,
+        "maxX": 191,
+        "maxY": 180,
+        "width": 188,
+        "height": 120,
+        "count": 15213
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/04.png"
+    },
+    {
+      "frame": 5,
+      "sourceFrame": 5,
+      "rect": {
+        "left": 837,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 10,
+        "minY": 11,
+        "maxX": 158,
+        "maxY": 113,
+        "width": 149,
+        "height": 103,
+        "count": 10287
+      },
+      "cellBox": {
+        "minX": 5,
+        "minY": 56,
+        "maxX": 191,
+        "maxY": 186,
+        "width": 187,
+        "height": 131,
+        "count": 16600
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/05.png"
+    },
+    {
+      "frame": 6,
+      "sourceFrame": 4,
+      "rect": {
+        "left": 673,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 0,
+        "minY": 16,
+        "maxX": 158,
+        "maxY": 110,
+        "width": 159,
+        "height": 95,
+        "count": 9453
+      },
+      "cellBox": {
+        "minX": 4,
+        "minY": 61,
+        "maxX": 191,
+        "maxY": 180,
+        "width": 188,
+        "height": 120,
+        "count": 15213
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/06.png"
+    },
+    {
+      "frame": 7,
+      "sourceFrame": 2,
+      "rect": {
+        "left": 347,
+        "top": 1357,
+        "width": 163,
+        "height": 126
+      },
+      "box": {
+        "minX": 0,
+        "minY": 20,
+        "maxX": 162,
+        "maxY": 110,
+        "width": 163,
+        "height": 91,
+        "count": 9206
+      },
+      "cellBox": {
+        "minX": 9,
+        "minY": 64,
+        "maxX": 191,
+        "maxY": 178,
+        "width": 183,
+        "height": 115,
+        "count": 14697
+      },
+      "output": "/Users/zhangyazhou/Downloads/work/codex-desktop-pet/assets-src/yoyo/frames/swimming/07.png"
+    }
+  ]
+}

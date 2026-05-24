@@ -3,6 +3,7 @@ import { stateMachine } from './state-machine.js';
 import { debugLog } from './debug-log.js';
 import { maybeEnhanceLine } from './ai-dialogue.js';
 import { recordDailyEvent } from './daily-memory.js';
+import { isPerformanceLocked } from './performance-script.js';
 
 function formatNewsBrief(items) {
   const normalizedItems = (items || [])
@@ -25,6 +26,7 @@ export async function checkDailyNewsBroadcast(force = false) {
   }
   if (!window.petApi?.getDailyNews) return;
   if (!force && stateMachine.isSleeping) return;
+  if (!force && isPerformanceLocked()) return;
 
   const now = new Date();
   const todayKey = `daily_news_${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}`;

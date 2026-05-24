@@ -47,7 +47,7 @@ function createTray(getMainWindow, openHome) {
     { label: '隐藏 Yoyo', click: () => { const win = getMainWindow(); if (win) win.hide(); } },
     { label: '打开 Yoyo 小屋', click: () => { if (openHome) openHome(); } },
     { type: 'separator' },
-    { label: '导入宠物...', click: () => { const win = getMainWindow(); if (win) win.webContents.send('menu-action', 'import'); } },
+    { label: '导入新形态...', click: () => { const win = getMainWindow(); if (win) win.webContents.send('menu-action', 'import'); } },
     { type: 'separator' },
     { label: '退出', click: () => { app.quit(); } }
   ]);
@@ -98,7 +98,7 @@ function buildAppearanceMenu({ currentForm, getMainWindow }) {
   };
 }
 
-function registerMenuIpc({ ipcMain, getData, getMainWindow, listPets, openHome, openSettings, triggerCloneEffect, triggerGiantEffect }) {
+function registerMenuIpc({ ipcMain, getData, getMainWindow, listPets, openHome, openSettings }) {
   ipcMain.on('menu-state:sync', (_event, state) => {
     if (state.dancing !== undefined) menuState.dancing = state.dancing;
     if (state.following !== undefined) menuState.following = state.following;
@@ -109,72 +109,38 @@ function registerMenuIpc({ ipcMain, getData, getMainWindow, listPets, openHome, 
     const petData = getData();
     const pets = listPets();
     const currentFormId = petData.currentFormId || petData.currentPetId || pets[0]?.id || 'yoyo';
-    const petSubmenu = pets.filter((pet) => pet.id !== 'gugu-gaga').map((pet) => ({
-      label: pet.displayName,
-      click: () => { getMainWindow().webContents.send('menu-action', `switch-pet:${pet.id}`); }
-    }));
-    petSubmenu.push({ type: 'separator' });
-    petSubmenu.push({ label: '导入新角色或形态...', click: () => { getMainWindow().webContents.send('menu-action', 'import'); } });
-
     const currentForm = pets.find((pet) => pet.id === currentFormId) || pets[0];
     const appearanceMenu = buildAppearanceMenu({ currentForm, getMainWindow });
-    const workMode = petData.settings.workMode || 'balanced';
-    const workModeMenu = {
-      label: '工作节奏',
+    const careMenu = {
+      label: '照顾一下',
       submenu: [
-        { label: `${workMode === 'focus' ? '✓ ' : ''}专注中`, click: () => { getMainWindow().webContents.send('menu-action', 'work-mode:focus'); } },
-        { label: `${workMode === 'balanced' ? '✓ ' : ''}轻松工作`, click: () => { getMainWindow().webContents.send('menu-action', 'work-mode:balanced'); } },
-        { label: `${workMode === 'overtime' ? '✓ ' : ''}加班中`, click: () => { getMainWindow().webContents.send('menu-action', 'work-mode:overtime'); } },
-        { label: `${workMode === 'wrapup' ? '✓ ' : ''}准备收工`, click: () => { getMainWindow().webContents.send('menu-action', 'work-mode:wrapup'); } },
-        { type: 'separator' },
-        { label: '现在提醒我休息', click: () => { getMainWindow().webContents.send('menu-action', 'manual-break'); } },
-        { label: '今天辛苦了', click: () => { getMainWindow().webContents.send('menu-action', 'end-of-day'); } },
+        { label: '喂饭', click: () => { getMainWindow().webContents.send('menu-action', 'care:feed'); } },
+        { label: '洗澡', click: () => { getMainWindow().webContents.send('menu-action', 'care:bath'); } },
+        { label: menuState.sleeping ? '叫醒她' : '让她休息', type: 'checkbox', checked: menuState.sleeping, click: () => { getMainWindow().webContents.send('menu-action', 'care:sleep'); } },
+        { label: '陪她玩一下', click: () => { getMainWindow().webContents.send('menu-action', 'care:play'); } },
+        { label: '摸摸', click: () => { getMainWindow().webContents.send('menu-action', 'care:pet'); } },
+      ]
+    };
+    const specialMenu = {
+      label: '特殊演出',
+      submenu: [
+        { label: '分身术', click: () => { getMainWindow().webContents.send('menu-action', 'special:clone'); } },
+        { label: '法相天地', click: () => { getMainWindow().webContents.send('menu-action', 'special:giant'); } },
       ]
     };
 
     const template = [
-      {
-        label: '陪我一下',
-        submenu: [
-          { label: '摸摸 Yoyo', click: () => { getMainWindow().webContents.send('action:pet'); } },
-          { label: menuState.following ? '别跟着我啦' : '让她跟着我', type: 'checkbox', checked: menuState.following, click: (item) => { getMainWindow().webContents.send('action:follow', item.checked); } },
-          { label: menuState.sleeping ? '叫醒 Yoyo' : '让她休息一下', type: 'checkbox', checked: menuState.sleeping, click: (item) => { getMainWindow().webContents.send('action:sleep', item.checked); } },
-        ]
-      },
-      { type: 'separator' },
-      workModeMenu,
-      appearanceMenu,
+      { label: '看看 Yoyo', click: () => { getMainWindow().webContents.send('menu-action', 'inspect-yoyo'); } },
+      careMenu,
+      specialMenu,
+      { label: '打开小屋', click: () => openHome() },
       { type: 'separator' },
       {
-        label: '小惊喜',
+        label: '设置',
         submenu: [
-          { label: '分身术', click: () => { triggerCloneEffect(); } },
-          { label: '法天象地', click: () => { triggerGiantEffect(); } },
-          { label: '给我打气', click: () => { getMainWindow().webContents.send('menu-action', 'cheer'); } },
-          { label: menuState.dancing ? '停下跳舞' : '让她跳会舞', type: 'checkbox', checked: menuState.dancing, click: (item) => { getMainWindow().webContents.send('action:dance', item.checked); } },
-          { label: '荡秋千', click: () => { getMainWindow().webContents.send('menu-action', 'swing'); } },
-          { type: 'separator' },
-          { label: '看会书', click: () => { getMainWindow().webContents.send('menu-action', 'read-book'); } },
-          { label: '陪我打字', click: () => { getMainWindow().webContents.send('menu-action', 'typing-companion'); } },
-          { label: '吹小风扇', click: () => { getMainWindow().webContents.send('menu-action', 'fan-cooling'); } },
-          { label: '吹空调', click: () => { getMainWindow().webContents.send('menu-action', 'air-conditioning'); } },
-          { label: '沙发躺一下', click: () => { getMainWindow().webContents.send('menu-action', 'sofa-lying'); } },
-          { label: '游泳玩水', click: () => { getMainWindow().webContents.send('menu-action', 'swimming'); } },
-        ]
-      },
-      {
-        label: '管理 Yoyo',
-        submenu: [
-          { label: 'Yoyo 小屋', click: () => openHome() },
           { label: '设置与成长', click: () => openSettings() },
-          { label: '切换形态', submenu: petSubmenu },
-        ]
-      },
-      { type: 'separator' },
-      {
-        label: '其他',
-        submenu: [
-          { label: '鞭打 Yoyo', click: () => { getMainWindow().webContents.send('action:whip'); } },
+          appearanceMenu,
+          { label: '导入新形态...', click: () => { getMainWindow().webContents.send('menu-action', 'import'); } },
           { type: 'separator' },
           { label: '退出 Yoyo', click: () => { app.quit(); } },
         ]

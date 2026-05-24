@@ -1,6 +1,6 @@
 {
   "name": "codex-desktop-pet",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A small Windows desktop pet app for Codex pet spritesheets.",
   "main": "src/main.js",
   "scripts": {
@@ -14,6 +14,10 @@
     "generate:dharma": "node scripts/add-dharma-giant-rows.js",
     "design:performance": "node scripts/design-performance-aseprite.js",
     "design:mini-scenes": "node scripts/design-mini-scenes-aseprite.js",
+    "design:yoyo-asset": "node scripts/prepare-yoyo-asset-run.js",
+    "design:yoyo-effects-video": "node scripts/prepare-yoyo-effect-video-run.js",
+    "design:yoyo-digsand-video": "node scripts/prepare-yoyo-digsand-video-run.js",
+    "import:digsand-strip": "node scripts/import-digsand-video-strip.js",
     "import:ai-scenes": "node scripts/import-ai-scene-strips.js",
     "import:reference-sheet": "node scripts/import-reference-sheet.js",
     "import:reference-strips": "node scripts/import-reference-action-strips.js",
@@ -21,7 +25,9 @@
     "export:aseprite": "node scripts/export-aseprite-assets.js",
     "build:pet-assets": "node scripts/build-pet-assets.js",
     "build:home-assets": "node scripts/build-home-assets.js",
+    "capture:home": "electron scripts/capture-home-scene.js",
     "audit:assets": "node scripts/audit-pet-assets.js",
+    "audit:yoyo-redesign": "node scripts/audit-yoyo-redesign.js --allow-pending",
     "scaffold:pet": "node scripts/scaffold-pet-package.js",
     "expand:codex-atlas": "node scripts/expand-codex-atlas-to-yoyo.js",
     "generate:gugu-gaga": "node scripts/generate-gugu-gaga-local-spritesheet.js",

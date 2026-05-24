@@ -21,7 +21,7 @@
       icon: 'bath',
       needKey: 'cleanliness',
       stateName: 'fanCooling',
-      homeScene: 'rainy',
+      homeScene: 'default',
       homeBubble: '清爽',
       desktopLine: '洗得香香的，Yoyo亮晶晶～',
       delta: { satiety: -1, cleanliness: 30, mood: 4, energy: -3, affection: 1.2 },
@@ -31,7 +31,7 @@
       icon: 'bed',
       needKey: 'energy',
       stateName: 'sleeping',
-      homeScene: 'night',
+      homeScene: 'default',
       homeBubble: '晚安',
       desktopLine: 'Yoyo眯一会儿，醒来继续陪你。',
       delta: { satiety: -4, cleanliness: -2, mood: 3, energy: 28, affection: 0.8 },
@@ -41,7 +41,7 @@
       icon: 'toy',
       needKey: 'mood',
       stateName: 'dancing',
-      homeScene: 'party',
+      homeScene: 'default',
       homeBubble: '再来',
       desktopLine: '嘿咻！Yoyo玩得超开心～',
       delta: { satiety: -5, cleanliness: -3, mood: 22, energy: -10, affection: 2 },
@@ -69,7 +69,7 @@
   const ROOM_SCENES = {
     default: {
       label: '日常小屋',
-      asset: '../assets/yoyo/home/room-stage-v2.webp',
+      asset: '../assets/yoyo/home/room-shell-clean-2d.webp',
     },
     night: {
       label: '夜晚小屋',

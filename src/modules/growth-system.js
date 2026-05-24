@@ -271,10 +271,15 @@ export function trackGrowthStat(stat, amount) {
 }
 
 function determineEvolutionPath() {
-  const stats = yoyoGrowth.pathStats || { interactionCount: 0, companionTime: 0, workTime: 0 };
-  const { interactionCount, companionTime, workTime } = stats;
-  if (interactionCount > companionTime && interactionCount > workTime) return 'active';
-  if (companionTime > interactionCount && companionTime > workTime) return 'gentle';
+  // 用真实互动行为决定进化路线：
+  // 爱抚摸 → active（小舞者）：喜欢肢体互动，Yoyo 变活跃
+  // 爱喂食 → gentle（小书虫）：喜欢照顾，Yoyo 变温柔
+  // 陪伴时长为主 → energy（小助手）：专注工作，Yoyo 变干练
+  const petScore = yoyoMemory.totalPetCount || 0;
+  const feedScore = yoyoMemory.totalFedCount || 0;
+  const workScore = Math.floor((yoyoGrowth.pathStats?.companionTime || 0) / 30);
+  if (petScore >= feedScore && petScore >= workScore) return 'active';
+  if (feedScore > petScore && feedScore >= workScore) return 'gentle';
   return 'energy';
 }
 

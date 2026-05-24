@@ -1,0 +1,94 @@
+{
+  "workflow": "yoyo-digsand-video-reference",
+  "version": 1,
+  "scope": "Prepare a high-frame video-reference rebuild for Yoyo digSand only.",
+  "actionId": "digSand",
+  "characterContract": [
+    "Yoyo is a human little girl and companion, never a dog, puppy, mascot animal, or generic pet.",
+    "Use the clean-2d Yoyo identity: black straight bangs, small top bun, childlike proportions, soft friendly face, navy-and-red outfit language.",
+    "The action must read as entering and exiting the ground through contact, occlusion, and body weight, not as a sticker floating over dust.",
+    "Keep full-body readability at the start and end; mid-action partial cover is allowed only when the authored foreground ground lip physically hides the lower body.",
+    "Avoid half-body-only references, floating busts, pasted faces, paw marks, collars, pet beds, pet bowls, animal semantics, and disconnected dust clouds."
+  ],
+  "sharedReferences": [
+    "assets-src/yoyo/identity/yoyo-character-master.png",
+    "assets/yoyo/spritesheet.webp",
+    "assets-src/yoyo/manifest.json",
+    "assets-src/yoyo/frames/digSand"
+  ],
+  "runtime": {
+    "state": "digSand",
+    "row": 17,
+    "sourceFrames": "assets-src/yoyo/frames/digSand",
+    "runtimeSpritesheet": "assets/yoyo/spritesheet.webp",
+    "stateEntry": "src/modules/core-state.js#STATES.digSand",
+    "behaviorEntry": "src/modules/behavior-engine.js#digSand",
+    "dialogueEntry": "src/modules/behavior-data.js#BEHAVIOR_DIALOGUE_CATALOG.digSand",
+    "renderer": "src/modules/render-engine.js"
+  },
+  "videoReference": {
+    "id": "digsand-ground-contact-reference",
+    "durationMs": 2400,
+    "fps": 12,
+    "targetFrames": 24,
+    "runtimeKeyframes": 8,
+    "canvas": { "width": 768, "height": 768 },
+    "promptFocus": [
+      "Full-body Yoyo crouches on a small soft indoor floor patch, presses both hands to the ground, and the floor opens into a rounded soil lip touching her feet.",
+      "Yoyo sinks downward with visible body weight: knees bend, shoulders lower, hair bun follows the vertical motion, and the ground lip overlaps the legs in front.",
+      "At the hidden midpoint, only a physically justified small top-of-head or hand hint may appear, surrounded by attached dirt rim and tiny dust puffs that touch the hole.",
+      "Yoyo pops back out through the same hole, hands push on the ground rim, then she returns to a stable full-body standing pose.",
+      "No animal digging, no paws, no pet tunnel, no floating half-body bust, no detached dust clouds."
+    ],
+    "phasePlan": [
+      { "frame": 0, "phase": "full-body crouch, both feet on ground" },
+      { "frame": 1, "phase": "hands touch ground, first attached dust" },
+      { "frame": 2, "phase": "lower legs pass behind foreground ground lip" },
+      { "frame": 3, "phase": "torso sinks, face still readable" },
+      { "frame": 4, "phase": "brief hidden beat, small top hint only if needed" },
+      { "frame": 5, "phase": "head and hands emerge through same rim" },
+      { "frame": 6, "phase": "full body pushes out, feet reconnect" },
+      { "frame": 7, "phase": "stable full-body recovery pose" }
+    ]
+  },
+  "extraction": {
+    "frameSelection": "Extract 24 evenly spaced reference frames at 12fps, then select 8 runtime keyframes matching the phase plan for the fixed 8-column Yoyo atlas.",
+    "rawVideoDir": "output/yoyo-digsand-video-runs/digSand/sources",
+    "referenceFramesDir": "output/yoyo-digsand-video-runs/digSand/frames/reference-24",
+    "runtimeFramesDir": "assets-src/yoyo/frames/digSand",
+    "processedDir": "output/yoyo-digsand-video-runs/digSand/processed",
+    "contactSheet": "output/yoyo-digsand-video-runs/digSand/qa/digsand-video-contact-sheet.png",
+    "runtimeContactSheet": "assets-src/yoyo/qa/animation-previews/digSand-contact.png"
+  },
+  "layers": [
+    {
+      "id": "ground-lip-front",
+      "role": "foreground-occluder",
+      "description": "Rounded soil/floor rim in front of Yoyo's legs during sink and emerge frames; this is the only reason partial body cover is allowed."
+    },
+    {
+      "id": "yoyo-full-body",
+      "role": "character",
+      "description": "Human full-body Yoyo with stable scale and vertical weight shift through the whole action."
+    },
+    {
+      "id": "attached-dust",
+      "role": "attached-effect",
+      "description": "Small hard-edged dust puffs touching the ground rim or hands; no detached floating clouds."
+    }
+  ],
+  "acceptanceGates": [
+    "Frames 0 and 7 are full-body, grounded Yoyo poses.",
+    "Any middle-frame partial cover is caused by the same-frame foreground ground lip, not by cropping the source image.",
+    "The ground rim touches Yoyo's feet, hands, or body in every sink/emerge frame.",
+    "Yoyo keeps the same human little girl identity and never reads as a dog, pet, or animal digger.",
+    "Scale stays stable across all 8 runtime frames; the body moves through the ground instead of floating above it.",
+    "Dust and dirt effects are attached to the ground contact area and do not become loose detached particles.",
+    "The selected 8 runtime frames are 192x208 transparent PNGs and rebuild row 17 of assets/yoyo/spritesheet.webp."
+  ],
+  "nonGoals": [
+    "Do not modify clone-heart, dharma-manifest, or their Pixi fullscreen timelines.",
+    "Do not create a full-room dig scene for the home view in this pass.",
+    "Do not replace Yoyo with a mascot, animal, or pet-like digging pose."
+  ]
+}

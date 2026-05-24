@@ -31,6 +31,47 @@ function rel(filePath) {
   return path.relative(repoRoot, filePath);
 }
 
+function normalizeFrameRef(ref, fallbackRow = 0) {
+  if (Array.isArray(ref)) {
+    return {
+      row: Number(ref[0] ?? fallbackRow),
+      frame: Number(ref[1] ?? 0),
+    };
+  }
+  if (ref && typeof ref === 'object') {
+    return {
+      row: Number(ref.row ?? fallbackRow),
+      frame: Number(ref.frame ?? ref.col ?? ref.column ?? 0),
+    };
+  }
+  return {
+    row: Number(fallbackRow),
+    frame: Number(ref ?? 0),
+  };
+}
+
+function collectFrameRefs(spec = {}) {
+  const fallbackRow = Number(spec.row ?? 0);
+  if (Array.isArray(spec.sequence)) {
+    return spec.sequence.map((item) => normalizeFrameRef(item, fallbackRow));
+  }
+  if (Array.isArray(spec.frameSequence)) {
+    return spec.frameSequence.map((item) => normalizeFrameRef(item, fallbackRow));
+  }
+  if (Array.isArray(spec.clips)) {
+    return spec.clips.flatMap((clip) => {
+      const row = Number(clip.row ?? fallbackRow);
+      const start = Number(clip.start ?? clip.frameStart ?? 0);
+      const frames = Number(clip.frames ?? spec.frames ?? 0);
+      if (!Number.isInteger(frames) || frames <= 0) return [{ row, frame: NaN }];
+      return Array.from({ length: frames }, (_, i) => ({ row, frame: start + i }));
+    });
+  }
+  const frames = Number(spec.frames);
+  if (!Number.isInteger(frames) || frames <= 0) return [];
+  return Array.from({ length: frames }, (_, frame) => ({ row: fallbackRow, frame }));
+}
+
 const warnings = [];
 
 async function auditPet(petDir) {
@@ -49,7 +90,12 @@ async function auditPet(petDir) {
   const spritesheetFile = manifest.spritesheetPath || asset.spritesheetPath || 'spritesheet.webp';
   const spritesheetPath = path.join(petDir, spritesheetFile);
   const stateEntries = Object.entries(states);
-  const maxStateRow = stateEntries.reduce((max, [, spec]) => Math.max(max, Number(spec.row || 0)), 0);
+  const frameRefsByState = Object.fromEntries(
+    stateEntries.map(([name, spec]) => [name, collectFrameRefs(spec)])
+  );
+  const maxStateRow = Object.values(frameRefsByState)
+    .flat()
+    .reduce((max, ref) => Math.max(max, Number(ref.row || 0)), 0);
 
   if (!cellWidth || !cellHeight || !columns) {
     fail('asset.cellWidth, asset.cellHeight, and asset.columns must be positive numbers');
@@ -86,11 +132,14 @@ async function auditPet(petDir) {
   }
 
   for (const [name, spec] of stateEntries) {
-    const row = Number(spec.row);
-    const frames = Number(spec.frames);
-    if (!Number.isInteger(row) || row < 0) fail(`state ${name} has invalid row ${spec.row}`);
-    if (!Number.isInteger(frames) || frames <= 0) fail(`state ${name} has invalid frames ${spec.frames}`);
-    if (frames > baseCols) fail(`state ${name} needs ${frames} frames but base has ${baseCols} columns`);
+    const refs = frameRefsByState[name] || [];
+    if (refs.length === 0) fail(`state ${name} has no drawable frames`);
+    for (const ref of refs) {
+      if (!Number.isInteger(ref.row) || ref.row < 0) fail(`state ${name} has invalid row ${ref.row}`);
+      if (!Number.isInteger(ref.frame) || ref.frame < 0) fail(`state ${name} has invalid frame ${ref.frame}`);
+      if (ref.row > maxStateRow) fail(`state ${name} references row ${ref.row} beyond max state row ${maxStateRow}`);
+      if (ref.frame >= baseCols) fail(`state ${name} references frame ${ref.frame} but base has ${baseCols} columns`);
+    }
   }
 
   const layerFiles = fs.readdirSync(petDir)

@@ -1,0 +1,650 @@
+{
+  "action": "swimming",
+  "cell": {
+    "width": 192,
+    "height": 208
+  },
+  "generatedAt": "2026-05-23T03:12:27.636Z",
+  "frames": [
+    {
+      "frame": "00.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "01.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "02.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 115
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "03.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "04.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "05.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "06.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "07.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 115
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "08.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "09.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "10.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "11.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "12.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 115
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "13.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "14.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    },
+    {
+      "frame": "15.png",
+      "character": {
+        "box": {
+          "x": 18,
+          "y": 70,
+          "width": 156,
+          "height": 116
+        },
+        "anchors": {
+          "face": {
+            "x": 88,
+            "y": 102
+          },
+          "bodyCenter": {
+            "x": 103,
+            "y": 136
+          },
+          "hips": {
+            "x": 110,
+            "y": 154
+          },
+          "feet": {
+            "x": 133,
+            "y": 166
+          }
+        }
+      },
+      "scene": {
+        "poolBounds": {
+          "x": 22,
+          "y": 118,
+          "width": 148,
+          "height": 66
+        },
+        "waterline": {
+          "y": 142
+        }
+      }
+    }
+  ]
+}

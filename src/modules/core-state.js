@@ -8,6 +8,8 @@ export const canvas = document.getElementById('petCanvas');
 export const ctx = canvas ? canvas.getContext('2d') : null;
 export const bubble = document.getElementById('bubble');
 export const bubbleText = bubble ? bubble.querySelector('.bubble-text') : null;
+export const bubbleAvatar = bubble ? bubble.querySelector('.bubble-avatar') : null;
+export const careCue = document.getElementById('care-cue');
 export const feedBtn = document.getElementById('feed-btn');
 
 // ===== 默认素材常量 =====
@@ -16,38 +18,38 @@ export const CELL_W = 192;
 export const CELL_H = 208;
 
 export const STATES = {
-  idle: { row: 0, frames: 6, fps: 4 },
+  idle: { row: 0, frames: 6, fps: 4, loop: 'pingpong' },
   runningRight: { row: 1, frames: 8, fps: 8 },
   runningLeft: { row: 2, frames: 8, fps: 8 },
-  waving: { row: 3, frames: 4, fps: 4 },
-  jumping: { row: 4, frames: 5, fps: 7 },
+  waving: { row: 3, frames: 4, fps: 4, loop: 'pingpong' },
+  jumping: { row: 4, frames: 5, fps: 7, loop: 'pingpong' },
   failed: { row: 5, frames: 8, fps: 4 },
-  waiting: { row: 6, frames: 6, fps: 3 },
-  bashful: { row: 7, frames: 6, speed: 250 },
-  review: { row: 8, frames: 6, fps: 4 },
+  waiting: { row: 6, frames: 6, fps: 3, loop: 'pingpong' },
+  bashful: { row: 7, frames: 6, speed: 250, loop: 'pingpong' },
+  review: { row: 8, frames: 6, fps: 4, loop: 'pingpong' },
   climbing: { row: 9, frames: 6, fps: 5 },
-  perching: { row: 10, frames: 4, fps: 3 },
-  petting: { row: 11, frames: 4, fps: 4 },
-  yawning: { row: 12, frames: 5, fps: 3 },
-  eating: { row: 13, frames: 6, fps: 5 },
-  dizzy: { row: 14, frames: 4, fps: 6 },
-  lookingAround: { row: 15, frames: 5, fps: 3 },
-  swing: { row: 16, frames: 8, speed: 200 },
-  swimming: { row: 27, frames: 8, speed: 210 },
+  perching: { row: 10, frames: 4, fps: 3, loop: 'pingpong' },
+  petting: { row: 11, frames: 4, fps: 4, loop: 'pingpong' },
+  yawning: { row: 12, frames: 5, fps: 3, loop: 'pingpong' },
+  eating: { row: 13, frames: 6, fps: 5, loop: 'pingpong' },
+  dizzy: { row: 14, frames: 4, fps: 6, loop: 'pingpong' },
+  lookingAround: { row: 15, frames: 8, fps: 3, loop: 'pingpong' },
+  swing: { row: 16, frames: 16, speed: 115, clips: [{ row: 16, frames: 8 }, { row: 37, frames: 8 }] },
+  swimming: { row: 27, frames: 16, speed: 120, clips: [{ row: 27, frames: 8 }, { row: 39, frames: 8 }] },
   digSand: { row: 17, frames: 8, speed: 250 },
-  readBook: { row: 18, frames: 8, speed: 300 },
-  watchTV: { row: 19, frames: 8, speed: 350 },
-  fanCooling: { row: 26, frames: 8, speed: 180 },
-  sleeping: { row: 20, frames: 8, speed: 400 },
+  readBook: { row: 18, frames: 8, speed: 300, loop: 'pingpong' },
+  watchTV: { row: 19, frames: 8, speed: 350, loop: 'pingpong' },
+  fanCooling: { row: 26, frames: 16, speed: 110, clips: [{ row: 26, frames: 8 }, { row: 38, frames: 8 }] },
+  sleeping: { row: 20, frames: 8, speed: 400, loop: 'pingpong' },
   dancing: { row: 21, frames: 8, speed: 220 },
   crying: { row: 22, frames: 8, speed: 250 },
   gifting: { row: 23, frames: 8, speed: 200 },
   stretching: { row: 24, frames: 8, speed: 300 },
   clapping: { row: 25, frames: 8, speed: 150 },
   whip: { row: 28, frames: 8, speed: 160 },
-  airConditioning: { row: 29, frames: 8, speed: 220 },
-  sofaLying: { row: 30, frames: 8, speed: 320 },
-  typingCompanion: { row: 32, frames: 8, speed: 170 },
+  airConditioning: { row: 29, frames: 16, speed: 120, clips: [{ row: 29, frames: 8 }, { row: 40, frames: 8 }] },
+  sofaLying: { row: 30, frames: 16, speed: 150, clips: [{ row: 30, frames: 8 }, { row: 41, frames: 8 }] },
+  typingCompanion: { row: 32, frames: 8, speed: 170, loop: 'pingpong' },
 };
 
 export const WEATHER_CODES = new Map([
@@ -61,6 +63,12 @@ export const WEATHER_CODES = new Map([
 
 export const FEED_SCALE_DURATION = 600;
 export const FEED_SCALE_MAX = 1.3;
+export const BREATH_PERIOD = 3500;
+export const BREATH_AMPLITUDE = 0.012;
+export const GLANCE_DURATION = 700;
+export const GLANCE_MAX_OFFSET = 1.5;
+export const GLANCE_INTERVAL_MIN = 4000;
+export const GLANCE_INTERVAL_MAX = 8000;
 export const CLICK_MAX_DIST = 5;
 export const CLICK_MAX_TIME = 300;
 
@@ -71,7 +79,9 @@ export const state = {
   currentPet: null,
   currentFormId: null,
   sprite: new Image(),
+  spriteSheets: {},
   activeSpritesheetPath: '',
+  currentLookId: 'default',
   outfitLayerImages: [],
 
   // 动画
@@ -90,6 +100,12 @@ export const state = {
 
   // 喂食缩放
   feedScaleStart: 0,
+
+  // 视线追踪
+  glanceStart: 0,
+  glanceDirectionX: 0,
+  glanceDirectionY: 0,
+  nextGlanceAt: 0,
 
   // 音频
   audioCtx: null,
@@ -139,6 +155,8 @@ export const state = {
   currentBehavior: null,
   behaviorEndTime: 0,
   manualEffectUntil: 0,
+  activePerformance: null,
+  performanceExpression: null,
 
   // 季节粒子
   seasonalParticles: [],
@@ -162,8 +180,8 @@ export const state = {
   // 记忆小时
   lastMemoryHour: new Date().getHours(),
 
-  // 换装
-  currentOutfit: { hair: 'none', hat: 'none', accessory: 'none', clothes: 'none', face: 'none' },  // 由 initCoreState() 填入
+  // 完整造型
+  currentOutfit: { look: 'default' },  // 由 initCoreState() 填入
 
   // 启动安静窗口
   startupQuietUntil: 0,
@@ -365,11 +383,7 @@ export function initCoreState() {
   state.shownTips     = get('shownTips')  ?? [];
   state.currentFormId = 'yoyo';
   state.currentOutfit = {
-    hair: 'none',
-    hat: 'none',
-    accessory: 'none',
-    clothes: 'none',
-    face: 'none',
+    look: 'default',
     ...(get('outfit') ?? {}),
   };
   set('currentFormId', 'yoyo');
@@ -481,6 +495,9 @@ export class SpeechQueue {
     const msg = this.queue.shift();
     this._currentMsg = null;
 
+    // 台词开始时触发微表情钩子
+    fireSpeechStartHook(msg.text);
+
     // 显示气泡（降级：如果 DOM 结构不完整则用旧方式）
     if (!bubbleText) {
       bubble.textContent = msg.text;
@@ -559,6 +576,11 @@ export class SpeechQueue {
 }
 
 export const speechQueue = new SpeechQueue();
+
+// 台词开始显示时的钩子，render-engine 注册后用于驱动微表情
+let _onSpeechStartHook = null;
+export function registerSpeechStartHook(fn) { _onSpeechStartHook = fn; }
+export function fireSpeechStartHook(text) { _onSpeechStartHook?.(text); }
 
 export function say(text, duration = 5200) {
   speechQueue.replaceBehavior(text, duration);

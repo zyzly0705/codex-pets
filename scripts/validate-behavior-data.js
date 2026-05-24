@@ -5,6 +5,7 @@ const root = join(__dirname, '..');
 const engine = readFileSync(join(root, 'src/modules/behavior-engine.js'), 'utf8');
 const core = readFileSync(join(root, 'src/modules/core-state.js'), 'utf8');
 const data = readFileSync(join(root, 'src/modules/behavior-data.js'), 'utf8');
+const taxonomy = readFileSync(join(root, 'src/modules/action-taxonomy.js'), 'utf8');
 
 function extractObjectKeys(source, marker) {
   const start = source.indexOf(marker);
@@ -33,11 +34,18 @@ const dialogueNames = new Set(extractObjectKeys(data, 'export const BEHAVIOR_DIA
 const catalogNames = new Set(extractObjectKeys(data, 'export const BEHAVIOR_DIALOGUE_CATALOG'));
 const learningKeys = new Set(extractObjectKeys(data, 'export const LEARNING_CONFIG'));
 const feedbackTypes = new Set(extractObjectKeys(data, 'feedbackImpact'));
+const taxonomyNames = new Set(extractObjectKeys(taxonomy, 'export const ACTION_TAXONOMY'));
+const taxonomyEntries = [...taxonomy.matchAll(/^\s*([A-Za-z0-9_]+)\s*:\s*{([^}]+)}/gm)]
+  .map((match) => ({ name: match[1], body: match[2] }));
+const taxonomyLayerNames = new Set(
+  [...taxonomy.matchAll(/^\s*([A-Z]+):\s*'([^']+)'/gm)].map((match) => match[1])
+);
 
 const errors = [];
 
 for (const name of behaviorNames) {
   if (!metaNames.has(name)) errors.push(`Missing BEHAVIOR_META entry for ${name}`);
+  if (!taxonomyNames.has(name)) errors.push(`Missing ACTION_TAXONOMY entry for ${name}`);
 }
 
 for (const state of behaviorStates) {
@@ -62,6 +70,12 @@ for (const key of ['feedbackWindowMs', 'historyLimit', 'weightMin', 'weightMax',
 
 for (const type of ['pet', 'feed', 'manual', 'drag', 'whip', 'interrupt']) {
   if (!feedbackTypes.has(type)) errors.push(`Missing learning feedback type ${type}`);
+}
+
+for (const entry of taxonomyEntries) {
+  const layer = entry.body.match(/layer:\s*PRODUCT_LAYERS\.([A-Z]+)/)?.[1];
+  if (!layer) errors.push(`ACTION_TAXONOMY.${entry.name} is missing product layer`);
+  else if (!taxonomyLayerNames.has(layer)) errors.push(`ACTION_TAXONOMY.${entry.name} uses unknown product layer ${layer}`);
 }
 
 if (errors.length > 0) {

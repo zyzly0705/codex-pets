@@ -55,6 +55,12 @@ export const BEHAVIOR_DIALOGUES = {
     '蹦恰恰蹦恰恰～Yoyo跳得好不好？',
     'Yoyo最会跳舞了！妈妈快夸我～',
   ],
+  cheer: [
+    '妈妈加油！Yoyo给你打气！',
+    '耶！今天也要顺顺利利～',
+    '好棒好棒！Yoyo举手欢呼一下！',
+    '妈妈看这里，Yoyo在给你鼓劲呢～',
+  ],
   sleep: [
     '呼…Yoyo好困呀…就睡一小会儿…',
     '眼皮好重…zzZ…Yoyo睡着啦…',
@@ -63,6 +69,27 @@ export const BEHAVIOR_DIALOGUES = {
     '休息一下下…妈妈别走开哦…呼…',
   ],
   hungry: HUNGER_MESSAGES,
+  neglectProtest: [
+    '妈妈～Yoyo在这里！',
+    '妈妈你忘记Yoyo了吗？',
+    '哼，妈妈不理Yoyo！',
+    '妈妈！妈妈！看看Yoyo嘛～',
+    '妈妈～Yoyo等好久了！',
+  ],
+  sadnessLinger: [
+    '还有点委屈嘛...',
+    '哼...才不原谅...才不原谅...',
+    '妈妈刚才凶Yoyo了...',
+    '（偷偷擦眼泪）',
+    'Yoyo还在生气呢...',
+  ],
+  joySpill: [
+    '妈妈妈妈！Yoyo好开心！',
+    '嘿嘿嘿嘿！今天好好玩呀！',
+    '妈妈也要开心开心！',
+    '太快乐了！Yoyo要飞起来啦！',
+    '嘻嘻！妈妈看Yoyo开心的样子！',
+  ],
 };
 
 export const BEHAVIOR_DIALOGUE_CATALOG = {
@@ -199,6 +226,7 @@ export const BEHAVIOR_META = {
   overtimeReminder: { pool: 'care', category: 'care', urgent: true, growthPaths: ['energy'] },
   wpsCompanion: { pool: 'care', category: 'care', growthPaths: ['energy'] },
   dance: { pool: 'growth', category: 'play', growthPaths: ['active'] },
+  cheer: { pool: 'growth', category: 'social', growthPaths: ['active', 'energy'] },
   climb: { pool: 'growth', category: 'movement', growthPaths: ['active'] },
   swing: { pool: 'growth', category: 'play', minLevel: 2, growthPaths: ['active'] },
   digSand: { pool: 'growth', category: 'play', minLevel: 2, growthPaths: ['active'] },
@@ -211,12 +239,16 @@ export const BEHAVIOR_META = {
   giftFlower: { pool: 'rare', category: 'gift', rarity: 'rare', minLevel: 2, growthPaths: ['gentle'] },
   giftCandy: { pool: 'rare', category: 'gift', rarity: 'rare', minLevel: 2 },
   giant: { pool: 'rare', category: 'special', rarity: 'legendary', minLevel: 4, growthPaths: ['active', 'energy'] },
+  neglectProtest: { pool: 'care', category: 'social', growthPaths: ['energy'] },
+  sadnessLinger: { pool: 'care', category: 'social' },
+  joySpill: { pool: 'growth', category: 'play', growthPaths: ['active', 'gentle'] },
 };
 
 export const NEED_EFFECTS = {
   walk: { boredom: -10, playfulness: -5 },
   wave: { boredom: -8 },
   dance: { boredom: -25, energy: 5 },
+  cheer: { boredom: -12, playfulness: -4 },
   sleep: { energy: -45 },
   climb: { boredom: -30 },
   lookAround: { boredom: -12 },

@@ -215,6 +215,36 @@ petNeeds.boredom = Math.min(100, petNeeds.boredom + 0.05);  // 改为 0.1
 
 ### 替换步骤
 
+1. **推荐方式：准备源帧**：用 Aseprite、Photoshop、Krita、Clip Studio 等设计工具导出透明 PNG 帧到 `assets-src/yoyo/frames/<action-name>/`。
+
+2. **运行素材管线**：
+
+```bash
+npm run build:pet-assets
+```
+
+默认模式会把缺失的源帧从现有 `assets/yoyo/spritesheet.webp` 回填，方便一次只替换一个动作。
+
+严格检查模式：
+
+```bash
+npm run build:pet-assets -- --strict
+```
+
+严格模式要求 `assets-src/yoyo/manifest.json` 里声明的每个有效帧都存在，适合正式验收。
+
+3. **检查输出**：
+
+```text
+assets/yoyo/spritesheet.webp
+assets-src/yoyo/qa/contact-sheet.png
+assets-src/yoyo/qa/build-report.json
+```
+
+`contact-sheet.png` 用来快速看每一行动作是否错位、空白、表情穿帮；`build-report.json` 记录哪些帧来自设计源、哪些帧回填自旧 spritesheet。
+
+### 手动宠物包替换步骤
+
 1. **准备素材**：制作符合规范的 spritesheet（8列×N行，每帧192×208）
 
 2. **创建宠物目录**：
@@ -309,10 +339,8 @@ Yoyo 的素材不能全部用同一种做法。当前项目里同时存在角色
 
 | 文件 | 处理建议 |
 |------|----------|
-| `spritesheet_face_*.webp` | 表情换装已禁用，动态五官也关闭；除非恢复整张表情 spritesheet 方案，否则可归档 |
-| `spritesheet_before_ascension_row.webp` | 历史备份，可移出 assets 或删除 |
-| `spritesheet_before_typing_row.webp` | 历史备份，可移出 assets 或删除 |
-| `spritesheet_before_dharma_rows.webp` | 法相天地分阶段素材生成前的历史备份，可移出 assets 或删除 |
+| `looks/<look>/spritesheet.webp` | 完整造型素材。服装、帽子、翅膀等大型外观变化必须烘焙进 look sheet |
+| `actions/<group>.webp` | 独立动作素材。新增动作优先放这里，不再扩展主大图 |
 
 正式打包已排除 `*backup*`、`*before_generated*` 等文件，但本地仓库体积仍会受这些备份影响。清理前建议先确认是否还需要回滚素材。
 

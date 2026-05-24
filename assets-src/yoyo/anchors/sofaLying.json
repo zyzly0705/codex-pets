@@ -1,0 +1,698 @@
+{
+  "action": "sofaLying",
+  "cell": {
+    "width": 192,
+    "height": 208
+  },
+  "generatedAt": "2026-05-23T03:12:27.285Z",
+  "frames": [
+    {
+      "frame": "00.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 62,
+          "width": 176,
+          "height": 120
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "01.png",
+      "character": {
+        "box": {
+          "x": 13,
+          "y": 62,
+          "width": 176,
+          "height": 120
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "02.png",
+      "character": {
+        "box": {
+          "x": 13,
+          "y": 62,
+          "width": 176,
+          "height": 118
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "03.png",
+      "character": {
+        "box": {
+          "x": 9,
+          "y": 62,
+          "width": 176,
+          "height": 120
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "04.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 62,
+          "width": 176,
+          "height": 118
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "05.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 67,
+          "width": 176,
+          "height": 108
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "06.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 62,
+          "width": 176,
+          "height": 118
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "07.png",
+      "character": {
+        "box": {
+          "x": 13,
+          "y": 62,
+          "width": 176,
+          "height": 118
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "08.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 62,
+          "width": 176,
+          "height": 118
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "09.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 67,
+          "width": 176,
+          "height": 108
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "10.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 62,
+          "width": 176,
+          "height": 118
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "11.png",
+      "character": {
+        "box": {
+          "x": 9,
+          "y": 62,
+          "width": 176,
+          "height": 120
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "12.png",
+      "character": {
+        "box": {
+          "x": 13,
+          "y": 62,
+          "width": 176,
+          "height": 118
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "13.png",
+      "character": {
+        "box": {
+          "x": 13,
+          "y": 62,
+          "width": 176,
+          "height": 120
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "14.png",
+      "character": {
+        "box": {
+          "x": 8,
+          "y": 62,
+          "width": 176,
+          "height": 120
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    },
+    {
+      "frame": "15.png",
+      "character": {
+        "box": {
+          "x": 13,
+          "y": 62,
+          "width": 176,
+          "height": 120
+        },
+        "anchors": {
+          "bodyCenter": {
+            "x": 86,
+            "y": 122
+          },
+          "hips": {
+            "x": 112,
+            "y": 139
+          },
+          "feet": {
+            "x": 150,
+            "y": 149
+          },
+          "face": {
+            "x": 63,
+            "y": 102
+          }
+        }
+      },
+      "scene": {
+        "bodyRestBounds": {
+          "x": 10,
+          "y": 70,
+          "width": 172,
+          "height": 104
+        },
+        "cushionBounds": {
+          "x": 7,
+          "y": 122,
+          "width": 176,
+          "height": 49
+        }
+      }
+    }
+  ]
+}

@@ -10,14 +10,14 @@ const NEEDS = SHARED.NEEDS || [
 
 const CARE_ACTIONS = SHARED.CARE_ACTIONS || {
   feed: { label: '喂饭', icon: 'food', stateName: 'eating', homeScene: 'default', homeBubble: '吃饱啦' },
-  bath: { label: '洗澡', icon: 'bath', stateName: 'fanCooling', homeScene: 'rainy', homeBubble: '清爽' },
-  sleep: { label: '休息', icon: 'bed', stateName: 'sleeping', homeScene: 'night', homeBubble: '晚安' },
-  play: { label: '陪玩', icon: 'toy', stateName: 'dancing', homeScene: 'party', homeBubble: '再来' },
+  bath: { label: '洗澡', icon: 'bath', stateName: 'fanCooling', homeScene: 'default', homeBubble: '清爽' },
+  sleep: { label: '休息', icon: 'bed', stateName: 'sleeping', homeScene: 'default', homeBubble: '晚安' },
+  play: { label: '陪玩', icon: 'toy', stateName: 'dancing', homeScene: 'default', homeBubble: '再来' },
   pet: { label: '摸摸', icon: 'heart', stateName: 'petting', homeScene: 'default', homeBubble: '贴贴' },
 };
 
 const ROOM_SCENES = SHARED.ROOM_SCENES || {
-  default: { label: '日常小屋', asset: '../assets/yoyo/home/room-stage-v2.webp' },
+  default: { label: '日常小屋', asset: '../assets/yoyo/home/room-shell-clean-2d.webp' },
   night: { label: '夜晚小屋', asset: '../assets/yoyo/home/room-stage-night.webp' },
   rainy: { label: '雨天小屋', asset: '../assets/yoyo/home/room-stage-rainy.webp' },
   party: { label: '派对小屋', asset: '../assets/yoyo/home/room-stage-party.webp' },
@@ -47,6 +47,8 @@ const HOME_STATES = SHARED.HOME_STATES || {
   heartSign: { row: 38, frames: 8, fps: 5 },
   nascentSoul: { row: 39, frames: 8, fps: 4 },
 };
+
+const HOME_SCENE = window.YOYO_HOME_SCENE || { objects: [], interactions: {} };
 
 const DECOR_DEFAULTS = {
   fairyLights: true,
@@ -94,6 +96,10 @@ const els = {
   shell: document.querySelector('.home-shell'),
   roomStage: document.querySelector('.room-stage'),
   roomArt: document.getElementById('room-art'),
+  decorLayer: document.getElementById('home-decor-layer'),
+  sceneObjectsBack: document.getElementById('home-scene-objects-back'),
+  sceneObjectsFront: document.getElementById('home-scene-objects-front'),
+  actionComposite: document.getElementById('home-action-composite'),
   canvas: document.getElementById('home-pet'),
   bubble: document.getElementById('life-bubble-text'),
   tip: document.getElementById('home-tip'),
@@ -118,6 +124,7 @@ let homePrefs = { selectedScene: '', decor: { ...DECOR_DEFAULTS }, visitCount: 0
 let effectTimer = 0;
 let uiIdleTimer = 0;
 let homeAnimation = { stateName: 'idle', action: '', until: 0, startedAt: 0 };
+let sceneObjectTimers = [];
 
 function pct(value) {
   return Math.round(Math.max(0, Math.min(100, Number(value) || 0)));
@@ -163,6 +170,8 @@ function defaultRoomScene(life = lastLife) {
 }
 
 function roomSceneForAction(action) {
+  if (HOME_SCENE.actionRooms?.[action]?.roomScene) return HOME_SCENE.actionRooms[action].roomScene;
+  if (HOME_SCENE.roomLayout?.baseAsset) return 'default';
   return CARE_ACTIONS[action]?.homeScene || '';
 }
 
@@ -179,9 +188,11 @@ function setRoomScene(sceneName) {
   for (const button of els.sceneButtons) {
     button.classList.toggle('active', button.dataset.roomScene === nextScene);
   }
-  if (nextScene === activeRoomScene) return;
   activeRoomScene = nextScene;
-  const nextUrl = new URL(ROOM_SCENES[nextScene].asset, window.location.href).href;
+  const actionRoom = HOME_SCENE.actionRooms?.[currentScene()];
+  const sceneAsset = actionRoom?.asset || ROOM_SCENES[nextScene].asset;
+  const nextUrl = new URL(sceneAsset, window.location.href).href;
+  if (els.roomArt.src === nextUrl) return;
   els.roomArt.classList.add('switching');
   els.roomArt.onload = () => {
     els.roomArt.classList.remove('switching');
@@ -231,9 +242,159 @@ function setRoomEffect(action, duration = 5200) {
   }
 }
 
+function clearSceneObjectTimers() {
+  for (const timer of sceneObjectTimers) clearTimeout(timer);
+  sceneObjectTimers = [];
+}
+
+function renderHomeSceneObjects() {
+  if (!els.sceneObjectsBack || !els.sceneObjectsFront) return;
+  els.sceneObjectsBack.innerHTML = '';
+  els.sceneObjectsFront.innerHTML = '';
+  renderHomeDecor();
+  for (const object of HOME_SCENE.objects || []) {
+    const backNode = createSceneObjectNode(object, false);
+    const frontNode = createSceneObjectNode(object, true);
+
+    els.sceneObjectsBack.appendChild(backNode);
+    els.sceneObjectsFront.appendChild(frontNode);
+  }
+}
+
+function renderHomeDecor() {
+  if (!els.decorLayer) return;
+  els.decorLayer.innerHTML = '';
+  for (const decor of HOME_SCENE.decor || []) {
+    const img = document.createElement('img');
+    img.className = 'home-decor-item';
+    img.dataset.decorId = decor.id;
+    img.src = new URL(decor.src, window.location.href).href;
+    img.alt = decor.label || '';
+    const slot = decor.slot || {};
+    for (const [key, value] of Object.entries(slot)) {
+      const cssName = `--decor-${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`;
+      img.style.setProperty(cssName, String(value));
+    }
+    els.decorLayer.appendChild(img);
+  }
+}
+
+function createSceneObjectNode(object, foreground) {
+  const node = document.createElement('div');
+  node.className = `scene-object ${object.className || ''}`.trim();
+  node.dataset.objectId = object.id;
+  node.dataset.action = object.action || '';
+  node.dataset.state = object.initialState || 'idle';
+  node.dataset.layerGroup = foreground ? 'front' : 'back';
+  node.dataset.slot = object.slot || object.action || '';
+  node.setAttribute('aria-label', object.label || object.id);
+
+  const slot = HOME_SCENE.roomLayout?.slots?.[object.slot || object.action];
+  if (slot) {
+    for (const [key, value] of Object.entries(slot)) {
+      const cssName = `--slot-${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`;
+      node.style.setProperty(cssName, String(value));
+    }
+  }
+
+  for (const layer of object.layers || []) {
+    const isFront = layer.id === 'front';
+    if (isFront !== foreground) continue;
+    const img = document.createElement('img');
+    img.className = `scene-object-layer ${layer.className || ''}`.trim();
+    img.dataset.layerId = layer.id;
+    img.src = new URL(layer.src, window.location.href).href;
+    img.alt = '';
+    node.appendChild(img);
+  }
+
+  return node;
+}
+
+function sceneObjectNode(objectId) {
+  return [
+    ...Array.from(els.sceneObjectsBack?.querySelectorAll?.(`[data-object-id="${objectId}"]`) || []),
+    ...Array.from(els.sceneObjectsFront?.querySelectorAll?.(`[data-object-id="${objectId}"]`) || []),
+  ];
+}
+
+function setSceneObjectState(objectId, state) {
+  for (const node of sceneObjectNode(objectId)) {
+    node.dataset.state = state || 'idle';
+  }
+}
+
+function resetSceneObjectStates() {
+  for (const object of HOME_SCENE.objects || []) {
+    setSceneObjectState(object.id, object.initialState || 'idle');
+  }
+  delete els.roomStage.dataset.interactionPhase;
+}
+
+function stopSceneObjectInteraction() {
+  clearSceneObjectTimers();
+  resetSceneObjectStates();
+}
+
+function startSceneObjectInteraction(action, duration = 0) {
+  clearSceneObjectTimers();
+  const interaction = HOME_SCENE.interactions?.[action];
+  if (!interaction) {
+    resetSceneObjectStates();
+    return;
+  }
+
+  resetSceneObjectStates();
+  for (const phase of interaction.phases || []) {
+    const timer = setTimeout(() => {
+      setSceneObjectState(interaction.objectId, phase.state);
+      if (phase.stagePhase) els.roomStage.dataset.interactionPhase = phase.stagePhase;
+    }, Math.max(0, Number(phase.at) || 0));
+    sceneObjectTimers.push(timer);
+  }
+
+  const resetDelay = Number(interaction.resetDelay || duration || 0);
+  if (resetDelay > 0) {
+    sceneObjectTimers.push(setTimeout(() => {
+      setSceneObjectState(interaction.objectId, 'idle');
+    }, resetDelay));
+  }
+}
+
+function applyPetPlacement(scene) {
+  const placement = HOME_SCENE.petPlacements?.[scene] || HOME_SCENE.petPlacements?.default;
+  if (!placement) return;
+  els.roomStage.style.setProperty('--pet-left', placement.left);
+  els.roomStage.style.setProperty('--pet-bottom', placement.bottom);
+  els.roomStage.style.setProperty('--pet-scale', String(placement.scale));
+}
+
+function applyActionComposite(scene) {
+  const composite = HOME_SCENE.actionComposites?.[scene];
+  if (!els.actionComposite) return;
+  const hasActionRoom = Boolean(HOME_SCENE.actionRooms?.[scene]);
+  els.roomStage.dataset.hasActionRoom = hasActionRoom ? 'true' : 'false';
+  els.roomStage.dataset.hasComposite = composite && !hasActionRoom ? 'true' : 'false';
+  els.roomStage.dataset.compositeObject = composite?.objectId || '';
+  if (composite?.src) {
+    const nextSrc = new URL(composite.src, window.location.href).href;
+    if (els.actionComposite.src !== nextSrc) els.actionComposite.src = nextSrc;
+  }
+  const object = (HOME_SCENE.objects || []).find((item) => item.id === composite?.objectId);
+  const slot = object ? HOME_SCENE.roomLayout?.slots?.[object.slot || object.action] : null;
+  if (slot) {
+    for (const [key, value] of Object.entries(slot)) {
+      const cssName = `--composite-${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`;
+      els.actionComposite.style.setProperty(cssName, String(value));
+    }
+  }
+}
+
 function renderScene(life = lastLife) {
   const scene = currentScene(life);
   els.roomStage.dataset.scene = scene;
+  applyActionComposite(scene);
+  applyPetPlacement(scene || 'default');
   setRoomScene(roomSceneForLife(life));
   for (const hotspot of els.hotspots) {
     hotspot.classList.toggle('active', Boolean(scene && hotspot.dataset.action === scene));
@@ -247,6 +408,7 @@ function drawPet(now = performance.now()) {
   if (homeAnimation.until && Date.now() > homeAnimation.until) {
     homeAnimation = { stateName: 'idle', action: '', until: 0, startedAt: now };
     setRoomEffect('');
+    stopSceneObjectInteraction();
     renderScene();
   }
   const stateName = HOME_STATES[homeAnimation.stateName] ? homeAnimation.stateName : 'idle';
@@ -264,6 +426,7 @@ function startHomeAnimation(stateName = 'idle', action = '', duration = 5200) {
     startedAt: performance.now(),
   };
   setRoomEffect(action, duration);
+  startSceneObjectInteraction(action, duration);
   renderScene();
 }
 
@@ -473,6 +636,8 @@ async function care(action) {
 
 sprite.onload = () => drawPet();
 sprite.src = new URL('../assets/yoyo/home/yoyo-home-sheet.webp', window.location.href).href;
+
+renderHomeSceneObjects();
 
 for (const scene of Object.values(ROOM_SCENES)) {
   const img = new Image();

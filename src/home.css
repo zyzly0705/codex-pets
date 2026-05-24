@@ -16,6 +16,7 @@
   --rose: #d6687d;
   --yellow: #d7a33a;
   --purple: #946bbb;
+  --home-yoyo-grade: saturate(0.82) contrast(0.9) brightness(1.04) sepia(0.035);
 }
 
 * {
@@ -67,7 +68,7 @@ button {
   width: 100%;
   height: 100%;
   object-fit: fill;
-  image-rendering: pixelated;
+  image-rendering: auto;
   transition: opacity 300ms var(--ease-out);
   user-select: none;
   -webkit-user-drag: none;
@@ -83,6 +84,220 @@ button {
   inset: 0;
   z-index: 4;
   pointer-events: none;
+}
+
+.home-decor-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.home-decor-item {
+  position: absolute;
+  left: var(--decor-left, auto);
+  right: var(--decor-right, auto);
+  bottom: var(--decor-bottom, auto);
+  top: var(--decor-top, auto);
+  z-index: var(--decor-z-index, 4);
+  width: var(--decor-width, auto);
+  height: auto;
+  image-rendering: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.room-stage[data-has-composite="true"] .home-decor-item {
+  opacity: 0.55;
+}
+
+.room-stage[data-composite-object="bathTub"] .home-decor-item[data-decor-id="tvGameToys"],
+.room-stage[data-composite-object="toyBox"] .home-decor-item[data-decor-id="wallSoftFurnishing"],
+.room-stage[data-composite-object="foodBowl"] .home-decor-item[data-decor-id="wallSoftFurnishing"] {
+  opacity: 0;
+}
+
+.home-scene-objects {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scene-objects-back {
+  z-index: 5;
+}
+
+.scene-objects-front {
+  z-index: 7;
+}
+
+.scene-object {
+  position: absolute;
+  left: var(--slot-left, auto);
+  right: var(--slot-right, auto);
+  bottom: var(--slot-bottom, auto);
+  top: var(--slot-top, auto);
+  width: var(--slot-width, auto);
+  height: var(--slot-height, auto);
+  z-index: var(--slot-z-index, auto);
+  image-rendering: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 240ms var(--spring), filter 240ms ease;
+}
+
+.room-stage[data-scene=""] .scene-object[data-action="play"],
+.room-stage[data-scene=""] .scene-object[data-action="pet"],
+.room-stage[data-scene="feed"] .scene-object[data-action="feed"],
+.room-stage[data-scene="bath"] .scene-object[data-action="bath"],
+.room-stage[data-scene="play"] .scene-object[data-action="play"],
+.room-stage[data-scene="pet"] .scene-object[data-action="pet"] {
+  opacity: 1;
+}
+
+.scene-object-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: auto;
+  opacity: 0;
+  transition: opacity 180ms ease, transform 260ms var(--spring);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.scene-object-layer[data-layer-id="back"] {
+  opacity: 1;
+}
+
+.food-bowl-object {
+  height: calc(var(--slot-width, 126px) * 0.75);
+  transform-origin: 50% 78%;
+  transition: transform 240ms var(--spring), filter 240ms ease;
+}
+
+.bath-tub-object {
+  height: calc(var(--slot-width, 205px) * 0.75);
+  transform-origin: 50% 78%;
+  transition: transform 240ms var(--spring), filter 240ms ease;
+}
+
+.sleep-bed-object {
+  height: calc(var(--slot-width, 340px) * 0.66);
+  transform-origin: 50% 80%;
+  transition: transform 240ms var(--spring), filter 240ms ease;
+}
+
+.toy-box-object {
+  height: var(--slot-width, 190px);
+  transform-origin: 50% 82%;
+  transition: transform 240ms var(--spring), filter 240ms ease;
+}
+
+.heart-spot-object {
+  transform: translateX(-50%);
+  height: calc(var(--slot-width, 124px) * 0.9);
+  transform-origin: 50% 80%;
+  transition: opacity 240ms ease, transform 240ms var(--spring), filter 240ms ease;
+}
+
+.food-bowl-object[data-state="full"] .food-bowl-meal-full {
+  opacity: 1;
+  transform: translateY(-4px);
+}
+
+.food-bowl-object[data-state="eating"] .food-bowl-meal-low {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.food-bowl-object[data-state="done"] {
+  filter: saturate(0.92) brightness(0.98);
+}
+
+.room-stage[data-scene="feed"] .food-bowl-object {
+  transform: translateY(-5px) scale(1.05);
+  filter: drop-shadow(0 12px 14px rgba(72, 45, 34, 0.24));
+}
+
+.bath-tub-object[data-state="ready"] .bath-tub-water,
+.bath-tub-object[data-state="bathing"] .bath-tub-water,
+.bath-tub-object[data-state="done"] .bath-tub-water {
+  opacity: 0;
+}
+
+.bath-tub-object[data-state="bathing"] .bath-tub-bubbles,
+.bath-tub-object[data-state="done"] .bath-tub-bubbles {
+  opacity: 0.68;
+  animation: bathObjectBubbles 900ms ease-in-out infinite;
+}
+
+.bath-tub-object[data-state="ready"] .bath-tub-front,
+.bath-tub-object[data-state="bathing"] .bath-tub-front,
+.bath-tub-object[data-state="done"] .bath-tub-front {
+  opacity: 0;
+}
+
+.room-stage[data-scene="bath"] .bath-tub-object {
+  transform: translateY(-5px) scale(1.04);
+  filter: drop-shadow(0 14px 16px rgba(34, 75, 90, 0.24));
+}
+
+.sleep-bed-object[data-state="open"] .sleep-bed-blanket,
+.sleep-bed-object[data-state="resting"] .sleep-bed-blanket,
+.sleep-bed-object[data-state="done"] .sleep-bed-blanket {
+  opacity: 0;
+}
+
+.sleep-bed-object[data-state="resting"] .sleep-bed-front,
+.sleep-bed-object[data-state="done"] .sleep-bed-front {
+  opacity: 0;
+}
+
+.sleep-bed-object[data-state="resting"] .sleep-bed-blanket {
+  animation: sleepBlanketBreath 1.8s ease-in-out infinite;
+}
+
+.room-stage[data-scene="sleep"] .sleep-bed-object {
+  transform: translateY(-4px) scale(1.02);
+  filter: drop-shadow(0 14px 18px rgba(77, 45, 70, 0.2));
+}
+
+.toy-box-object[data-state="ready"] .toy-box-toys,
+.toy-box-object[data-state="playing"] .toy-box-toys,
+.toy-box-object[data-state="done"] .toy-box-toys {
+  opacity: 0.92;
+}
+
+.toy-box-object[data-state="playing"] .toy-box-toys {
+  animation: toyBurst 780ms var(--spring) infinite;
+}
+
+.room-stage[data-scene="play"] .toy-box-object {
+  transform: translateY(-6px) scale(1.06);
+  filter: drop-shadow(0 13px 14px rgba(60, 45, 34, 0.22));
+}
+
+.heart-spot-object[data-state="ready"],
+.heart-spot-object[data-state="petting"],
+.heart-spot-object[data-state="done"] {
+  opacity: 1;
+}
+
+.heart-spot-object[data-state="ready"] .heart-spot-pulse,
+.heart-spot-object[data-state="petting"] .heart-spot-pulse,
+.heart-spot-object[data-state="done"] .heart-spot-pulse,
+.heart-spot-object[data-state="ready"] .heart-spot-front,
+.heart-spot-object[data-state="petting"] .heart-spot-front,
+.heart-spot-object[data-state="done"] .heart-spot-front {
+  opacity: 1;
+}
+
+.heart-spot-object[data-state="petting"] .heart-spot-pulse {
+  animation: heartPulseObject 920ms var(--spring) infinite;
 }
 
 .room-effects::before,
@@ -117,6 +332,11 @@ button {
     radial-gradient(circle at 70% 64%, rgba(190, 234, 250, 0.7) 0 8px, transparent 9px),
     radial-gradient(circle at 82% 32%, rgba(236, 255, 255, 0.72) 0 4px, transparent 5px);
   animation: bathBubbles 1.35s ease-in-out infinite;
+}
+
+.room-stage[data-composite-object="bathTub"] .room-effects::before {
+  opacity: 0;
+  animation: none;
 }
 
 .room-stage[data-effect="sleep"] .room-effects::before {
@@ -187,27 +407,131 @@ button {
 
 .pet-zone {
   position: absolute;
-  left: 50%;
-  bottom: 114px;
+  left: var(--pet-left, 50%);
+  bottom: var(--pet-bottom, 104px);
   z-index: 6;
   display: grid;
   justify-items: center;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(var(--pet-scale, 0.82));
+  transform-origin: 50% 100%;
+  transition: left 420ms var(--spring), bottom 420ms var(--spring), transform 420ms var(--spring);
+}
+
+.pet-zone::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 94px;
+  height: 19px;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at center, rgba(73, 47, 35, 0.34) 0 44%, rgba(73, 47, 35, 0.14) 55%, transparent 72%);
+  filter: blur(1.4px);
+  transform: translateX(-50%) scaleX(1.22);
+  opacity: 0.9;
 }
 
 #home-pet {
   width: 248px;
   height: 269px;
   image-rendering: pixelated;
-  filter: drop-shadow(0 16px 18px rgba(28, 48, 44, 0.22));
-  transition: filter 0.4s ease;
+  opacity: 0.96;
+  filter: var(--home-yoyo-grade) drop-shadow(0 12px 12px rgba(40, 38, 34, 0.18));
+  transition: opacity 180ms ease, filter 0.4s ease;
+}
+
+.home-sleep-pose {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  display: block;
+  width: 260px;
+  height: auto;
+  image-rendering: auto;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  filter: var(--home-yoyo-grade) drop-shadow(0 11px 10px rgba(40, 38, 34, 0.16));
+  transition: opacity 180ms ease;
+}
+
+.room-stage[data-scene="sleep"] #home-pet {
+  opacity: 0;
+}
+
+.room-stage[data-scene="sleep"] .home-sleep-pose {
+  opacity: 0.98;
+  animation: sleepBreath 1.8s ease-in-out infinite;
+}
+
+.home-action-composite {
+  position: absolute;
+  left: var(--composite-left, auto);
+  right: var(--composite-right, auto);
+  bottom: var(--composite-bottom, auto);
+  top: var(--composite-top, auto);
+  z-index: 7;
+  display: block;
+  width: var(--composite-width, 360px);
+  height: auto;
+  image-rendering: auto;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 14px 16px rgba(34, 24, 24, 0.22));
+  transition: opacity 180ms ease, transform 240ms var(--spring);
+}
+
+.room-stage[data-has-composite="true"] .home-action-composite {
+  opacity: 0.98;
+}
+
+.room-stage[data-scene="sleep"][data-has-composite="true"] .home-action-composite {
+  animation: sleepBreath 1.8s ease-in-out infinite;
+}
+
+.room-stage[data-has-composite="true"] .pet-zone,
+.room-stage[data-composite-object="foodBowl"] .food-bowl-object,
+.room-stage[data-composite-object="sleepBed"] .sleep-bed-object,
+.room-stage[data-composite-object="bathTub"] .bath-tub-object,
+.room-stage[data-composite-object="toyBox"] .toy-box-object,
+.room-stage[data-composite-object="heartSpot"] .heart-spot-object {
+  opacity: 0;
 }
 
 /* 护理动作时给宠物加发光 */
-.room-stage[data-effect="feed"] #home-pet { filter: drop-shadow(0 16px 18px rgba(28, 48, 44, 0.22)) drop-shadow(0 0 14px rgba(255, 210, 80, 0.4)); }
-.room-stage[data-effect="bath"] #home-pet { filter: drop-shadow(0 16px 18px rgba(28, 48, 44, 0.22)) drop-shadow(0 0 14px rgba(100, 200, 240, 0.38)); }
-.room-stage[data-effect="play"] #home-pet { filter: drop-shadow(0 16px 18px rgba(28, 48, 44, 0.22)) drop-shadow(0 0 16px rgba(200, 130, 240, 0.38)); }
-.room-stage[data-effect="pet"] #home-pet  { filter: drop-shadow(0 16px 18px rgba(28, 48, 44, 0.22)) drop-shadow(0 0 14px rgba(255, 140, 170, 0.44)); }
+.room-stage[data-effect="feed"] #home-pet { filter: var(--home-yoyo-grade) drop-shadow(0 12px 12px rgba(40, 38, 34, 0.18)) drop-shadow(0 0 10px rgba(255, 210, 80, 0.28)); }
+.room-stage[data-effect="bath"] #home-pet { filter: var(--home-yoyo-grade) drop-shadow(0 12px 12px rgba(40, 38, 34, 0.18)) drop-shadow(0 0 10px rgba(100, 200, 240, 0.28)); }
+.room-stage[data-effect="play"] #home-pet { filter: var(--home-yoyo-grade) drop-shadow(0 12px 12px rgba(40, 38, 34, 0.18)) drop-shadow(0 0 12px rgba(200, 130, 240, 0.3)); }
+.room-stage[data-effect="pet"] #home-pet  { filter: var(--home-yoyo-grade) drop-shadow(0 12px 12px rgba(40, 38, 34, 0.18)) drop-shadow(0 0 10px rgba(255, 140, 170, 0.32)); }
+
+.room-stage[data-scene="feed"][data-interaction-phase="approach"] #home-pet {
+  animation: feedApproach 520ms ease-out both;
+}
+
+.room-stage[data-interaction-phase="active"] #home-pet {
+  animation: feedNibble 760ms ease-in-out infinite;
+}
+
+.room-stage[data-scene="bath"][data-interaction-phase="active"] #home-pet {
+  animation: bathBob 1.1s ease-in-out infinite;
+}
+
+.room-stage[data-scene="sleep"][data-interaction-phase="active"] #home-pet {
+  animation: none;
+}
+
+.room-stage[data-scene="play"][data-interaction-phase="active"] #home-pet {
+  animation: playBounce 820ms var(--spring) infinite;
+}
+
+.room-stage[data-scene="pet"][data-interaction-phase="active"] #home-pet {
+  animation: petHappy 920ms var(--spring) infinite;
+}
+
+.room-stage[data-interaction-phase="satisfied"] #home-pet {
+  animation: feedSatisfied 820ms var(--spring) both;
+}
 
 .room-hotspot {
   position: absolute;
@@ -954,6 +1278,112 @@ button {
   100% {
     opacity: 0;
     transform: translateY(-18px) scale(1.08);
+  }
+}
+
+@keyframes feedApproach {
+  0% {
+    transform: translateY(8px) scale(0.98);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes feedNibble {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  45% {
+    transform: translateY(3px) rotate(-1.5deg);
+  }
+}
+
+@keyframes feedSatisfied {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(-8px) scale(1.04);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bathObjectBubbles {
+  0%, 100% {
+    transform: translateY(4px) scale(0.96);
+    opacity: 0.72;
+  }
+  50% {
+    transform: translateY(-5px) scale(1.03);
+    opacity: 1;
+  }
+}
+
+@keyframes bathBob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes sleepBreath {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(2px) scale(1.015);
+  }
+}
+
+@keyframes playBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  45% {
+    transform: translateY(-10px) rotate(-2deg);
+  }
+}
+
+@keyframes petHappy {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-7px) scale(1.035);
+  }
+}
+
+@keyframes sleepBlanketBreath {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes toyBurst {
+  0%, 100% {
+    transform: translateY(3px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-2deg);
+  }
+}
+
+@keyframes heartPulseObject {
+  0%, 100% {
+    transform: translateY(0) scale(0.94);
+    opacity: 0.78;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.08);
+    opacity: 1;
   }
 }
 

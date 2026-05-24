@@ -16,6 +16,8 @@ import { initBehaviorDebugPanel } from './modules/behavior-debug-panel.js';
 import { initRelationship, relationshipEvent, maybeSpeakRelationshipStageEvent } from './modules/relationship-system.js';
 import { initCompanionPlanner } from './modules/companion-planner.js';
 import { initDailyMemory, getStartupMemoryLine } from './modules/daily-memory.js';
+import { adoptManualEffect } from './modules/performance-script.js';
+import { initLifeDesktop } from './modules/life-desktop.js';
 
 // ===== 一次性 localStorage → Store 数据迁移 =====
 function migrateFromLocalStorage() {
@@ -123,8 +125,23 @@ window.petApi.onBusyReminder(() => {
 if (window.petApi && window.petApi.onManualEffect) {
   window.petApi.onManualEffect((data = {}) => {
     const duration = Number(data.duration || 0);
-    state.manualEffectUntil = duration > 0 ? Date.now() + duration : 0;
+    if (!adoptManualEffect(data.type, duration)) {
+      state.manualEffectUntil = duration > 0 ? Date.now() + duration : 0;
+    }
     state.lastInteractionTime = Date.now();
+  });
+}
+
+if (window.petApi && window.petApi.onLifeCareFeedback) {
+  window.petApi.onLifeCareFeedback((data = {}) => {
+    const duration = 5200;
+    if (data.stateName) {
+      setState(data.stateName);
+      state.manualEffectUntil = Date.now() + duration;
+    }
+    state.lastInteractionTime = Date.now();
+    say(data.message || 'Yoyo收到照顾啦～', duration);
+    trackFeatureUsed(`life:${data.action || 'care'}`);
   });
 }
 
@@ -143,6 +160,7 @@ async function init() {
   initRelationship();
   initCompanionPlanner();
   initDailyMemory();
+  initLifeDesktop();
 
   // 4. 用 store 中的设置覆盖运行时状态
   const settings = get('settings');

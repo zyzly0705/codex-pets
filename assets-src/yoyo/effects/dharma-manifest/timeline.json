@@ -1,0 +1,12 @@
+{
+  "id": "dharma-manifest",
+  "engine": "pixi-stage",
+  "version": 5,
+  "durationMs": 4100,
+  "palette": {
+    "background": "#070914",
+    "seal": "#ffd36f",
+    "lightning": "#fff2bc",
+    "spark": "#c9f8ff"
+  }
+}

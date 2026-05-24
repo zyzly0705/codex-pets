@@ -4,6 +4,7 @@ import { incrementAchievementStat, trackFeatureUsed } from './growth-system.js';
 import { stateMachine } from './state-machine.js';
 import { sayWithAi } from './ai-dialogue.js';
 import { recordDailyEvent } from './daily-memory.js';
+import { isPerformanceLocked } from './performance-script.js';
 
 // ===== 季节微粒子系统 =====
 export const SEASON_PARTICLES = {
@@ -208,7 +209,7 @@ export function checkWeatherReminders(weatherData) {
     state.weatherReminderCount++;
   }
 
-  if (msg) {
+  if (msg && !isPerformanceLocked()) {
     setTimeout(() => {
       state.currentBehavior = 'weatherReminder';
       state.behaviorEndTime = Date.now() + 6000;

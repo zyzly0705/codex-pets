@@ -1,0 +1,430 @@
+{
+  "manifest": "assets-src/yoyo/manifest.json",
+  "outputSpritesheet": "assets/yoyo/spritesheet.webp",
+  "outputPreview": "assets-src/yoyo/qa/contact-sheet.png",
+  "strict": true,
+  "scanAlpha": true,
+  "rows": [
+    {
+      "row": 0,
+      "name": "idle",
+      "type": "base-action",
+      "frames": 6,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 1,
+      "name": "runningRight",
+      "type": "base-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 2,
+      "name": "runningLeft",
+      "type": "base-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 3,
+      "name": "waving",
+      "type": "base-action",
+      "frames": 4,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 4,
+      "name": "jumping",
+      "type": "base-action",
+      "frames": 5,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 5,
+      "name": "failed",
+      "type": "base-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 6,
+      "name": "waiting",
+      "type": "base-action",
+      "frames": 6,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 7,
+      "name": "bashful",
+      "type": "base-action",
+      "frames": 6,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 8,
+      "name": "review",
+      "type": "base-action",
+      "frames": 6,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 9,
+      "name": "climbing",
+      "type": "base-action",
+      "frames": 5,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 10,
+      "name": "perching",
+      "type": "base-action",
+      "frames": 4,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 11,
+      "name": "petting",
+      "type": "base-action",
+      "frames": 4,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 12,
+      "name": "yawning",
+      "type": "base-action",
+      "frames": 5,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 13,
+      "name": "eating",
+      "type": "base-action",
+      "frames": 6,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 14,
+      "name": "dizzy",
+      "type": "base-action",
+      "frames": 4,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 15,
+      "name": "lookingAround",
+      "type": "base-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 16,
+      "name": "swing",
+      "type": "full-scene",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 17,
+      "name": "digSand",
+      "type": "prop-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 18,
+      "name": "readBook",
+      "type": "prop-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 19,
+      "name": "watchTV",
+      "type": "prop-action",
+      "frames": 6,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 20,
+      "name": "sleeping",
+      "type": "base-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 21,
+      "name": "dancing",
+      "type": "base-action",
+      "frames": 5,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 22,
+      "name": "crying",
+      "type": "base-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 23,
+      "name": "gifting",
+      "type": "prop-action",
+      "frames": 4,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 24,
+      "name": "stretching",
+      "type": "base-action",
+      "frames": 5,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 25,
+      "name": "clapping",
+      "type": "base-action",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 26,
+      "name": "fanCooling",
+      "type": "full-scene",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 27,
+      "name": "swimming",
+      "type": "full-scene",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 28,
+      "name": "whip",
+      "type": "full-scene",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 29,
+      "name": "airConditioning",
+      "type": "full-scene",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 30,
+      "name": "sofaLying",
+      "type": "full-scene",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 31,
+      "name": "ascension",
+      "type": "fullscreen-effect-source",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 32,
+      "name": "typingCompanion",
+      "type": "full-scene",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 33,
+      "name": "dharmaCharge",
+      "type": "fullscreen-effect-source",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 34,
+      "name": "dharmaSpirit",
+      "type": "fullscreen-effect-source",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 35,
+      "name": "dharmaManifest",
+      "type": "fullscreen-effect-source",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 36,
+      "name": "dharmaStable",
+      "type": "fullscreen-effect-source",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 37,
+      "name": "swing2",
+      "type": "full-scene-extension",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 38,
+      "name": "fanCooling2",
+      "type": "full-scene-extension",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 39,
+      "name": "swimming2",
+      "type": "full-scene-extension",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 40,
+      "name": "airConditioning2",
+      "type": "full-scene-extension",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    },
+    {
+      "row": 41,
+      "name": "sofaLying2",
+      "type": "full-scene-extension",
+      "frames": 8,
+      "sourceFrames": 8,
+      "fallbackFrames": 0,
+      "missingFrames": [],
+      "blankFrames": []
+    }
+  ],
+  "warnings": []
+}

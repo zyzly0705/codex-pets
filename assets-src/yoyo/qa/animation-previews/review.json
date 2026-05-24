@@ -1,0 +1,441 @@
+{
+  "generatedAt": "2026-05-24T11:47:11.289Z",
+  "actions": [
+    {
+      "action": "dharmaCharge",
+      "frameCount": 8,
+      "contactSheet": "assets-src/yoyo/qa/animation-previews/dharmaCharge-contact.png",
+      "gif": "assets-src/yoyo/qa/animation-previews/dharmaCharge.gif",
+      "boxes": [
+        {
+          "frame": "00.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/00.png",
+          "minX": 34,
+          "minY": 5,
+          "maxX": 157,
+          "maxY": 202,
+          "width": 124,
+          "height": 198,
+          "alphaPixels": 17061
+        },
+        {
+          "frame": "01.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/01.png",
+          "minX": 31,
+          "minY": 5,
+          "maxX": 160,
+          "maxY": 202,
+          "width": 130,
+          "height": 198,
+          "alphaPixels": 17818
+        },
+        {
+          "frame": "02.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/02.png",
+          "minX": 29,
+          "minY": 5,
+          "maxX": 162,
+          "maxY": 202,
+          "width": 134,
+          "height": 198,
+          "alphaPixels": 18227
+        },
+        {
+          "frame": "03.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/03.png",
+          "minX": 31,
+          "minY": 5,
+          "maxX": 160,
+          "maxY": 202,
+          "width": 130,
+          "height": 198,
+          "alphaPixels": 17844
+        },
+        {
+          "frame": "04.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/04.png",
+          "minX": 34,
+          "minY": 5,
+          "maxX": 157,
+          "maxY": 202,
+          "width": 124,
+          "height": 198,
+          "alphaPixels": 17068
+        },
+        {
+          "frame": "05.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/05.png",
+          "minX": 37,
+          "minY": 5,
+          "maxX": 154,
+          "maxY": 202,
+          "width": 118,
+          "height": 198,
+          "alphaPixels": 16593
+        },
+        {
+          "frame": "06.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/06.png",
+          "minX": 38,
+          "minY": 5,
+          "maxX": 153,
+          "maxY": 202,
+          "width": 116,
+          "height": 198,
+          "alphaPixels": 16207
+        },
+        {
+          "frame": "07.png",
+          "source": "assets-src/yoyo/frames/dharmaCharge/07.png",
+          "minX": 37,
+          "minY": 5,
+          "maxX": 154,
+          "maxY": 202,
+          "width": 118,
+          "height": 198,
+          "alphaPixels": 16459
+        }
+      ],
+      "anchors": [],
+      "warnings": [
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data"
+      ]
+    },
+    {
+      "action": "dharmaSpirit",
+      "frameCount": 8,
+      "contactSheet": "assets-src/yoyo/qa/animation-previews/dharmaSpirit-contact.png",
+      "gif": "assets-src/yoyo/qa/animation-previews/dharmaSpirit.gif",
+      "boxes": [
+        {
+          "frame": "00.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/00.png",
+          "minX": 26,
+          "minY": 4,
+          "maxX": 165,
+          "maxY": 198,
+          "width": 140,
+          "height": 195,
+          "alphaPixels": 17540
+        },
+        {
+          "frame": "01.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/01.png",
+          "minX": 25,
+          "minY": 4,
+          "maxX": 166,
+          "maxY": 198,
+          "width": 142,
+          "height": 195,
+          "alphaPixels": 18018
+        },
+        {
+          "frame": "02.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/02.png",
+          "minX": 24,
+          "minY": 5,
+          "maxX": 167,
+          "maxY": 198,
+          "width": 144,
+          "height": 194,
+          "alphaPixels": 18280
+        },
+        {
+          "frame": "03.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/03.png",
+          "minX": 25,
+          "minY": 4,
+          "maxX": 166,
+          "maxY": 198,
+          "width": 142,
+          "height": 195,
+          "alphaPixels": 18032
+        },
+        {
+          "frame": "04.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/04.png",
+          "minX": 26,
+          "minY": 4,
+          "maxX": 165,
+          "maxY": 198,
+          "width": 140,
+          "height": 195,
+          "alphaPixels": 17531
+        },
+        {
+          "frame": "05.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/05.png",
+          "minX": 28,
+          "minY": 3,
+          "maxX": 163,
+          "maxY": 198,
+          "width": 136,
+          "height": 196,
+          "alphaPixels": 17099
+        },
+        {
+          "frame": "06.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/06.png",
+          "minX": 28,
+          "minY": 3,
+          "maxX": 163,
+          "maxY": 198,
+          "width": 136,
+          "height": 196,
+          "alphaPixels": 16871
+        },
+        {
+          "frame": "07.png",
+          "source": "assets-src/yoyo/frames/dharmaSpirit/07.png",
+          "minX": 28,
+          "minY": 3,
+          "maxX": 163,
+          "maxY": 198,
+          "width": 136,
+          "height": 196,
+          "alphaPixels": 17050
+        }
+      ],
+      "anchors": [],
+      "warnings": [
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data"
+      ]
+    },
+    {
+      "action": "dharmaManifest",
+      "frameCount": 8,
+      "contactSheet": "assets-src/yoyo/qa/animation-previews/dharmaManifest-contact.png",
+      "gif": "assets-src/yoyo/qa/animation-previews/dharmaManifest.gif",
+      "boxes": [
+        {
+          "frame": "00.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/00.png",
+          "minX": 19,
+          "minY": 0,
+          "maxX": 172,
+          "maxY": 199,
+          "width": 154,
+          "height": 200,
+          "alphaPixels": 20805
+        },
+        {
+          "frame": "01.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/01.png",
+          "minX": 17,
+          "minY": 0,
+          "maxX": 174,
+          "maxY": 199,
+          "width": 158,
+          "height": 200,
+          "alphaPixels": 21542
+        },
+        {
+          "frame": "02.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/02.png",
+          "minX": 16,
+          "minY": 0,
+          "maxX": 175,
+          "maxY": 199,
+          "width": 160,
+          "height": 200,
+          "alphaPixels": 21857
+        },
+        {
+          "frame": "03.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/03.png",
+          "minX": 17,
+          "minY": 0,
+          "maxX": 174,
+          "maxY": 199,
+          "width": 158,
+          "height": 200,
+          "alphaPixels": 21548
+        },
+        {
+          "frame": "04.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/04.png",
+          "minX": 19,
+          "minY": 0,
+          "maxX": 172,
+          "maxY": 199,
+          "width": 154,
+          "height": 200,
+          "alphaPixels": 20804
+        },
+        {
+          "frame": "05.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/05.png",
+          "minX": 20,
+          "minY": 0,
+          "maxX": 171,
+          "maxY": 199,
+          "width": 152,
+          "height": 200,
+          "alphaPixels": 20158
+        },
+        {
+          "frame": "06.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/06.png",
+          "minX": 21,
+          "minY": 0,
+          "maxX": 170,
+          "maxY": 199,
+          "width": 150,
+          "height": 200,
+          "alphaPixels": 19860
+        },
+        {
+          "frame": "07.png",
+          "source": "assets-src/yoyo/frames/dharmaManifest/07.png",
+          "minX": 20,
+          "minY": 0,
+          "maxX": 171,
+          "maxY": 199,
+          "width": 152,
+          "height": 200,
+          "alphaPixels": 20124
+        }
+      ],
+      "anchors": [],
+      "warnings": [
+        "00.png: silhouette touches cell edge",
+        "missing anchor data",
+        "01.png: silhouette touches cell edge",
+        "missing anchor data",
+        "02.png: silhouette touches cell edge",
+        "missing anchor data",
+        "03.png: silhouette touches cell edge",
+        "missing anchor data",
+        "04.png: silhouette touches cell edge",
+        "missing anchor data",
+        "05.png: silhouette touches cell edge",
+        "missing anchor data",
+        "06.png: silhouette touches cell edge",
+        "missing anchor data",
+        "07.png: silhouette touches cell edge",
+        "missing anchor data"
+      ]
+    },
+    {
+      "action": "dharmaStable",
+      "frameCount": 8,
+      "contactSheet": "assets-src/yoyo/qa/animation-previews/dharmaStable-contact.png",
+      "gif": "assets-src/yoyo/qa/animation-previews/dharmaStable.gif",
+      "boxes": [
+        {
+          "frame": "00.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/00.png",
+          "minX": 20,
+          "minY": 8,
+          "maxX": 171,
+          "maxY": 198,
+          "width": 152,
+          "height": 191,
+          "alphaPixels": 18156
+        },
+        {
+          "frame": "01.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/01.png",
+          "minX": 20,
+          "minY": 9,
+          "maxX": 170,
+          "maxY": 198,
+          "width": 151,
+          "height": 190,
+          "alphaPixels": 18608
+        },
+        {
+          "frame": "02.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/02.png",
+          "minX": 21,
+          "minY": 9,
+          "maxX": 170,
+          "maxY": 198,
+          "width": 150,
+          "height": 190,
+          "alphaPixels": 18827
+        },
+        {
+          "frame": "03.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/03.png",
+          "minX": 23,
+          "minY": 9,
+          "maxX": 168,
+          "maxY": 198,
+          "width": 146,
+          "height": 190,
+          "alphaPixels": 18596
+        },
+        {
+          "frame": "04.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/04.png",
+          "minX": 24,
+          "minY": 8,
+          "maxX": 167,
+          "maxY": 198,
+          "width": 144,
+          "height": 191,
+          "alphaPixels": 18114
+        },
+        {
+          "frame": "05.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/05.png",
+          "minX": 26,
+          "minY": 8,
+          "maxX": 165,
+          "maxY": 198,
+          "width": 140,
+          "height": 191,
+          "alphaPixels": 17658
+        },
+        {
+          "frame": "06.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/06.png",
+          "minX": 26,
+          "minY": 7,
+          "maxX": 165,
+          "maxY": 198,
+          "width": 140,
+          "height": 192,
+          "alphaPixels": 17428
+        },
+        {
+          "frame": "07.png",
+          "source": "assets-src/yoyo/frames/dharmaStable/07.png",
+          "minX": 25,
+          "minY": 8,
+          "maxX": 166,
+          "maxY": 198,
+          "width": 142,
+          "height": 191,
+          "alphaPixels": 17644
+        }
+      ],
+      "anchors": [],
+      "warnings": [
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data",
+        "missing anchor data"
+      ]
+    }
+  ]
+}

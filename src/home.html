@@ -9,8 +9,10 @@
 <body>
   <main class="home-shell" aria-label="Yoyo 小屋">
     <section class="room-stage" aria-label="Yoyo 的房间">
-      <img id="room-art" class="room-art" src="../assets/yoyo/home/room-stage-v2.webp" alt="">
+      <img id="room-art" class="room-art" src="../assets/yoyo/home/room-shell-clean-2d.webp" alt="">
 
+      <div class="home-decor-layer" id="home-decor-layer" aria-hidden="true"></div>
+      <div class="home-scene-objects scene-objects-back" id="home-scene-objects-back" aria-hidden="true"></div>
       <div class="room-effects" id="room-effects" aria-hidden="true"></div>
 
       <button class="room-hotspot hotspot-food" type="button" data-action="feed" aria-label="食盆：喂饭" data-tip="食盆 · 喂Yoyo吃饭">
@@ -31,8 +33,11 @@
 
       <div class="pet-zone">
         <canvas id="home-pet" width="192" height="208" aria-label="Yoyo"></canvas>
+        <img id="home-sleep-pose" class="home-sleep-pose" src="../assets/yoyo/home/home-sleep-yoyo.webp" alt="" aria-hidden="true">
         <div class="accessory-layer" id="accessory-layer" aria-hidden="true"></div>
       </div>
+      <div class="home-scene-objects scene-objects-front" id="home-scene-objects-front" aria-hidden="true"></div>
+      <img id="home-action-composite" class="home-action-composite" src="../assets/yoyo/home/composite-sleep-bed-yoyo.webp" alt="" aria-hidden="true">
 
       <div class="status-orbs" id="needs-list" aria-label="Yoyo 状态"></div>
 
@@ -107,6 +112,7 @@
     </section>
   </main>
   <script src="shared/yoyo-actions.js"></script>
+  <script src="shared/home-scene.js"></script>
   <script src="home.js"></script>
   <script src="home-games.js"></script>
 </body>

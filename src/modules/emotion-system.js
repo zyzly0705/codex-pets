@@ -101,8 +101,8 @@ export function getEmotionExpression() {
   if (valence > 72 && dominance < 48) return 'heart';
   if (valence > 58 && arousal > 45) return 'happy';
   if (valence > 45 && arousal < 35) return 'sleepy';
-  if (valence < -58 && dominance < 42) return 'sad';
-  if (valence < -36 && dominance > 52) return 'angry';
+  if (valence < 30 && dominance < 42) return 'sad';
+  if (valence < 38 && dominance > 52) return 'angry';
   if (arousal < 26) return 'sleepy';
   if (arousal > 76 && valence > 40) return 'sparkle';
   return 'neutral';

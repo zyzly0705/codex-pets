@@ -11,6 +11,7 @@
     { row: 25, frames: 8 },
   ];
   const DHARMA_CHARGE_ROW = 33;
+  const DHARMA_SPIRIT_ROW = 34;
   const DHARMA_MANIFEST_ROW = 35;
   const DHARMA_STABLE_ROW = 36;
 
@@ -356,8 +357,10 @@
     ring2.blendMode = 'screen'; ring2.alpha = 0;
     root.addChild(ring2);
 
-    // 12个分身（3波，每波4个）
-    // 爱心阵型目标位置（12点围成爱心轮廓）
+    const cloneCount = clamp(Number(timeline.cloneCount) || 9, 5, 12);
+
+    // 分身：默认 9 个全身 Yoyo。数量少一点，阵型会更清楚，也不容易像杂乱贴纸。
+    // 爱心阵型目标位置（最多 12 点围成爱心轮廓）
     const heartShape = [
       { dx: -0.55, dy: -0.45 }, { dx: -0.28, dy: -0.62 },
       { dx:  0.00, dy: -0.55 }, { dx:  0.28, dy: -0.62 },
@@ -367,19 +370,20 @@
       { dx: -0.45, dy:  0.18 }, { dx: -0.62, dy: -0.15 },
     ];
     // 第一轮扩散目标（放射状）
-    const spreadAngles = [
-      -150,-106,-62,-18, 18, 62, 106, 150, -88, 88, -180, 0
-    ];
+    const spreadAngles = [-150, -112, -74, -36, 0, 36, 74, 112, 150, -180, -88, 88];
 
     const clones = [];
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < cloneCount; i++) {
       const def  = CLONE_ROWS[i % CLONE_ROWS.length];
       const sp   = makeAnimation(image, def.row, def.frames);
-      const wave = Math.floor(i / 4); // 0,1,2
+      const wave = Math.floor(i / 3); // 0,1,2 for the default 9-clone layout
       const ang  = spreadAngles[i] * Math.PI / 180;
-      const hpt  = heartShape[i];
+      const heartIndex = cloneCount === 9
+        ? [0, 1, 3, 4, 6, 8, 9, 10, 11][i]
+        : i;
+      const hpt  = heartShape[heartIndex] || heartShape[i % heartShape.length];
       sp.position.set(src.x, src.y);
-      sp.scale.set(petScale * 0.52);
+      sp.scale.set(petScale * 0.56);
       sp.alpha = 0;
       sp.filters = [
         maybeFilter(PIXI.filters && PIXI.filters.GlowFilter, {
@@ -392,10 +396,10 @@
         sp, wave,
         // 扩散目标
         spreadX: src.x + Math.cos(ang) * SPREAD,
-        spreadY: src.y + Math.sin(ang) * SPREAD * 0.6 - 20,
+        spreadY: src.y + Math.sin(ang) * SPREAD * 0.58 - 18,
         // 爱心阵型目标
-        heartX: src.x + hpt.dx * SPREAD * 0.9,
-        heartY: src.y + hpt.dy * SPREAD * 0.7 - 30,
+        heartX: src.x + hpt.dx * SPREAD * 0.92,
+        heartY: src.y + hpt.dy * SPREAD * 0.72 - 28,
         phase: i * 0.55,
       });
     }
@@ -452,7 +456,7 @@
     // 2800   - 3800  : 弧线收拢到爱心阵型
     // 3800   - 4400  : 爱心阵型稳定，主体切比心
     // 4400   - 5000  : 爱心粒子爆炸，fadeOut
-    const WAVE_DELAYS  = [300, 500, 700]; // 每波第一个分身飞出时间
+    const WAVE_DELAYS  = [300, 500, 700, 900]; // 每波第一个分身飞出时间
     const RECALL_START = 2800;
     const HEART_START  = 3800;
     const BURST_START  = 4400;
@@ -541,7 +545,7 @@
     const arena    = options.arenaCenter   || { x: W / 2, y: H * 0.44 };
     const petScale = clamp(((options.petSize && options.petSize.w) || 192) / FRAME_W, 0.76, 1.16);
 
-    const NASCENT_ROW = 39; // 元婴
+    const GUARDIAN_ROW = DHARMA_SPIRIT_ROW;
 
     const root = new PIXI.Container();
     app.stage.addChild(root);
@@ -574,7 +578,21 @@
     shellFlash.blendMode = 'screen'; shellFlash.alpha = 0;
     root.addChild(shellFlash);
 
-    // ── 主体 Yoyo ──
+    // ── 背后大型法相：必须是 Yoyo 的人形守护层，不再使用后续扩展动作行 ──
+    const nascent = makeAnimation(image, GUARDIAN_ROW, 8);
+    nascent.position.set(arena.x, arena.y + 120);
+    nascent.scale.set(petScale * 1.7);
+    nascent.alpha = 0;
+    nascent.blendMode = 'screen';
+    nascent.tint = 0xfff0b0;
+    nascent.filters = [
+      maybeFilter(PIXI.filters && PIXI.filters.GlowFilter, {
+        distance: 24, outerStrength: 2.4, color: gold, quality: 0.28,
+      }),
+    ].filter(Boolean);
+    root.addChild(nascent);
+
+    // ── 前景主体 Yoyo ──
     const main = makeAnimation(image, IDLE_ROW, IDLE_FRAMES);
     main.position.set(src.x, src.y);
     main.scale.set(petScale);
@@ -584,20 +602,6 @@
       }),
     ].filter(Boolean);
     root.addChild(main);
-
-    // ── 元婴（小版，从主体飘出） ──
-    const nascent = makeAnimation(image, NASCENT_ROW, 8);
-    nascent.position.set(src.x, src.y - 20);
-    nascent.scale.set(petScale * 0.38);
-    nascent.alpha = 0;
-    nascent.blendMode = 'screen';
-    nascent.tint = 0xfff0b0;
-    nascent.filters = [
-      maybeFilter(PIXI.filters && PIXI.filters.GlowFilter, {
-        distance: 22, outerStrength: 2.2, color: gold, quality: 0.28,
-      }),
-    ].filter(Boolean);
-    root.addChild(nascent);
 
     // ── 金色光柱（天降） ──
     const pillar = new PIXI.Graphics();
@@ -681,20 +685,17 @@
     root.addChild(mergeFlash);
 
     // ── 时序 ──
-    // 0    - 800  : Phase1 蓄力，漩涡旋转，地面发光
-    // 800  - 1400 : Phase2 破壳，金丹爆闪
-    // 1400 - 2400 : Phase3a 元婴破壳飘出上升
-    // 2400 - 5000 : Phase3b 元婴稳定飘浮，雷劫，金柱
-    // 5000 - 5800 : Phase4a 元婴落回合体
-    // 5800 - 6200 : Phase4b 合体冲击波 + 白光
-    // 6200 - 7000 : fadeOut
-    const P1_END    = 800;
-    const P2_END    = 1400;
-    const P3A_END   = 2400;
-    const P3B_END   = 5000;
-    const P4A_END   = 5800;
-    const P4B_END   = 6200;
-    const END       = 7000;
+    // 0    - 900  : 蓄力，脚下封印与地面光
+    // 900  - 2100 : 背后大型法相升起
+    // 2100 - 3300 : 法相稳定守护，雷光与封印环叠前景
+    // 3300 - 4100 : 收束淡出
+    const P1_END    = 900;
+    const P2_END    = 1500;
+    const P3A_END   = 2100;
+    const P3B_END   = 3300;
+    const P4A_END   = 3600;
+    const P4B_END   = 4100;
+    const END       = Number(timeline.durationMs) || 4100;
 
     return {
       duration: END,
@@ -726,20 +727,20 @@
         main.alpha = (1 - segment(elapsed, P3B_END, P4A_END) * 0.5) * fadeOut;
         main.rotation = Math.sin(elapsed * 0.005) * 0.018;
 
-        // Phase3a：元婴飘出
+        // Phase3a：背后法相从主体身后升起。前景 Yoyo 保持正常比例和脚下重量。
         const riseT = easeOutCubic(segment(elapsed, P2_END, P3A_END));
-        const nascentY = mix(src.y - 20, arena.y - 40, riseT)
+        const nascentY = mix(src.y - 8, arena.y + 42, riseT)
           + Math.sin(elapsed * 0.005) * 5 * segment(elapsed, P3A_END, P3B_END);
         const nascentX = arena.x + Math.sin(elapsed * 0.004) * 8 * segment(elapsed, P3A_END, P3B_END);
 
-        // Phase4a：元婴落回
+        // Phase4a：法相收束到主体背后，而不是小人漂回身体里。
         const nascentFinalX = mix(nascentX, src.x, mergeT);
-        const nascentFinalY = mix(nascentY, src.y - 30, mergeT);
+        const nascentFinalY = mix(nascentY, src.y - 8, mergeT);
         nascent.position.set(nascentFinalX, nascentFinalY);
-        nascent.scale.set(petScale * mix(0.38, mix(0.38, 0.96, segment(elapsed, P3A_END, P3B_END)), riseT) * (1 - mergeT * 0.7));
+        nascent.scale.set(petScale * mix(1.05, 2.15, riseT) * (1 - mergeT * 0.58));
         nascent.alpha = clamp(
           segment(elapsed, P2_END, P3A_END) * (1 - segment(elapsed, P4A_END, P4B_END)),
-          0, 1,
+          0, 0.58,
         ) * fadeOut;
         nascent.rotation = Math.sin(elapsed * 0.003) * 0.022;
 

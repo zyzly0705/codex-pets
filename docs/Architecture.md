@@ -38,7 +38,7 @@ graph TB
     E --> O[weather-seasonal.js<br>天气与季节]
     E --> P[startup-animation.js<br>启动动画]
     E --> Q[outfit-system.js<br>换装系统]
-    E --> R[clone-system.js<br>分身术]
+    E --> R[daily-memory.js<br>每日记忆]
     
     A --> S[窗口扫描<br>node-window-manager]
     A --> T[天气服务<br>Open-Meteo API]
@@ -51,7 +51,7 @@ graph TB
 
 ## ES Module 模块结构
 
-项目渲染进程采用 ES Module 拆分为 12 个职责单一的模块：
+项目渲染进程采用 ES Module 拆分为职责单一的模块：
 
 ```
 src/modules/
@@ -67,10 +67,61 @@ src/modules/
 ├── outfit-system.js     — 换装系统（配饰/表情叠加绘制）
 ├── render-engine.js     — Canvas 渲染引擎 + 辫子弹簧物理
 ├── startup-animation.js — 旋转飞入启动动画
-└── clone-system.js      — 分身术特效
+├── relationship-system.js — 关系阶段与亲密度
+├── companion-planner.js — 每日陪伴计划
+├── daily-memory.js     — 每日记忆卡片
+├── news-broadcast.js   — 资讯播报
+├── behavior-debug-panel.js — 行为调试面板
+└── debug-log.js        — 调试日志桥接
 ```
 
 入口文件 `renderer.js` 负责 import 所有模块并按序初始化。
+
+## 主进程模块结构
+
+`src/main.js` 现在只负责启动和模块装配，主进程能力拆到 `src/main/`：
+
+```
+src/main/
+├── app-windows.js  — 主窗口、设置窗口、窗口 IPC
+├── store.js        — 统一文件 Store、迁移、store IPC
+├── pets.js         — 宠物扫描、导入、当前素材路径、多 sheet / look 快照
+├── tray-menu.js    — 托盘与右键菜单
+├── effects.js      — 飘落、分身、巨大化特效窗口
+├── system.js       — 键盘监听、窗口扫描、繁忙检测、前台应用检测
+├── weather.js      — 定位和天气
+├── ai-lines.js     — DeepSeek 台词增强
+├── news.js         — 新闻和热搜抓取
+├── updater.js      — 自动更新
+├── debug-log.js    — 主进程调试日志
+└── env.js          — .env 加载
+```
+
+## 素材运行时结构
+
+基础宠物使用 `sheets.base` 指向主 `spritesheet.webp`。新增动作和完整套装可以拆成独立 sheet：
+
+```json
+"sheets": {
+  "base": "spritesheet.webp",
+  "work": "actions/work.webp"
+},
+"states": {
+  "idle": { "row": 0, "frames": 6 },
+  "coffeeBreak": { "sheet": "work", "row": 0, "frames": 8 }
+},
+"looks": {
+  "default": { "name": "默认", "spritesheetPath": "spritesheet.webp" },
+  "warm": { "name": "暖暖套装", "spritesheetPath": "looks/warm/spritesheet.webp" }
+}
+```
+
+运行时规则：
+
+- 未声明 `sheet` 的状态从主图裁帧。
+- 声明 `sheet` 或 `sheetPath` 的状态从独立动作图裁帧。
+- 大型外观变化走完整 look sheet。
+- 运行时不再支持旧 layer 换装。
 
 ## 模块间依赖关系
 
@@ -177,7 +228,7 @@ const APP_HEIGHT = 260;
 
 ## 渲染进程模块体系
 
-渲染进程承载 Yoyo 的全部"灵魂"，拆分为 12 个 ES Module：
+渲染进程承载 Yoyo 的全部"灵魂"，拆分为多个 ES Module：
 
 | 模块 | 职责 |
 |------|------|
@@ -192,8 +243,11 @@ const APP_HEIGHT = 260;
 | **timers.js** | 统一定时器编排：延迟启动、错开周期、天气即时触发 |
 | **render-engine.js** | Canvas 逐帧渲染 + 辫子弹簧物理 + 交互反应叠加绘制 |
 | **startup-animation.js** | 旋转飞入动画（3圈旋转 + easeOut + 拖尾粒子） |
-| **outfit-system.js** | 换装系统（配饰/表情/星星眼叠加绘制） |
-| **clone-system.js** | 分身术特效（创建独立窗口播放） |
+| **outfit-system.js** | look 套装切换 |
+| **relationship-system.js** | 关系阶段与亲密度 |
+| **companion-planner.js** | 每日陪伴计划 |
+| **daily-memory.js** | 每日记忆卡片 |
+| **news-broadcast.js** | 资讯播报 |
 
 ## IPC 通信通道列表
 
@@ -266,7 +320,9 @@ codex-desktop-pet/
 │   │   ├── outfit-system.js
 │   │   ├── render-engine.js
 │   │   ├── startup-animation.js
-│   │   └── clone-system.js
+│   │   ├── relationship-system.js
+│   │   ├── companion-planner.js
+│   │   └── daily-memory.js
 │   ├── renderer.js       # 模块入口
 │   ├── main.js           # 主进程
 │   ├── preload.js        # 预加载脚本
@@ -274,8 +330,8 @@ codex-desktop-pet/
 │   ├── styles.css        # 样式（动画、气泡、抖动效果）
 │   ├── settings.html     # 设置窗口页面
 │   ├── effect.html       # 全屏飘落特效页面
-│   ├── giant-effect.html # 法天象地巨大化特效页面
-│   └── clone-effect.html # 分身术特效页面
+│   ├── pixi-effect-stage.html # PixiJS 分身术/法相天地舞台
+│   └── pixi-effect-stage.js   # PixiJS 特效编排
 ├── assets/yoyo/     # 默认宠物素材
 │   ├── pet.json          # 宠物配置清单
 │   └── spritesheet.webp  # 精灵图（8列×N行，每帧 192×208）

@@ -1,9 +1,195 @@
 // render-engine.js - Canvas 渲染主循环（drawFrame, 动画帧计算）
-import { state, canvas, ctx, bubble, feedBtn, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, playSound, reactionState, getPetCell, getPetStateSpec } from './core-state.js';
-import { drawOutfitLayers } from './outfit-system.js';
+import { state, canvas, ctx, bubble, feedBtn, bubbleAvatar, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, BREATH_PERIOD, BREATH_AMPLITUDE, GLANCE_DURATION, GLANCE_MAX_OFFSET, GLANCE_INTERVAL_MIN, GLANCE_INTERVAL_MAX, playSound, reactionState, getPetCell, getPetStateSpec, registerSpeechStartHook } from './core-state.js';
 import { getEmotionExpression, yoyoEmotion } from './emotion-system.js';
 import { updateSeasonalParticles, drawSeasonalParticles } from './weather-seasonal.js';
 import { startupAnim, updateStartupAnimation, drawStartupParticles } from './startup-animation.js';
+
+// ── 微表情 override ──────────────────────────────────────────────────────────
+// 台词开始时由 setSpeechExpression() 设置，自发微表情由 triggerMicroExpr() 设置
+// resolveAutoExpression() 最高优先级读取
+let _microExprOverride = null;
+let _microExprEndMs = 0;
+
+export function setSpeechExpression(expr, durationMs) {
+  _microExprOverride = expr;
+  _microExprEndMs = Date.now() + durationMs;
+  if (bubbleAvatar) {
+    bubbleAvatar.setAttribute('data-expr', expr);
+    setTimeout(() => {
+      if (Date.now() >= _microExprEndMs) bubbleAvatar.removeAttribute('data-expr');
+    }, durationMs);
+  }
+}
+
+export function triggerMicroExpr(expr, durationMs = 1500) {
+  _microExprOverride = expr;
+  _microExprEndMs = Date.now() + durationMs;
+  if (bubbleAvatar) {
+    bubbleAvatar.setAttribute('data-expr', expr);
+    setTimeout(() => {
+      if (Date.now() >= _microExprEndMs) bubbleAvatar.removeAttribute('data-expr');
+    }, durationMs);
+  }
+}
+
+// 根据台词文字内容推断最匹配的表情
+export function inferExpressionFromText(text) {
+  if (!text) return null;
+  if (/呜|哭|委屈|难过|疼|生气|哼|不理|烦/.test(text)) return 'sad';
+  if (/嘿嘿|哈哈|开心|好棒|耶|太好了|嘻嘻|好玩|快乐/.test(text)) return 'sparkle';
+  if (/爱你|喜欢|抱抱|心心|最好|妈妈最棒/.test(text)) return 'heart';
+  if (/困|睡|眯|打盹|呼噜|zzZ/.test(text)) return 'sleepy';
+  if (/害羞|脸红|嘿嘿.*妈妈|不好意思/.test(text)) return 'shy';
+  if (/生气|哼！|不原谅|再也不/.test(text)) return 'angry';
+  if (/嗯|好舒服|温暖|轻轻|舒服/.test(text)) return 'happy';
+  return null;
+}
+
+// ===== 呼吸感静态状态集合（模块级常量，避免每帧重建） =====
+const STATIC_STATES = new Set([
+  'idle', 'waiting', 'bashful', 'review', 'sleeping',
+  'typingCompanion', 'workModeReady', 'waving', 'petting',
+  'readBook', 'watchTV', 'swimming', 'eating'
+]);
+
+// ===== 视线追踪：定期采样鼠标方向（避免每帧 IPC） =====
+let _lastMouseDir = { x: 0, y: 0 };
+let _lastMouseSampleAt = 0;
+const MOUSE_SAMPLE_INTERVAL = 5000; // 5 秒采样一次
+
+const dynamicSheetCache = new Map();
+const performanceSheetCache = new Map();
+
+const PERFORMANCE_SHEETS = {
+  danceLetGo: {
+    src: '../assets/yoyo/effects/dance-let-go/sheet.webp',
+    frames: 24,
+    speed: 75,
+  },
+};
+
+const INTEGRATED_SCENE_STATES = new Set([
+  'swing',
+  'fanCooling',
+  'swimming',
+  'airConditioning',
+  'sofaLying',
+]);
+
+function getPerformanceSequence(name, now) {
+  const spec = PERFORMANCE_SHEETS[name];
+  if (!spec) return null;
+  let img = performanceSheetCache.get(name);
+  if (!img) {
+    img = new Image();
+    img.src = spec.src;
+    performanceSheetCache.set(name, img);
+  }
+  if (!img.complete || !img.naturalWidth) return null;
+  const frame = Math.floor(now / spec.speed) % spec.frames;
+  return { img, frame, spec };
+}
+
+async function sampleMouseDirection() {
+  try {
+    const mousePos = await window.petApi.getMousePosition();
+    const { bounds } = await window.petApi.getBounds();
+    const petCenterX = bounds.x + bounds.width / 2;
+    const petCenterY = bounds.y + bounds.height / 2;
+    const dx = mousePos.x - petCenterX;
+    const dy = mousePos.y - petCenterY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 10) {
+      // 避免太近时方向抖动
+      _lastMouseDir = { x: Math.sign(dx), y: Math.sign(dy) };
+    }
+  } catch (e) {
+    // 静默忽略，不影响渲染
+  }
+}
+
+function getDrawableSheet(stateObj) {
+  if (stateObj.sheetPath) {
+    let img = dynamicSheetCache.get(stateObj.sheetPath);
+    if (!img) {
+      img = new Image();
+      img.src = stateObj.sheetPath.startsWith('file://') ? stateObj.sheetPath : `file://${stateObj.sheetPath.replaceAll('\\', '/')}`;
+      dynamicSheetCache.set(stateObj.sheetPath, img);
+    }
+    return { sprite: img, usesBaseSheet: false };
+  }
+  const sheetId = stateObj.sheet || stateObj.sheetId || 'base';
+  if (sheetId && sheetId !== 'base') {
+    return { sprite: state.spriteSheets?.[sheetId] || state.sprite, usesBaseSheet: false };
+  }
+  return { sprite: state.sprite, usesBaseSheet: true };
+}
+
+function normalizeFrameRef(ref, fallbackRow = 0) {
+  if (Array.isArray(ref)) {
+    return {
+      row: Number(ref[0] ?? fallbackRow),
+      frame: Number(ref[1] ?? 0),
+    };
+  }
+  if (ref && typeof ref === 'object') {
+    return {
+      row: Number(ref.row ?? fallbackRow),
+      frame: Number(ref.frame ?? ref.col ?? ref.column ?? 0),
+    };
+  }
+  return {
+    row: Number(fallbackRow),
+    frame: Number(ref ?? 0),
+  };
+}
+
+function buildStateTimeline(stateObj) {
+  const fallbackRow = Number(stateObj.row ?? 0);
+
+  if (Array.isArray(stateObj.sequence)) {
+    return stateObj.sequence.map((item) => normalizeFrameRef(item, fallbackRow));
+  }
+
+  if (Array.isArray(stateObj.frameSequence)) {
+    return stateObj.frameSequence.map((item) => normalizeFrameRef(item, fallbackRow));
+  }
+
+  if (Array.isArray(stateObj.clips)) {
+    return stateObj.clips.flatMap((clip) => {
+      const row = Number(clip.row ?? fallbackRow);
+      const start = Number(clip.start ?? clip.frameStart ?? 0);
+      const frames = Math.max(1, Number(clip.frames ?? stateObj.frames ?? 1));
+      return Array.from({ length: frames }, (_, i) => ({ row, frame: start + i }));
+    });
+  }
+
+  const frames = Math.max(1, Number(stateObj.frames || 1));
+  const linear = Array.from({ length: frames }, (_, frame) => ({ row: fallbackRow, frame }));
+  if ((stateObj.loop === 'pingpong' || stateObj.pingPong === true) && frames > 2) {
+    const back = linear.slice(1, -1).reverse();
+    return [...linear, ...back];
+  }
+  return linear;
+}
+
+function getPlaybackFrameCount(stateObj) {
+  return Math.max(1, buildStateTimeline(stateObj).length);
+}
+
+function getMaxReferencedRow(stateObj) {
+  return buildStateTimeline(stateObj)
+    .reduce((max, item) => Math.max(max, Number(item.row || 0)), Number(stateObj.row || 0));
+}
+
+function resolveSourceFrame(stateObj, frameIndex, maxRow, maxCol) {
+  const timeline = buildStateTimeline(stateObj);
+  const item = timeline[frameIndex % timeline.length] || { row: stateObj.row || 0, frame: 0 };
+  return {
+    row: Math.max(0, Math.min(maxRow, Number(item.row || 0))),
+    frame: Math.max(0, Math.min(maxCol, Number(item.frame || 0))),
+  };
+}
 
 // ===== 逻辑尺寸（CSS 像素），由 startRenderLoop 初始化 =====
 let _logW = 120;
@@ -653,6 +839,12 @@ const FACE_ROWS = new Set([0, 3, 5, 6, 7, 8, 11, 12, 15, 20, 21, 22, 23, 24, 25,
 const FACE_ANCHOR = { x: 64, y: 43, width: 64, height: 44 };
 
 function resolveAutoExpression() {
+  // 微表情 override 优先级最高（台词驱动 or 自发）
+  if (_microExprOverride && Date.now() < _microExprEndMs) {
+    return _microExprOverride;
+  }
+  _microExprOverride = null;
+
   if (reactionState.whip) {
     if (reactionState.whip.phase === 'hit') return 'crying';
     if (reactionState.whip.phase === 'rub') return 'sad';
@@ -999,19 +1191,24 @@ function draw(now) {
 
   const cell = getPetCell();
   let stateObj = getPetStateSpec(state.stateName);
-  const maxRow = Math.floor(state.sprite.naturalHeight / cell.height) - 1;
-  if (stateObj.row > maxRow) {
+  let { sprite: drawSprite, usesBaseSheet } = getDrawableSheet(stateObj);
+  if (!drawSprite?.complete || !drawSprite.naturalWidth) return;
+  const maxRow = Math.floor(drawSprite.naturalHeight / cell.height) - 1;
+  if (getMaxReferencedRow(stateObj) > maxRow) {
     state.stateName = 'idle';
     stateObj = getPetStateSpec('idle');
+    ({ sprite: drawSprite, usesBaseSheet } = getDrawableSheet(stateObj));
+    if (!drawSprite?.complete || !drawSprite.naturalWidth) return;
     state.frame = 0;
   }
-  const maxCol = Math.floor(state.sprite.naturalWidth / cell.width) - 1;
-  const frameInterval = stateObj.speed || (1000 / stateObj.fps);
+  const maxCol = Math.floor(drawSprite.naturalWidth / cell.width) - 1;
+  const playbackFrames = getPlaybackFrameCount(stateObj);
+  const frameInterval = Number(stateObj.speed || (stateObj.fps ? 1000 / stateObj.fps : 250));
   if (!state.lastFrameAt || now - state.lastFrameAt >= frameInterval) {
-    state.frame = (state.frame + 1) % stateObj.frames;
+    state.frame = (state.frame + 1) % playbackFrames;
     state.lastFrameAt = now;
   }
-  const frame = Math.min(state.frame, maxCol);
+  const sourceFrame = resolveSourceFrame(stateObj, state.frame, maxRow, maxCol);
 
   // 脚步声频率控制
   if (state.stateName === 'runningRight' || state.stateName === 'runningLeft') {
@@ -1041,6 +1238,52 @@ function draw(now) {
     } else {
       state.feedScaleStart = 0;
       scale = 1;
+    }
+  }
+
+  // 呼吸感微动画：仅在静态状态且无喂食动画时生效
+  if (state.feedScaleStart <= 0 && STATIC_STATES.has(state.stateName)) {
+    const breathProgress = (now % BREATH_PERIOD) / BREATH_PERIOD;
+    const breathScale = 1 + BREATH_AMPLITUDE * Math.sin(breathProgress * 2 * Math.PI);
+    scale = breathScale;
+  }
+
+  // === 视线追踪：偶尔一瞥 ===
+  let glanceOffsetX = 0;
+  let glanceOffsetY = 0;
+
+  // 定期采样鼠标方向（fire-and-forget，不阻塞渲染帧）
+  if (now - _lastMouseSampleAt > MOUSE_SAMPLE_INTERVAL) {
+    _lastMouseSampleAt = now;
+    sampleMouseDirection();
+  }
+
+  // 初始化下次触发时间
+  if (state.nextGlanceAt === 0) {
+    state.nextGlanceAt = now + GLANCE_INTERVAL_MIN + Math.random() * (GLANCE_INTERVAL_MAX - GLANCE_INTERVAL_MIN);
+  }
+
+  // 仅在静态状态且未拖拽时触发
+  if (STATIC_STATES.has(state.stateName) && !state.dragState) {
+    if (state.glanceStart > 0) {
+      // 正在执行一瞥
+      const elapsed = now - state.glanceStart;
+      if (elapsed < GLANCE_DURATION) {
+        // ease-in-out: 用 sin 曲线 0→1→0
+        const progress = elapsed / GLANCE_DURATION;
+        const eased = Math.sin(progress * Math.PI);
+        glanceOffsetX = state.glanceDirectionX * GLANCE_MAX_OFFSET * eased;
+        glanceOffsetY = state.glanceDirectionY * GLANCE_MAX_OFFSET * 0.5 * eased; // Y 方向幅度减半
+      } else {
+        // 一瞥结束，重置
+        state.glanceStart = 0;
+        state.nextGlanceAt = now + GLANCE_INTERVAL_MIN + Math.random() * (GLANCE_INTERVAL_MAX - GLANCE_INTERVAL_MIN);
+      }
+    } else if (now >= state.nextGlanceAt) {
+      // 触发新的一瞥
+      state.glanceStart = now;
+      state.glanceDirectionX = _lastMouseDir.x;
+      state.glanceDirectionY = _lastMouseDir.y;
     }
   }
 
@@ -1090,16 +1333,18 @@ function draw(now) {
   const offsetX = centerX - drawW / 2;
   const offsetY = _logH - drawH;
   const isDancing = state.stateName === 'dancing';
+  const danceSequence = isDancing ? getPerformanceSequence('danceLetGo', now) : null;
   const isSwinging = state.stateName === 'swing';
   const isFanCooling = state.stateName === 'fanCooling';
   const isAirConditioning = state.stateName === 'airConditioning';
   const isSwimming = state.stateName === 'swimming';
+  const usesIntegratedScene = INTEGRATED_SCENE_STATES.has(state.stateName);
   const isHungryPromptActive = Boolean(state.hungerPromptStartedAt && feedBtn.classList.contains('show'));
   const isClimbingVisual = state.climbPhase && state.climbPhase !== 'idle';
-  const dancePose = isDancing ? getDancePose(now) : null;
-  const swingPose = null;
-  const fanPose = isFanCooling ? getFanPose(now) : null;
-  const swimmingPose = null;
+  const dancePose = isDancing && !danceSequence ? getDancePose(now) : null;
+  const swingPose = isSwinging && !usesIntegratedScene ? getSwingPose(now) : null;
+  const fanPose = isFanCooling && !usesIntegratedScene ? getFanPose(now) : null;
+  const swimmingPose = isSwimming && !usesIntegratedScene ? getSwimmingPose(now) : null;
   const hungryPose = isHungryPromptActive ? getHungryPromptPose(now) : null;
   const climbPose = isClimbingVisual ? getClimbVisualPose(now) : null;
   const whipPose = reactionState.whip ? getWhipPose(now) : null;
@@ -1111,11 +1356,20 @@ function draw(now) {
   if (isClimbingVisual) {
     drawClimbBackdrop(ctx, _logW, _logH, state.climbEdgeType ?? 0, state.climbPhase, now);
   }
-  if (isDancing) {
+  if (isDancing && !danceSequence) {
     drawDanceBackdrop(ctx, dancePivotX, offsetY + drawH, now, _logW, _logH);
   }
-  if (isAirConditioning) {
+  if (isSwinging && swingPose) {
+    drawSwingBackdrop(ctx, swingPivotX, Math.max(8, offsetY - 20), swingPose);
+  }
+  if (isFanCooling && fanPose) {
+    drawFanBackdrop(ctx, offsetX + drawW * 0.5, offsetY + drawH * 0.55, fanPose);
+  }
+  if (isAirConditioning && !usesIntegratedScene) {
     drawAirConditioningScene(ctx, _logW, _logH, now);
+  }
+  if (isSwimming && !usesIntegratedScene) {
+    drawSwimmingBackdrop(ctx, offsetX + drawW * 0.5, offsetY + drawH * 0.64, now);
   }
 
   ctx.save();
@@ -1129,6 +1383,10 @@ function draw(now) {
     ctx.translate(centerX, centerY);
     ctx.scale(scale, scale);
     ctx.translate(-centerX, -centerY);
+  }
+  // 视线追踪偏移
+  if (glanceOffsetX !== 0 || glanceOffsetY !== 0) {
+    ctx.translate(glanceOffsetX, glanceOffsetY);
   }
   if (dancePose) {
     ctx.translate(dancePivotX + dancePose.x, dancePivotY + dancePose.y);
@@ -1184,18 +1442,38 @@ function draw(now) {
     ctx.translate(-whipPivotX, -whipPivotY);
   }
   ctx.imageSmoothingEnabled = false; // pixel art：关闭插值，保持像素锐利
-  drawOutfitLayers(ctx, frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'behind');
-  ctx.drawImage(state.sprite, frame * cell.width, stateObj.row * cell.height, cell.width, cell.height, offsetX, offsetY, drawW, drawH);
-  drawExpressionFace(ctx, stateObj.row, offsetX, offsetY, drawW, drawH, now);
-  drawOutfitLayers(ctx, frame, stateObj.row, offsetX, offsetY, drawW, drawH, 'front');
+  if (danceSequence) {
+    ctx.drawImage(
+      danceSequence.img,
+      danceSequence.frame * cell.width,
+      0,
+      cell.width,
+      cell.height,
+      offsetX,
+      offsetY,
+      drawW,
+      drawH
+    );
+  } else {
+    ctx.drawImage(drawSprite, sourceFrame.frame * cell.width, sourceFrame.row * cell.height, cell.width, cell.height, offsetX, offsetY, drawW, drawH);
+  }
+  if (usesBaseSheet && !danceSequence) {
+    drawExpressionFace(ctx, sourceFrame.row, offsetX, offsetY, drawW, drawH, now);
+  }
   ctx.restore();
 
   // 绘制特效锚点
   const petCX = offsetX + drawW / 2 + (dancePose?.x || 0) + (swingPose?.x || 0) + (fanPose?.x || 0) + (swimmingPose?.x || 0) + (climbPose?.x || 0) + (hungryPose?.x || 0) + (whipPose?.x || 0);
   const petCY = offsetY + drawH / 2 + (dancePose?.y || 0) + (swingPose?.y || 0) + (fanPose?.y || 0) + (swimmingPose?.y || 0) + (climbPose?.y || 0) + (hungryPose?.y || 0) + (whipPose?.y || 0);
 
-  if (isDancing) {
+  if (isDancing && !danceSequence) {
     drawDanceForeground(ctx, petCX, petCY, now);
+  }
+  if (isSwinging && swingPose) {
+    drawSwingForeground(ctx, petCX, petCY, now, swingPose);
+  }
+  if (isSwimming && !usesIntegratedScene) {
+    drawSwimmingForeground(ctx, petCX, petCY, now);
   }
   if (isHungryPromptActive) {
     drawHungryForeground(ctx, petCX, petCY, now);
@@ -1214,6 +1492,12 @@ function draw(now) {
 }
 
 export function startRenderLoop() {
+  // 注册台词→微表情钩子：台词开始显示时自动推断匹配表情
+  registerSpeechStartHook((text) => {
+    const expr = inferExpressionFromText(text);
+    if (expr) setSpeechExpression(expr, Math.min(text.length * 120 + 1500, 6000));
+  });
+
   // ===== HiDPI / Retina 支持 =====
   _logW = canvas.offsetWidth || 120;
   _logH = canvas.offsetHeight || 130;

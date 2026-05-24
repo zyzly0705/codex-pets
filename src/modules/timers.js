@@ -2,13 +2,14 @@
 import { state, STATES, globalTimers, say, setState, playSound, randomFrom, hasDailyFlag, setDailyFlag } from './core-state.js';
 import { stateMachine } from './state-machine.js';
 import { yoyoMemory, saveMemory, addXP, incrementAchievementStat, trackGrowthStat } from './growth-system.js';
-import { updateEmotion } from './emotion-system.js';
+import { updateEmotion, yoyoEmotion, getEmotionLabel } from './emotion-system.js';
 import { refreshWeatherContext } from './weather-seasonal.js';
 import { resetInteraction } from './interaction.js';
 import { behaviorEngineTick, SPECIAL_DATES, getMothersDay } from './behavior-engine.js';
 import { get, set } from './store-client.js';
 import { checkDailyNewsBroadcast } from './news-broadcast.js';
 import { recordDailyEvent, maybeSpeakDailySummary } from './daily-memory.js';
+import { triggerMicroExpr } from './render-engine.js';
 
 // ===== 定时提醒系统 =====
 // 根据设置动态生成提醒列表（上下班时间可配置）
@@ -228,6 +229,25 @@ export function initTimers() {
 
   // 情感系统衰减（每5秒）
   globalTimers.push(setInterval(() => updateEmotion(5000), 5000));
+
+  // 自发微表情：每 20 秒有 25% 概率闪现一个和当前情绪匹配的微表情
+  // 模拟小孩会突然皱眉、偷笑、发呆这样的自然表情变化
+  globalTimers.push(setInterval(() => {
+    if (Math.random() > 0.25) return;
+    if (stateMachine.isSleeping || stateMachine.isDragging) return;
+    const label = getEmotionLabel();
+    const EXPR_BY_MOOD = {
+      excited: ['sparkle', 'sparkle', 'heart'],
+      happy:   ['happy', 'shy', 'sparkle'],
+      neutral: ['happy', 'sleepy', 'neutral'],
+      calm:    ['sleepy', 'happy'],
+      sad:     ['sad', 'sad', 'neutral'],
+      angry:   ['angry', 'sad'],
+    };
+    const pool = EXPR_BY_MOOD[label] || ['neutral'];
+    const expr = pool[Math.floor(Math.random() * pool.length)];
+    triggerMicroExpr(expr, 1200 + Math.random() * 800);
+  }, 20000));
 
   // 天气更新后延迟触发行为决策
   // (weatherContext refresh 已在 weather-seasonal 中处理)

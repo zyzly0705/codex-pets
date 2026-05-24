@@ -12,6 +12,8 @@ import { sayWithAi } from './ai-dialogue.js';
 import { applyRelationshipScoreModifier } from './relationship-system.js';
 import { plannerAllowsBehavior, recordPlannedBehavior, getCompanionPlanSummary } from './companion-planner.js';
 import { recordDailyEvent } from './daily-memory.js';
+import { startPerformance, isPerformanceLocked } from './performance-script.js';
+import { shouldAutoTriggerAction } from './action-taxonomy.js';
 import {
   BEHAVIOR_DIALOGUES,
   BORED_MESSAGES,
@@ -65,13 +67,39 @@ export const BEHAVIORS = [
       if (ctx.hour >= 8 && ctx.hour <= 11) score += 10;
       if (ctx.weatherKind === 'rain') score -= 20;
       if (ctx.hour >= 23 || ctx.hour < 6) score -= 30;
+      // 情绪影响散步意愿：开心活泼时更想跑动，难过时宁愿待着不动
+      if (yoyoEmotion.valence > 70 && yoyoEmotion.arousal > 55) score += 18;
+      else if (yoyoEmotion.valence < 35) score -= 22;
       return Math.max(0, Math.min(100, score));
     },
     async onExecute() {
       const lines = BEHAVIOR_DIALOGUES.walk;
       sayWithAi({ behavior: 'walk', fallback: lines[Math.floor(Math.random() * lines.length)] });
-      const direction = Math.random() > 0.5 ? 1 : -1;
-      const distance = 40 + Math.random() * 60;
+
+      const { valence, arousal } = yoyoEmotion;
+
+      // 情绪决定步速和距离
+      let distanceMult = 1;
+      let stepSize = 2; // px per 50ms
+      if (valence > 70 && arousal > 55) {
+        distanceMult = 1.6; stepSize = 3; // 开心：步子大、走得远
+      } else if (valence < 35) {
+        distanceMult = 0.5; stepSize = 1; // 难过：只是挪一挪
+      }
+      if (arousal > 78) stepSize = Math.min(4, stepSize + 1);
+      else if (arousal < 28) stepSize = Math.max(1, stepSize - 1);
+
+      // 难过时向最近的屏幕边缘走（缩角落行为）
+      let direction;
+      if (valence < 35) {
+        const { bounds, workArea } = await window.petApi.getBounds();
+        const centerX = workArea.x + workArea.width / 2;
+        direction = bounds.x < centerX ? -1 : 1;
+      } else {
+        direction = Math.random() > 0.5 ? 1 : -1;
+      }
+
+      const distance = (40 + Math.random() * 60) * distanceMult;
       const walkState = direction > 0 ? 'runningRight' : 'runningLeft';
       setState(walkState);
       let remaining = distance;
@@ -85,8 +113,8 @@ export const BEHAVIORS = [
           if (state.currentBehavior === 'walk') setState('idle');
           return;
         }
-        const moved = await window.petApi.moveBy({ x: direction * 2, y: 0 });
-        remaining -= 2;
+        const moved = await window.petApi.moveBy({ x: direction * stepSize, y: 0 });
+        remaining -= stepSize;
         const { bounds, workArea } = await window.petApi.getBounds();
         if (moved.x <= workArea.x || moved.x + bounds.width >= workArea.x + workArea.width) {
           remaining = 0;
@@ -130,18 +158,30 @@ export const BEHAVIORS = [
       return Math.max(0, Math.min(100, score));
     },
     onExecute() {
-      setState('dancing');
-      const lines = BEHAVIOR_DIALOGUES.dance;
-      sayWithAi({ behavior: 'dance', fallback: lines[Math.floor(Math.random() * lines.length)] });
-      applyEmotionEvent('play');
+      startPerformance('danceLetGo');
       incrementAchievementStat('danceCount');
       trackFeatureUsed('dance');
-      setTimeout(() => {
-        if (state.currentBehavior === 'dance' && stateMachine.actionState === ACTION_STATES.DANCING) {
-          stateMachine.transition(ACTION_STATES.IDLE);
-          setState('idle');
-        }
-      }, 5000);
+    }
+  },
+  {
+    name: 'cheer',
+    state: 'clapping',
+    duration: 3600,
+    cooldown: 600000,
+    utilityFn(needs, ctx) {
+      let score = needs.boredom * 0.18 + needs.playfulness * 0.24;
+      if (yoyoEmotion && yoyoEmotion.valence > 62) score += 16;
+      if (yoyoEmotion && yoyoEmotion.arousal > 54) score += 10;
+      if (ctx.idleTime > 2 * 60 * 1000) score += 8;
+      if (ctx.hour >= 9 && ctx.hour <= 18) score += 8;
+      if (ctx.hour >= 23 || ctx.hour < 7) score -= 35;
+      return Math.max(0, Math.min(100, score));
+    },
+    onExecute() {
+      setState('clapping');
+      sayWithAi({ behavior: 'cheer', fallback: randomFrom(BEHAVIOR_DIALOGUES.cheer) });
+      applyEmotionEvent('happy');
+      trackGrowthStat('interactionCount');
     }
   },
   {
@@ -201,6 +241,7 @@ export const BEHAVIORS = [
     duration: 30000,
     cooldown: 60000,
     utilityFn(needs, ctx) {
+      if (state.life) return 0;
       if (needs.hunger < 70) return 0;
       let score = needs.hunger * 0.9;
       return Math.max(0, Math.min(100, score));
@@ -343,9 +384,7 @@ export const BEHAVIORS = [
       return Math.max(0, Math.min(100, u));
     },
     onExecute() {
-      setState('swing');
-      sayWithAi({ behavior: 'swing', fallback: getCatalogLine('swing') });
-      applyEmotionEvent('happy');
+      startPerformance('swingScene');
       trackGrowthStat('interactionCount');
     }
   },
@@ -420,9 +459,7 @@ export const BEHAVIORS = [
       return Math.max(0, Math.min(100, u));
     },
     onExecute() {
-      setState('fanCooling');
-      sayWithAi({ behavior: 'fanCooling', fallback: getCatalogLine('fanCooling') });
-      applyEmotionEvent('calm');
+      startPerformance('fanCoolingScene');
     }
   },
   {
@@ -442,9 +479,7 @@ export const BEHAVIORS = [
       return Math.max(0, Math.min(100, u));
     },
     onExecute() {
-      setState('swimming');
-      sayWithAi({ behavior: 'swimming', fallback: getCatalogLine('swimming') });
-      applyEmotionEvent('happy');
+      startPerformance('swimmingScene');
       trackGrowthStat('interactionCount');
     }
   },
@@ -463,9 +498,7 @@ export const BEHAVIORS = [
       return Math.max(0, Math.min(100, u));
     },
     onExecute() {
-      setState('airConditioning');
-      sayWithAi({ behavior: 'airConditioning', fallback: getCatalogLine('airConditioning') });
-      applyEmotionEvent('calm');
+      startPerformance('airConditioningScene');
     }
   },
   {
@@ -483,9 +516,7 @@ export const BEHAVIORS = [
       return Math.max(0, Math.min(100, u));
     },
     onExecute() {
-      setState('sofaLying');
-      sayWithAi({ behavior: 'sofaLying', fallback: getCatalogLine('sofaLying') });
-      applyEmotionEvent('relaxed');
+      startPerformance('sofaLyingScene');
     }
   },
   {
@@ -515,7 +546,7 @@ export const BEHAVIORS = [
   },
   {
     name: 'wpsCompanion',
-    state: 'review',
+    state: 'typingCompanion',
     duration: 6000,
     cooldown: 1800000,
     utilityFn(needs, ctx) {
@@ -526,7 +557,9 @@ export const BEHAVIORS = [
       return Math.max(0, Math.min(100, score));
     },
     onExecute() {
-      setState('review');
+      state.keyboardActiveUntil = Date.now() + 6000;
+      stateMachine.transition(ACTION_STATES.TYPING_COMPANION);
+      setState('typingCompanion');
       sayWithAi({ behavior: 'wpsCompanion', fallback: getCatalogLine('wpsCompanion'), context: '妈妈正在使用办公软件工作' });
       applyEmotionEvent('calm');
       trackGrowthStat('workTime', 0.5);
@@ -547,16 +580,66 @@ export const BEHAVIORS = [
       return 80; // 一旦触发概率通过，给一个较高分数确保执行
     },
     onExecute() {
-      setState('clapping');
-      say('看我的——法天象地！', 6000);
+      startPerformance('dharmaManifest');
       window.petApi.triggerGiantEffect();
-      applyEmotionEvent('happy');
       incrementAchievementStat('giantCount');
       trackFeatureUsed('giant');
-      // 6秒后说"累了"
-      setTimeout(() => {
-        say('呼～好累', 3000);
-      }, 6500);
+    }
+  },
+  {
+    name: 'neglectProtest',
+    state: 'waving',
+    duration: 4000,
+    cooldown: 1800000, // 30分钟冷却
+    utilityFn(needs, ctx) {
+      if (needs.boredom < 65) return 0;
+      const idleMinutes = (Date.now() - state.lastInteractionTime) / 60000;
+      if (idleMinutes < 25) return 0;
+      if (ctx.workMode) return 0;
+      return 70;
+    },
+    onExecute() {
+      sayWithAi({
+        behavior: 'neglectProtest',
+        fallback: randomFrom(BEHAVIOR_DIALOGUES.neglectProtest),
+        context: '妈妈很久没有理Yoyo了',
+      });
+    }
+  },
+  {
+    name: 'sadnessLinger',
+    state: 'failed',
+    duration: 4000,
+    cooldown: 900000, // 15分钟冷却
+    utilityFn(_needs, _ctx) {
+      if (yoyoEmotion.valence >= 35) return 0;
+      if (hoursSinceLastWhip() > 2) return 0;
+      return 60;
+    },
+    onExecute() {
+      sayWithAi({
+        behavior: 'sadnessLinger',
+        fallback: randomFrom(BEHAVIOR_DIALOGUES.sadnessLinger),
+        context: '刚被妈妈打了还没恢复',
+      });
+    }
+  },
+  {
+    name: 'joySpill',
+    state: 'clapping',
+    duration: 3600,
+    cooldown: 600000, // 10分钟冷却
+    utilityFn(_needs, _ctx) {
+      if (yoyoEmotion.valence <= 80) return 0;
+      if (yoyoEmotion.arousal <= 65) return 0;
+      return 65;
+    },
+    onExecute() {
+      sayWithAi({
+        behavior: 'joySpill',
+        fallback: randomFrom(BEHAVIOR_DIALOGUES.joySpill),
+        context: '心情超好控制不住',
+      });
     }
   }
 ];
@@ -1177,6 +1260,17 @@ export async function behaviorEngineTick() {
   if (isStartupQuiet()) return;
   checkSeasonalParticleTrigger();
 
+  if (isPerformanceLocked()) {
+    debugLog('behavior_suppressed', {
+      reason: 'performance_lock',
+      performance: state.activePerformance?.id,
+      untilIn: Math.max(0, Math.ceil((state.activePerformance.lockUntil - Date.now()) / 1000)),
+      stateName: state.stateName,
+      currentBehavior: state.currentBehavior,
+    });
+    return;
+  }
+
   if (stateMachine.actionState === ACTION_STATES.TYPING_COMPANION && Date.now() > state.keyboardActiveUntil) {
     stateMachine.transition(ACTION_STATES.IDLE);
     if (state.currentBehavior === 'typingCompanion') {
@@ -1200,7 +1294,7 @@ export async function behaviorEngineTick() {
     return;
   }
 
-  if (state.stateName === 'clapping' && Date.now() > state.keyboardActiveUntil) {
+  if (state.stateName === 'clapping' && !state.currentBehavior && Date.now() > state.keyboardActiveUntil) {
     if (!stateMachine.isDancing && !stateMachine.isSleeping && !stateMachine.isFollowing && !stateMachine.isClimbing) {
       setState('idle');
     }
@@ -1244,6 +1338,7 @@ export async function behaviorEngineTick() {
   for (const behavior of BEHAVIORS) {
     if (isOnCooldown(behavior.name)) continue;
     if (behavior.name === 'hungry' && feedBtn.classList.contains('show')) continue;
+    if (!shouldAutoTriggerAction(behavior.name)) continue;
     if (!plannerAllowsBehavior(behavior.name, getBehaviorMeta(behavior.name))) continue;
 
     const { score, breakdown } = scoreBehavior(behavior, ctx);

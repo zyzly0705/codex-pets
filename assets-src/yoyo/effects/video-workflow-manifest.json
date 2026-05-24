@@ -1,0 +1,123 @@
+{
+  "workflow": "yoyo-effect-video-reference",
+  "version": 1,
+  "scope": "Prepare high-frame video-reference rebuilds for Yoyo clone-heart and dharma-manifest only.",
+  "excludedEffects": ["digSand"],
+  "characterContract": [
+    "Yoyo is a human little girl and companion, never a dog, puppy, mascot animal, or generic pet.",
+    "Use the clean-2d Yoyo identity: black straight bangs, small top bun, childlike proportions, soft friendly face, navy-and-red outfit language.",
+    "Keep the full body visible in source references unless an authored foreground effect intentionally passes in front of her.",
+    "Every frame must show grounded body weight, stable scale, and consistent head-to-body proportions.",
+    "Avoid half-body crops, floating busts, pasted faces, paw marks, collars, pet beds, pet bowls, and animal semantics."
+  ],
+  "sharedReferences": [
+    "assets-src/yoyo/identity/yoyo-character-master.png",
+    "assets/yoyo/spritesheet.webp",
+    "assets-src/yoyo/manifest.json"
+  ],
+  "effects": {
+    "clone-heart": {
+      "label": "分身",
+      "runtime": {
+        "effectType": "clone",
+        "effectId": "clone-heart",
+        "triggerIpc": "effect:clone",
+        "performanceScript": "cloneHeart",
+        "stageEntry": "src/pixi-effect-stage.js#makeCloneStage"
+      },
+      "sourceTimeline": "assets-src/yoyo/effects/clone-heart/timeline.json",
+      "runtimeTimeline": "assets/yoyo/effects/clone-heart/timeline.json",
+      "videoReference": {
+        "id": "clone-split-heart-reference",
+        "durationMs": 2600,
+        "fps": 12,
+        "targetFrames": 24,
+        "canvas": { "width": 768, "height": 768 },
+        "promptFocus": [
+          "One full-body Yoyo stands center, breathes in, then two translucent full-body clones split from her shoulders.",
+          "More clones fan outward in a shallow arc, then settle into a heart-shaped formation around the original.",
+          "All clones preserve the same human-child Yoyo identity and stay on the same floor plane.",
+          "No animal ears, no paws, no pet symbols, no half-body copies, no floating head copies."
+        ]
+      },
+      "extraction": {
+        "frameSelection": "Extract 24 evenly spaced frames, then manually replace weak frames with clearer keyframes from the same video.",
+        "transparentOutputDir": "assets-src/yoyo/effects/clone-heart/video-frames",
+        "contactSheet": "assets-src/yoyo/effects/clone-heart/qa/video-contact-sheet.png",
+        "runtimeCandidateDir": "output/yoyo-effect-video-runs/clone-heart/processed"
+      },
+      "layers": [
+        {
+          "id": "clone-yoyo-composite",
+          "role": "character-composite",
+          "description": "Full-body original plus full-body duplicate Yoyos; can be sampled as reference for Pixi positions or future authored clone sheet."
+        },
+        {
+          "id": "clone-heart-burst",
+          "role": "foreground-effect",
+          "description": "Small warm heart/spark burst at the final merge, kept separate from Yoyo faces and body."
+        }
+      ],
+      "acceptanceGates": [
+        "Every visible Yoyo is full-body or intentionally covered by a same-frame effect; not half-body.",
+        "Clones read as the same human little girl, not animals or dolls.",
+        "Clone positions form a readable formation without drifting off the source center.",
+        "The final frame resolves cleanly so the Pixi overlay can fade out without a pop."
+      ]
+    },
+    "dharma-manifest": {
+      "label": "法相",
+      "runtime": {
+        "effectType": "dharma",
+        "effectId": "dharma-manifest",
+        "triggerIpc": "effect:giant",
+        "performanceScript": "dharmaManifest",
+        "stageEntry": "src/pixi-effect-stage.js#makeDharmaStage"
+      },
+      "sourceTimeline": "assets-src/yoyo/effects/dharma-manifest/timeline.json",
+      "runtimeTimeline": "assets/yoyo/effects/dharma-manifest/timeline.json",
+      "videoReference": {
+        "id": "dharma-spirit-manifest-reference",
+        "durationMs": 4200,
+        "fps": 12,
+        "targetFrames": 32,
+        "canvas": { "width": 1024, "height": 1024 },
+        "promptFocus": [
+          "Full-body Yoyo stands grounded in the foreground while a large translucent guardian-like Yoyo spirit rises behind her.",
+          "The spirit is recognizably Yoyo, calm and protective, with simplified clean-2d shapes and no animal features.",
+          "Build in phases: charge ring behind feet, spirit silhouette emerges behind, foreground sigils pass in front, then all layers settle and fade.",
+          "Keep the base Yoyo original scale stable; the large spirit is an effect layer, not a resized pasted copy floating on top of her."
+        ]
+      },
+      "extraction": {
+        "frameSelection": "Extract 32 frames with emphasis on charge, emergence, stable spirit, foreground seal, and fade-out keyframes.",
+        "transparentOutputDir": "assets-src/yoyo/effects/dharma-manifest/video-frames",
+        "contactSheet": "assets-src/yoyo/effects/dharma-manifest/qa/video-contact-sheet.png",
+        "runtimeCandidateDir": "output/yoyo-effect-video-runs/dharma-manifest/processed"
+      },
+      "layers": [
+        {
+          "id": "dharma-spirit-back",
+          "role": "background-effect",
+          "description": "Large translucent Yoyo-like guardian spirit placed behind the foreground Yoyo."
+        },
+        {
+          "id": "dharma-yoyo-front",
+          "role": "character-reference",
+          "description": "Foreground full-body Yoyo at normal scale, used only to validate contact and proportion."
+        },
+        {
+          "id": "dharma-seal-front",
+          "role": "foreground-effect",
+          "description": "Rune ring, lightning, and final shockwave passing in front of the character."
+        }
+      ],
+      "acceptanceGates": [
+        "Foreground Yoyo stays grounded and normal-sized; the法相 is a separate back effect layer.",
+        "The spirit silhouette remains recognizably human Yoyo and not an animal/monster redesign.",
+        "Foreground rings/lightning never hide the face for more than a few frames.",
+        "The sequence has a visible charge, manifestation, stable hold, and收束."
+      ]
+    }
+  }
+}
