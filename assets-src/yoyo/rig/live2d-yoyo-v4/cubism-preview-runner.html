@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yoyo Cubism Preview Runner</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #17181d;
+      color: #f4efe8;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+    .shell {
+      width: min(960px, calc(100vw - 32px));
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 20px;
+      align-items: start;
+    }
+    .stage {
+      background: linear-gradient(180deg, #2b2f3b 0%, #21242d 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+      display: grid;
+      place-items: center;
+      min-height: 720px;
+    }
+    .character {
+      position: relative;
+      width: min(78vw, 720px);
+      aspect-ratio: 1;
+      transform: scale(0.92);
+      transform-origin: center;
+    }
+    .character img {
+      position: absolute;
+      image-rendering: auto;
+      pointer-events: none;
+      transform-origin: center center;
+    }
+    .panel {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    button {
+      background: #2f7ee6;
+      color: white;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+    button[data-animation="reset"] { background: #485064; }
+    .state {
+      font-size: 14px;
+      color: #c6d0e1;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+    .hint {
+      font-size: 12px;
+      color: #92a0b9;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="stage">
+      <div class="character" id="character"></div>
+    </div>
+    <div class="panel">
+      <strong>Preview Runner</strong>
+      <div class="buttons">
+        <button data-animation="idle">Play idle</button>
+        <button data-animation="blink">Play blink</button>
+        <button data-animation="happy_idle">Play happy_idle</button>
+        <button data-animation="talk_loop">Play talk_loop</button>
+        <button data-animation="reset">Reset</button>
+      </div>
+      <div class="state" id="state">Loading…</div>
+      <div class="hint">This runner previews layer visibility and simple motion rhythm from the generated animation packet. It is a staging aid, not a full Cubism runtime.</div>
+    </div>
+  </div>
+  <script>
+    const animationPacket = {"version":1,"rigPackVersion":4,"modelName":"YoyoRigV4","animations":[{"id":"idle","durationMs":3200,"loop":true,"keyframes":[{"timeMs":0,"expression":"neutral","ParamBodyAngleY":-2,"ParamHeadAngleZ":0,"ParamHairSway":-3,"ParamMouthOpenY":0.2},{"timeMs":800,"expression":"neutral","ParamBodyAngleY":4,"ParamHeadAngleZ":-1.4,"ParamHairSway":-6,"ParamMouthOpenY":0.32},{"timeMs":1600,"expression":"neutral","ParamBodyAngleY":-1,"ParamHeadAngleZ":1.2,"ParamHairSway":2,"ParamMouthOpenY":0.18},{"timeMs":2400,"expression":"neutral","ParamBodyAngleY":3,"ParamHeadAngleZ":1.8,"ParamHairSway":6,"ParamMouthOpenY":0.28},{"timeMs":3200,"expression":"neutral","ParamBodyAngleY":-2,"ParamHeadAngleZ":0,"ParamHairSway":-3,"ParamMouthOpenY":0.2}]},{"id":"blink","durationMs":180,"loop":false,"keyframes":[{"timeMs":0,"expression":"neutral","ParamEyeLOpen":1,"ParamEyeROpen":1},{"timeMs":60,"expression":"blink","ParamEyeLOpen":0,"ParamEyeROpen":0},{"timeMs":90,"expression":"blink","ParamEyeLOpen":0,"ParamEyeROpen":0},{"timeMs":180,"expression":"neutral","ParamEyeLOpen":1,"ParamEyeROpen":1}]},{"id":"happy_idle","durationMs":2800,"loop":true,"keyframes":[{"timeMs":0,"expression":"happy","ParamEyeLSmile":0.7,"ParamEyeRSmile":0.7,"ParamMouthForm":0.68,"ParamBodyAngleY":-1},{"timeMs":700,"expression":"happy","ParamEyeLSmile":1,"ParamEyeRSmile":1,"ParamMouthForm":0.82,"ParamBodyAngleY":3},{"timeMs":1400,"expression":"happy","ParamEyeLSmile":0.85,"ParamEyeRSmile":0.85,"ParamMouthForm":0.72,"ParamBodyAngleY":0},{"timeMs":2100,"expression":"happy","ParamEyeLSmile":1,"ParamEyeRSmile":1,"ParamMouthForm":0.8,"ParamBodyAngleY":-3},{"timeMs":2800,"expression":"happy","ParamEyeLSmile":0.7,"ParamEyeRSmile":0.7,"ParamMouthForm":0.68,"ParamBodyAngleY":-1}]},{"id":"talk_loop","durationMs":1400,"loop":true,"keyframes":[{"timeMs":0,"expression":"talk_small","ParamMouthOpenY":0.35,"ParamMouthForm":-0.1,"ParamHeadAngleZ":0},{"timeMs":300,"expression":"talk_round","ParamMouthOpenY":1,"ParamMouthForm":1,"ParamHeadAngleZ":0.8},{"timeMs":650,"expression":"talk_flat","ParamMouthOpenY":0.2,"ParamMouthForm":-1,"ParamHeadAngleZ":-0.6},{"timeMs":950,"expression":"talk_round","ParamMouthOpenY":0.85,"ParamMouthForm":0.9,"ParamHeadAngleZ":1.2},{"timeMs":1400,"expression":"talk_small","ParamMouthOpenY":0.35,"ParamMouthForm":-0.1,"ParamHeadAngleZ":0}]}]};
+    const visibilityMap = {"version":1,"rigPackVersion":4,"modelName":"YoyoRigV4","states":[{"id":"neutral","visibleLayers":["eye_left_open","eye_right_open","mouth_small"],"hiddenLayers":["eye_left_blink","eye_right_blink","eye_left_smile","eye_right_smile","mouth_closed","mouth_flat","mouth_open","mouth_smile","mouth_o"]},{"id":"blink","visibleLayers":["eye_left_blink","eye_right_blink","mouth_closed"],"hiddenLayers":["eye_left_open","eye_right_open","eye_left_smile","eye_right_smile","mouth_flat","mouth_small","mouth_open","mouth_smile","mouth_o"]},{"id":"happy","visibleLayers":["eye_left_smile","eye_right_smile","mouth_smile"],"hiddenLayers":["eye_left_open","eye_right_open","eye_left_blink","eye_right_blink","mouth_closed","mouth_flat","mouth_small","mouth_open","mouth_o"]},{"id":"talk_small","visibleLayers":["eye_left_open","eye_right_open","mouth_small"],"hiddenLayers":["eye_left_blink","eye_right_blink","eye_left_smile","eye_right_smile","mouth_closed","mouth_flat","mouth_open","mouth_smile","mouth_o"]},{"id":"talk_round","visibleLayers":["eye_left_open","eye_right_open","mouth_o"],"hiddenLayers":["eye_left_blink","eye_right_blink","eye_left_smile","eye_right_smile","mouth_closed","mouth_flat","mouth_small","mouth_open","mouth_smile"]},{"id":"talk_flat","visibleLayers":["eye_left_open","eye_right_open","mouth_flat"],"hiddenLayers":["eye_left_blink","eye_right_blink","eye_left_smile","eye_right_smile","mouth_closed","mouth_small","mouth_open","mouth_smile","mouth_o"]}]};
+    const previewLayers = {"static":["head-hair_back.png","head-bun.png","face-face_base.png","head-hair_front.png","head-bangs_center.png","head-side_hair_left.png","head-side_hair_right.png","body-collar.png","body-torso_top.png","body-bow_left.png","body-bow_center.png","body-bow_right.png","body-button_left.png","body-button_right.png","arms-arm_left.png","arms-arm_right.png","arms-hand_left.png","arms-hand_right.png","body-skirt.png","legs-leg_left.png","legs-leg_right.png","legs-shoe_left.png","legs-shoe_right.png","face-brow_left.png","face-brow_right.png","face-blush_left.png","face-blush_right.png"],"dynamic":["face-eye_left_open.png","face-eye_right_open.png","face-eye_left_blink.png","face-eye_right_blink.png","face-eye_left_smile.png","face-eye_right_smile.png","face-mouth_closed.png","face-mouth_flat.png","face-mouth_small.png","face-mouth_open.png","face-mouth_smile.png","face-mouth_o.png"]};
+    const documentSize = {"width":1254,"height":1254};
+    const layerLayout = {"head-hair_back.png":{"left":420,"top":120,"width":408,"height":438},"head-bun.png":{"left":520,"top":120,"width":205,"height":168},"head-hair_front.png":{"left":448,"top":182,"width":350,"height":335},"head-bangs_center.png":{"left":506,"top":245,"width":226,"height":122},"head-side_hair_left.png":{"left":450,"top":352,"width":98,"height":214},"head-side_hair_right.png":{"left":701,"top":352,"width":98,"height":214},"face-face_base.png":{"left":467,"top":242,"width":314,"height":352},"face-eye_left_open.png":{"left":476,"top":398,"width":118,"height":102},"face-eye_right_open.png":{"left":644,"top":398,"width":118,"height":102},"face-eye_left_blink.png":{"left":476,"top":398,"width":118,"height":102},"face-eye_right_blink.png":{"left":644,"top":398,"width":118,"height":102},"face-eye_left_smile.png":{"left":476,"top":398,"width":118,"height":102},"face-eye_right_smile.png":{"left":644,"top":398,"width":118,"height":102},"face-brow_left.png":{"left":519,"top":305,"width":92,"height":42},"face-brow_right.png":{"left":639,"top":305,"width":92,"height":42},"face-blush_left.png":{"left":509,"top":414,"width":74,"height":58},"face-blush_right.png":{"left":665,"top":414,"width":74,"height":58},"face-mouth_open.png":{"left":584,"top":487,"width":110,"height":92},"face-mouth_smile.png":{"left":584,"top":487,"width":110,"height":92},"face-mouth_closed.png":{"left":584,"top":487,"width":110,"height":92},"face-mouth_o.png":{"left":584,"top":487,"width":110,"height":92},"face-mouth_small.png":{"left":584,"top":487,"width":110,"height":92},"face-mouth_flat.png":{"left":584,"top":487,"width":110,"height":92},"body-collar.png":{"left":530,"top":519,"width":190,"height":112},"body-bow_left.png":{"left":541,"top":552,"width":72,"height":75},"body-bow_center.png":{"left":595,"top":552,"width":63,"height":82},"body-bow_right.png":{"left":640,"top":552,"width":72,"height":75},"body-torso_top.png":{"left":469,"top":523,"width":318,"height":232},"body-skirt.png":{"left":474,"top":673,"width":307,"height":215},"body-button_left.png":{"left":543,"top":622,"width":42,"height":42},"body-button_right.png":{"left":672,"top":622,"width":42,"height":42},"arms-arm_left.png":{"left":419,"top":515,"width":154,"height":351},"arms-hand_left.png":{"left":423,"top":735,"width":122,"height":120},"arms-arm_right.png":{"left":677,"top":515,"width":154,"height":351},"arms-hand_right.png":{"left":707,"top":735,"width":122,"height":120},"legs-leg_left.png":{"left":505,"top":838,"width":149,"height":188},"legs-shoe_left.png":{"left":503,"top":957,"width":125,"height":72},"legs-leg_right.png":{"left":606,"top":838,"width":149,"height":188},"legs-shoe_right.png":{"left":627,"top":957,"width":125,"height":72}};
+
+    const character = document.getElementById('character');
+    const stateNode = document.getElementById('state');
+    const imageMap = new Map();
+
+    const createLayer = (fileName) => {
+      const layout = layerLayout[fileName];
+      if (!layout) return;
+      const img = document.createElement('img');
+      img.src = fileName;
+      img.alt = fileName;
+      img.dataset.file = fileName;
+      img.style.left = ((layout.left / documentSize.width) * 100) + '%';
+      img.style.top = ((layout.top / documentSize.height) * 100) + '%';
+      img.style.width = ((layout.width / documentSize.width) * 100) + '%';
+      img.style.height = ((layout.height / documentSize.height) * 100) + '%';
+      character.appendChild(img);
+      imageMap.set(fileName, img);
+    };
+
+    [...previewLayers.static, ...previewLayers.dynamic].forEach(createLayer);
+
+    const dynamicLayerFile = (layerName) => `face-${layerName}.png`;
+    const stateById = new Map(visibilityMap.states.map((state) => [state.id, state]));
+
+    function applyExpression(expressionId) {
+      const state = stateById.get(expressionId) || stateById.get('neutral');
+      for (const fileName of previewLayers.dynamic) {
+        const img = imageMap.get(fileName);
+        img.style.opacity = '0';
+      }
+      for (const layerName of state.visibleLayers) {
+        const img = imageMap.get(dynamicLayerFile(layerName));
+        if (img) img.style.opacity = '1';
+      }
+      stateNode.textContent = `Expression: ${expressionId}`;
+    }
+
+    function applyPose(keyframe) {
+      const bodyShift = (keyframe.ParamBodyAngleY || 0) * 1.8;
+      const headRotate = (keyframe.ParamHeadAngleZ || 0) * 1.2;
+      const swayShift = (keyframe.ParamHairSway || 0) * 0.5;
+      character.style.transform = `translateY(${bodyShift}px) translateX(${swayShift}px) scale(0.92) rotate(${headRotate}deg)`;
+    }
+
+    let timerIds = [];
+    function clearTimers() {
+      for (const id of timerIds) clearTimeout(id);
+      timerIds = [];
+    }
+
+    function playAnimation(animationId) {
+      clearTimers();
+      const animation = animationPacket.animations.find((item) => item.id === animationId);
+      if (!animation) return;
+      stateNode.textContent = `Animation: ${animation.id}\nDuration: ${animation.durationMs}ms`;
+      for (const keyframe of animation.keyframes) {
+        const timeoutId = setTimeout(() => {
+          applyExpression(keyframe.expression);
+          applyPose(keyframe);
+          stateNode.textContent = `Animation: ${animation.id}\nExpression: ${keyframe.expression}\nTime: ${keyframe.timeMs}ms`;
+        }, keyframe.timeMs);
+        timerIds.push(timeoutId);
+      }
+      if (animation.loop) {
+        const loopId = setTimeout(() => playAnimation(animationId), animation.durationMs + 40);
+        timerIds.push(loopId);
+      }
+    }
+
+    document.querySelectorAll('button[data-animation]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const animationId = button.dataset.animation;
+        if (animationId === 'reset') {
+          clearTimers();
+          character.style.transform = 'scale(0.92)';
+          applyExpression('neutral');
+          return;
+        }
+        playAnimation(animationId);
+      });
+    });
+
+    applyExpression('neutral');
+  </script>
+</body>
+</html>

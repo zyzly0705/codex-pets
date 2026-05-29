@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "rigPackVersion": 4,
+  "modelName": "YoyoRigV4",
+  "motions": [
+    {
+      "id": "idle",
+      "durationMs": 3200,
+      "loop": true,
+      "description": "Small breathing loop with gentle head settle and almost-closed resting mouth.",
+      "parameters": [
+        {
+          "id": "ParamBodyAngleY",
+          "range": [
+            -4,
+            4
+          ],
+          "cadence": "sine-slow"
+        },
+        {
+          "id": "ParamHeadAngleZ",
+          "range": [
+            -2,
+            2
+          ],
+          "cadence": "sine-offset"
+        },
+        {
+          "id": "ParamHairSway",
+          "range": [
+            -6,
+            6
+          ],
+          "cadence": "lagged-follow"
+        },
+        {
+          "id": "ParamMouthOpenY",
+          "range": [
+            0.18,
+            0.32
+          ],
+          "cadence": "resting-breath"
+        }
+      ]
+    },
+    {
+      "id": "blink",
+      "durationMs": 180,
+      "loop": false,
+      "description": "Quick neutral blink with no smile bias.",
+      "parameters": [
+        {
+          "id": "ParamEyeLOpen",
+          "range": [
+            1,
+            0,
+            1
+          ],
+          "cadence": "ease-in-out"
+        },
+        {
+          "id": "ParamEyeROpen",
+          "range": [
+            1,
+            0,
+            1
+          ],
+          "cadence": "ease-in-out"
+        }
+      ]
+    },
+    {
+      "id": "happy_idle",
+      "durationMs": 2800,
+      "loop": true,
+      "description": "Smile-eye idle with warm talk-ready mouth and soft torso float.",
+      "parameters": [
+        {
+          "id": "ParamEyeLSmile",
+          "range": [
+            0.7,
+            1
+          ],
+          "cadence": "hold-soft"
+        },
+        {
+          "id": "ParamEyeRSmile",
+          "range": [
+            0.7,
+            1
+          ],
+          "cadence": "hold-soft"
+        },
+        {
+          "id": "ParamMouthForm",
+          "range": [
+            0.65,
+            0.85
+          ],
+          "cadence": "gentle-pulse"
+        },
+        {
+          "id": "ParamBodyAngleY",
+          "range": [
+            -3,
+            3
+          ],
+          "cadence": "sine-slow"
+        }
+      ]
+    },
+    {
+      "id": "talk_loop",
+      "durationMs": 1400,
+      "loop": true,
+      "description": "Simple speech loop alternating compact and round mouth shapes.",
+      "parameters": [
+        {
+          "id": "ParamMouthOpenY",
+          "range": [
+            0.2,
+            1
+          ],
+          "cadence": "speech-cycle"
+        },
+        {
+          "id": "ParamMouthForm",
+          "range": [
+            -0.1,
+            1
+          ],
+          "cadence": "shape-shift"
+        },
+        {
+          "id": "ParamHeadAngleZ",
+          "range": [
+            -1.5,
+            1.5
+          ],
+          "cadence": "micro-bob"
+        }
+      ]
+    }
+  ]
+}

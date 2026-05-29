@@ -1,5 +1,6 @@
 // emotion-system.js - PAD 情感模型 + 性格系统 + 情感事件
-import { clamp, lerp, say } from './core-state.js';
+import { clamp, lerp } from './utils.js';
+import { say } from './speech-queue.js';
 import { logEmotionDecay, logEmotionEvent } from './debug-log.js';
 
 // ===== Yoyo 拟人化情感系统 =====

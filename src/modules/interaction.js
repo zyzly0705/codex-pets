@@ -1,5 +1,8 @@
 // interaction.js - 拖拽 + 喂食 + 右键菜单响应 + 键盘响应 + 鞭打
-import { state, canvas, feedBtn, careCue, say, setState, playSound, randomFrom, speechQueue, SPEECH_PRIORITY, isOnCooldown, setCooldown, cooldowns, FEED_SCALE_DURATION, FEED_SCALE_MAX, CLICK_MAX_DIST, CLICK_MAX_TIME, localFileUrl, globalTimers, STATES, reactionState, petCapabilityEnabled, petBehaviorAllowed } from './core-state.js';
+import { state, canvas, feedBtn, careCue, setState, isOnCooldown, setCooldown, cooldowns, FEED_SCALE_DURATION, FEED_SCALE_MAX, CLICK_MAX_DIST, CLICK_MAX_TIME, globalTimers, STATES, reactionState, petCapabilityEnabled, petBehaviorAllowed } from './core-state.js';
+import { randomFrom, localFileUrl } from './utils.js';
+import { playSound } from './audio.js';
+import { say, speechQueue, SPEECH_PRIORITY } from './speech-queue.js';
 import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
 import { applyEmotionEvent, emotionSay, yoyoEmotion, getEmotionLabel, PET_DIALOGUES, WHIP_DIALOGUES, FEED_DIALOGUES } from './emotion-system.js';
 import { yoyoMemory, saveMemory, addXP, trackGrowthStat, incrementAchievementStat, trackFeatureUsed, MEMORY_LINES } from './growth-system.js';
@@ -13,6 +16,8 @@ import { recordDailyEvent } from './daily-memory.js';
 import { normalizePetManifest } from './pet-manifest.js';
 import { set, get } from './store-client.js';
 import { startPerformance, endPerformance } from './performance-script.js';
+import { pauseDesktopRoaming } from './desktop-roaming.js';
+import { playDesktopAction, playDesktopClickToyReaction } from './desktop-toys.js';
 
 // ===== 喂食相关消息 =====
 const DISMISS_MESSAGES = [
@@ -520,6 +525,7 @@ export function initInteraction() {
   // 单击 vs 拖拽判定
   canvas.addEventListener('pointerdown', async (event) => {
     if (event.button !== 0) return;
+    pauseDesktopRoaming();
     resetInteraction();
     if (stateMachine.isDropping) return;
     try { canvas.setPointerCapture(event.pointerId); } catch { /* pointer capture may fail if pointer is gone */ }
@@ -586,7 +592,8 @@ export function initInteraction() {
       petNeeds.boredom = Math.max(0, petNeeds.boredom - 15);
       petNeeds.playfulness = Math.min(100, petNeeds.playfulness + 10);
       state.lastInteractionTime = Date.now();
-      setState('petting');
+      const desktopToyReaction = Math.random() < 0.38 ? playDesktopClickToyReaction() : null;
+      if (!desktopToyReaction) setState('petting');
       playSound('giggle');
 
       yoyoMemory.lastPetTime = Date.now();
@@ -602,14 +609,14 @@ export function initInteraction() {
       // 抚摸反应：追踪连续次数
       if (!reactionState.pat) {
         reactionState.pat = { phase: 'happy', count: 1, startTime: Date.now() };
-        say('嗯～好舒服', 2500);
+        if (!desktopToyReaction) say('嗯～好舒服', 2500);
       } else {
         reactionState.pat.count++;
         if (reactionState.pat.count >= getPurringThreshold()) {
           reactionState.pat.phase = 'purring';
-          say('呼噜呼噜～', 3000);
+          if (!desktopToyReaction) say('呼噜呼噜～', 3000);
         } else {
-          emotionSay(PET_DIALOGUES);
+          if (!desktopToyReaction) emotionSay(PET_DIALOGUES);
         }
       }
       clearTimeout(patResetTimer);
@@ -621,7 +628,7 @@ export function initInteraction() {
           .replace('{count}', yoyoMemory.totalPetCount);
         say(line, 7000);
       }
-      setTimeout(() => setState('idle'), 2000);
+      setTimeout(() => setState('idle'), desktopToyReaction?.durationMs || 2000);
     } else {
       setState('idle');
       say('妈妈把Yoyo放这里啦～嘿嘿！');
@@ -763,6 +770,24 @@ export function initInteraction() {
       trackFeatureUsed('giant');
       return;
     }
+    if (action === 'special:cook') {
+      startPerformance('cookPotScene', { manual: true, force: true });
+      window.petApi.triggerCookEffect();
+      trackFeatureUsed('cookPot');
+      return;
+    }
+    if (action === 'special:watch-tv') {
+      startPerformance('watchTvScene', { manual: true, force: true });
+      window.petApi.triggerWatchTvEffect();
+      trackFeatureUsed('watchTv');
+      return;
+    }
+    if (action === 'special:play-switch') {
+      startPerformance('playSwitchScene', { manual: true, force: true });
+      window.petApi.triggerPlaySwitchEffect();
+      trackFeatureUsed('playSwitch');
+      return;
+    }
     if (action.startsWith('switch-pet:') || action.startsWith('switch-form:')) {
       const petId = action.replace(/^switch-(pet|form):/, '');
       await choosePet(petId);
@@ -902,6 +927,7 @@ export function initInteraction() {
 
   // 抚摸动作
   window.petApi.onAction(() => {
+    pauseDesktopRoaming();
     resetInteraction();
     recordBehaviorFeedback('pet');
     relationshipEvent('pet', 2);
@@ -910,7 +936,8 @@ export function initInteraction() {
     petNeeds.boredom = Math.max(0, petNeeds.boredom - 15);
     petNeeds.playfulness = Math.min(100, petNeeds.playfulness + 10);
     state.lastInteractionTime = Date.now();
-    setState('petting');
+    const desktopToyReaction = Math.random() < 0.38 ? playDesktopClickToyReaction() : null;
+    if (!desktopToyReaction) setState('petting');
     playSound('giggle');
 
     yoyoMemory.lastPetTime = Date.now();
@@ -926,14 +953,14 @@ export function initInteraction() {
     // 抚摸反应：追踪连续次数
     if (!reactionState.pat) {
       reactionState.pat = { phase: 'happy', count: 1, startTime: Date.now() };
-      say('嗯～好舒服', 2500);
+      if (!desktopToyReaction) say('嗯～好舒服', 2500);
     } else {
       reactionState.pat.count++;
       if (reactionState.pat.count >= 3) {
         reactionState.pat.phase = 'purring';
-        say('呼噜呼噜～', 3000);
+        if (!desktopToyReaction) say('呼噜呼噜～', 3000);
       } else {
-        emotionSay(PET_DIALOGUES);
+        if (!desktopToyReaction) emotionSay(PET_DIALOGUES);
       }
     }
     clearTimeout(patResetTimer);
@@ -945,7 +972,7 @@ export function initInteraction() {
         .replace('{count}', yoyoMemory.totalPetCount);
       say(line, 7000);
     }
-    setTimeout(() => setState('idle'), 2000);
+    setTimeout(() => setState('idle'), desktopToyReaction?.durationMs || 2000);
   });
 
   window.petApi.onWhip(() => {

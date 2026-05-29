@@ -1,4 +1,5 @@
 const { app, BrowserWindow, Menu, Tray, nativeImage } = require('electron');
+const { CARE_ACTIONS } = require('../shared/yoyo-actions');
 
 let tray = null;
 const menuState = { dancing: false, following: false, sleeping: false };
@@ -98,6 +99,15 @@ function buildAppearanceMenu({ currentForm, getMainWindow }) {
   };
 }
 
+function buildCareMenuItems(getMainWindow) {
+  return Object.entries(CARE_ACTIONS).map(([id, action]) => ({
+    label: id === 'sleep' && menuState.sleeping ? '叫醒她' : action.label,
+    type: id === 'sleep' ? 'checkbox' : 'normal',
+    checked: id === 'sleep' ? menuState.sleeping : undefined,
+    click: () => { getMainWindow().webContents.send('menu-action', `care:${id}`); },
+  }));
+}
+
 function registerMenuIpc({ ipcMain, getData, getMainWindow, listPets, openHome, openSettings }) {
   ipcMain.on('menu-state:sync', (_event, state) => {
     if (state.dancing !== undefined) menuState.dancing = state.dancing;
@@ -113,19 +123,16 @@ function registerMenuIpc({ ipcMain, getData, getMainWindow, listPets, openHome, 
     const appearanceMenu = buildAppearanceMenu({ currentForm, getMainWindow });
     const careMenu = {
       label: '照顾一下',
-      submenu: [
-        { label: '喂饭', click: () => { getMainWindow().webContents.send('menu-action', 'care:feed'); } },
-        { label: '洗澡', click: () => { getMainWindow().webContents.send('menu-action', 'care:bath'); } },
-        { label: menuState.sleeping ? '叫醒她' : '让她休息', type: 'checkbox', checked: menuState.sleeping, click: () => { getMainWindow().webContents.send('menu-action', 'care:sleep'); } },
-        { label: '陪她玩一下', click: () => { getMainWindow().webContents.send('menu-action', 'care:play'); } },
-        { label: '摸摸', click: () => { getMainWindow().webContents.send('menu-action', 'care:pet'); } },
-      ]
+      submenu: buildCareMenuItems(getMainWindow)
     };
     const specialMenu = {
       label: '特殊演出',
       submenu: [
         { label: '分身术', click: () => { getMainWindow().webContents.send('menu-action', 'special:clone'); } },
         { label: '法相天地', click: () => { getMainWindow().webContents.send('menu-action', 'special:giant'); } },
+        { label: '入锅温泉', click: () => { getMainWindow().webContents.send('menu-action', 'special:cook'); } },
+        { label: '看电视', click: () => { getMainWindow().webContents.send('menu-action', 'special:watch-tv'); } },
+        { label: '打游戏', click: () => { getMainWindow().webContents.send('menu-action', 'special:play-switch'); } },
       ]
     };
 

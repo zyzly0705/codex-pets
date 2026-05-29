@@ -1,5 +1,5 @@
-// core-state.js - 共享状态、常量、工具函数、音频、SpeechQueue
-// 所有模块的基础层，不 import 任何其他模块
+// core-state.js - 共享状态、常量、DOM 引用、宠物助手、冷却、每日标记
+// 工具函数 → utils.js，音频 → audio.js，气泡队列 → speech-queue.js
 import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
 import { get, set } from './store-client.js';
 
@@ -18,18 +18,18 @@ export const CELL_W = 192;
 export const CELL_H = 208;
 
 export const STATES = {
-  idle: { row: 0, frames: 6, fps: 4, loop: 'pingpong' },
-  runningRight: { row: 1, frames: 8, fps: 8 },
-  runningLeft: { row: 2, frames: 8, fps: 8 },
+  idle: { row: 0, frames: 8, fps: 4, loop: 'pingpong' },
+  runningRight: { row: 1, frames: 8, fps: 12 },
+  runningLeft: { row: 2, frames: 8, fps: 12 },
   waving: { row: 3, frames: 4, fps: 4, loop: 'pingpong' },
   jumping: { row: 4, frames: 5, fps: 7, loop: 'pingpong' },
   failed: { row: 5, frames: 8, fps: 4 },
-  waiting: { row: 6, frames: 6, fps: 3, loop: 'pingpong' },
+  waiting: { row: 6, frames: 8, fps: 3, loop: 'pingpong' },
   bashful: { row: 7, frames: 6, speed: 250, loop: 'pingpong' },
   review: { row: 8, frames: 6, fps: 4, loop: 'pingpong' },
   climbing: { row: 9, frames: 6, fps: 5 },
   perching: { row: 10, frames: 4, fps: 3, loop: 'pingpong' },
-  petting: { row: 11, frames: 4, fps: 4, loop: 'pingpong' },
+  petting: { row: 11, frames: 8, fps: 4, loop: 'pingpong' },
   yawning: { row: 12, frames: 5, fps: 3, loop: 'pingpong' },
   eating: { row: 13, frames: 6, fps: 5, loop: 'pingpong' },
   dizzy: { row: 14, frames: 4, fps: 6, loop: 'pingpong' },
@@ -37,7 +37,7 @@ export const STATES = {
   swing: { row: 16, frames: 16, speed: 115, clips: [{ row: 16, frames: 8 }, { row: 37, frames: 8 }] },
   swimming: { row: 27, frames: 16, speed: 120, clips: [{ row: 27, frames: 8 }, { row: 39, frames: 8 }] },
   digSand: { row: 17, frames: 8, speed: 250 },
-  readBook: { row: 18, frames: 8, speed: 300, loop: 'pingpong' },
+  readBook: { row: 8, frames: 6, speed: 300, loop: 'pingpong' },
   watchTV: { row: 19, frames: 8, speed: 350, loop: 'pingpong' },
   fanCooling: { row: 26, frames: 16, speed: 110, clips: [{ row: 26, frames: 8 }, { row: 38, frames: 8 }] },
   sleeping: { row: 20, frames: 8, speed: 400, loop: 'pingpong' },
@@ -73,7 +73,7 @@ export const CLICK_MAX_DIST = 5;
 export const CLICK_MAX_TIME = 300;
 
 // ===== 共享可变状态 =====
-export const state = {
+const rawState = {
   // 宠物管理
   pets: [],
   currentPet: null,
@@ -188,6 +188,18 @@ export const state = {
 
 };
 
+// Proxy 包装：开发模式下记录状态变更到控制台
+export const state = new Proxy(rawState, {
+  set(target, prop, value) {
+    const old = target[prop];
+    target[prop] = value;
+    if (old !== value && typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') {
+      console.debug(`[state] ${String(prop)}:`, old, '→', value);
+    }
+    return true;
+  }
+});
+
 export function getPetCell() {
   const asset = state.currentPet?.asset || {};
   return {
@@ -267,25 +279,6 @@ export function setCooldown(name, ms) {
   if (ms > 0) cooldowns[name] = Date.now() + ms;
 }
 
-// ===== 工具函数 =====
-export function randomFrom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-export function clamp(val, min, max) {
-  return Math.max(min, Math.min(max, val));
-}
-
-export function lerp(a, b, t) {
-  return a + (b - a) * Math.min(1, t);
-}
-
-export function localFileUrl(filePath) {
-  const normalizedPath = String(filePath || '').replaceAll('\\', '/');
-  const withLeadingSlash = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
-  return encodeURI(`file://${withLeadingSlash}`);
-}
-
 // ===== 每日标记系统 =====
 
 export function hasDailyFlag(key) {
@@ -301,80 +294,6 @@ export function setDailyFlag(key) {
     if (typeof flags[k] === 'number' && flags[k] < cutoff) delete flags[k];
   }
   set('dailyFlags', flags);
-}
-
-// ===== 音频系统 =====
-const masterVolume = 0.25;
-
-export function getAudioContext() {
-  if (!state.audioCtx) {
-    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  return state.audioCtx;
-}
-
-export function playSound(type) {
-  if (state.isMuted) return;
-  const actx = getAudioContext();
-  if (actx.state === 'suspended') actx.resume();
-
-  const osc = actx.createOscillator();
-  const gain = actx.createGain();
-  osc.connect(gain);
-  gain.connect(actx.destination);
-
-  const now = actx.currentTime;
-
-  switch (type) {
-    case 'step':
-      osc.frequency.value = 200;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      osc.start(now);
-      osc.stop(now + 0.08);
-      break;
-    case 'giggle':
-      osc.frequency.setValueAtTime(400, now);
-      osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-      osc.start(now);
-      osc.stop(now + 0.2);
-      break;
-    case 'cry':
-      osc.frequency.setValueAtTime(500, now);
-      osc.frequency.exponentialRampToValueAtTime(250, now + 0.3);
-      osc.type = 'sawtooth';
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      osc.start(now);
-      osc.stop(now + 0.3);
-      break;
-    case 'bounce':
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-      osc.start(now);
-      osc.stop(now + 0.1);
-      break;
-    case 'clap':
-      osc.type = 'square';
-      osc.frequency.value = 150;
-      gain.gain.setValueAtTime(0.1, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-      osc.start(now);
-      osc.stop(now + 0.05);
-      break;
-  }
-}
-
-export function toggleMute() {
-  state.isMuted = !state.isMuted;
-  set('muted', state.isMuted);
 }
 
 // ===== store 初始化（在 initStore() 完成后调用）=====
@@ -416,172 +335,4 @@ export function setState(next) {
   if (stateMachine.actionState !== actionState) {
     stateMachine.actionState = actionState;
   }
-}
-
-// ===== 气泡排队系统（打字机效果） =====
-export const SPEECH_PRIORITY = { CRITICAL: 100, IMPORTANT: 80, BEHAVIOR: 50, CASUAL: 20 };
-const TYPEWRITER_BASE_SPEED = 60; // 每字基础速度（ms）
-const TYPEWRITER_FAST_SPEED = 30;  // 短消息快速模式
-
-export class SpeechQueue {
-  constructor(maxSize = 5) {
-    this.queue = [];
-    this.maxSize = maxSize;
-    this.isDisplaying = false;
-    this._hideTimer = null;
-    this._typeTimer = null;
-  }
-
-  enqueue(text, duration = 5200, priority = SPEECH_PRIORITY.BEHAVIOR) {
-    const now = Date.now();
-    // 去重：2秒内相同消息不重复入队
-    if (this.queue.length > 0) {
-      const last = this.queue[this.queue.length - 1];
-      if (last.text === text && now - last.time < 2000) return;
-    }
-    // 队列满时，踢掉优先级最低的（但不踢 IMPORTANT 及以上）
-    if (this.queue.length >= this.maxSize) {
-      let minIdx = -1, minPri = Infinity;
-      for (let i = 0; i < this.queue.length; i++) {
-        if (this.queue[i].priority < minPri) { minPri = this.queue[i].priority; minIdx = i; }
-      }
-      if (minIdx >= 0 && minPri < SPEECH_PRIORITY.IMPORTANT) this.queue.splice(minIdx, 1);
-    }
-    this.queue.push({ text, duration, priority, time: now });
-    if (!this.isDisplaying) this._displayNext();
-  }
-
-  priorityEnqueue(text, duration = 5200) {
-    // CRITICAL 优先级：打断当前显示
-    if (this.isDisplaying) {
-      this._stopTyping();
-      bubble.classList.add('hiding');
-      // 把当前消息塞回队首
-      if (this._currentMsg) {
-        this.queue.unshift(this._currentMsg);
-        this._currentMsg = null;
-      }
-      setTimeout(() => {
-        bubble.classList.remove('hiding', 'visible');
-        bubbleText.textContent = '';
-        bubbleText.classList.remove('typing');
-        this._displayNext();
-      }, 180);
-    }
-    this.enqueue(text, duration, SPEECH_PRIORITY.CRITICAL);
-  }
-
-  replaceBehavior(text, duration = 5200) {
-    this.queue = this.queue.filter(msg => msg.priority > SPEECH_PRIORITY.BEHAVIOR);
-    if (this.isDisplaying && this._currentMsg?.priority <= SPEECH_PRIORITY.BEHAVIOR) {
-      this._stopTyping();
-      bubble.classList.remove('visible', 'hiding');
-      if (bubbleText) {
-        bubbleText.textContent = '';
-        bubbleText.classList.remove('typing');
-      }
-      this.isDisplaying = false;
-      this._currentMsg = null;
-    }
-    this.enqueue(text, duration, SPEECH_PRIORITY.BEHAVIOR);
-  }
-
-  _displayNext() {
-    if (this.queue.length === 0) {
-      this.isDisplaying = false;
-      return;
-    }
-    this.isDisplaying = true;
-    const msg = this.queue.shift();
-    this._currentMsg = null;
-
-    // 台词开始时触发微表情钩子
-    fireSpeechStartHook(msg.text);
-
-    // 显示气泡（降级：如果 DOM 结构不完整则用旧方式）
-    if (!bubbleText) {
-      bubble.textContent = msg.text;
-      bubble.classList.add('visible');
-      this._hideTimer = setTimeout(() => {
-        bubble.classList.remove('visible');
-        this._hideTimer = setTimeout(() => this._displayNext(), 300);
-      }, msg.duration);
-      return;
-    }
-
-    bubble.classList.remove('hiding');
-    bubble.classList.add('visible');
-    bubbleText.textContent = '';
-
-    // 打字机逐字显示
-    this._typewrite(msg);
-  }
-
-  _typewrite(msg) {
-    if (!bubbleText) return;
-    const text = msg.text;
-    // 短消息用快速模式
-    const speed = text.length <= 12 ? TYPEWRITER_FAST_SPEED : TYPEWRITER_BASE_SPEED;
-    let charIndex = 0;
-    bubbleText.classList.add('typing');
-
-    this._stopTyping();
-    this._currentMsg = msg;
-
-    this._typeTimer = setInterval(() => {
-      if (charIndex < text.length) {
-        bubbleText.textContent = text.slice(0, charIndex + 1);
-        charIndex++;
-      } else {
-        // 打完，去掉光标
-        clearInterval(this._typeTimer);
-        this._typeTimer = null;
-        bubbleText.classList.remove('typing');
-        bubbleText.textContent = text;
-
-        // 设置隐藏定时器
-        clearTimeout(this._hideTimer);
-        this._hideTimer = setTimeout(() => {
-          bubble.classList.add('hiding');
-          this._hideTimer = setTimeout(() => {
-            bubble.classList.remove('visible', 'hiding');
-            bubbleText.textContent = '';
-            bubbleText.classList.remove('typing');
-            this._currentMsg = null;
-            this._displayNext();
-          }, 180);
-        }, msg.duration);
-      }
-    }, speed);
-  }
-
-  _stopTyping() {
-    if (this._typeTimer) {
-      clearInterval(this._typeTimer);
-      this._typeTimer = null;
-    }
-    clearTimeout(this._hideTimer);
-  }
-
-  clear() {
-    this.queue = [];
-    this.isDisplaying = false;
-    this._stopTyping();
-    clearTimeout(this._hideTimer);
-    bubble.classList.remove('visible', 'hiding');
-    bubbleText.textContent = '';
-    bubbleText.classList.remove('typing');
-    this._currentMsg = null;
-  }
-}
-
-export const speechQueue = new SpeechQueue();
-
-// 台词开始显示时的钩子，render-engine 注册后用于驱动微表情
-let _onSpeechStartHook = null;
-export function registerSpeechStartHook(fn) { _onSpeechStartHook = fn; }
-export function fireSpeechStartHook(text) { _onSpeechStartHook?.(text); }
-
-export function say(text, duration = 5200) {
-  speechQueue.replaceBehavior(text, duration);
 }

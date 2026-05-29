@@ -1,0 +1,47 @@
+{
+  "id": "eat-final",
+  "version": 1,
+  "rigId": "yoyo-eat-final-art-v1",
+  "intent": "Final-art Yoyo eating action built from the generated eat-final-art-v1 visual master.",
+  "sourceArt": "assets-src/yoyo/final-art/eat-final-art-v1.png",
+  "outputDir": "output/yoyo-eat-final-art-v1",
+  "sourceRigDir": "assets-src/yoyo/final-art/eat-final-rig-v1",
+  "runtimeDir": "assets/yoyo/effects/eat-final",
+  "previewName": "eat-final-preview.png",
+  "stage": {
+    "width": 512,
+    "height": 384,
+    "background": "#f6efe7"
+  },
+  "motion": {
+    "id": "eat-final",
+    "fps": 8,
+    "loop": true,
+    "durationMs": 3600,
+    "keyframes": [
+      { "t": 0, "steamY": 0, "steamAlpha": 0.18, "sparkleY": 0, "sparkleAlpha": 0.34, "sparkleScale": 1 },
+      { "t": 125, "steamY": -1, "steamAlpha": 0.26, "sparkleY": -1, "sparkleAlpha": 0.42, "sparkleScale": 1.03 },
+      { "t": 250, "steamY": -3, "steamAlpha": 0.32, "sparkleY": -2, "sparkleAlpha": 0.5, "sparkleScale": 1.06 },
+      { "t": 375, "steamY": -4, "steamAlpha": 0.28, "sparkleY": -1, "sparkleAlpha": 0.42, "sparkleScale": 1.03 },
+      { "t": 500, "steamY": -2, "steamAlpha": 0.22, "sparkleY": 0, "sparkleAlpha": 0.3, "sparkleScale": 1 },
+      { "t": 625, "steamY": -1, "steamAlpha": 0.24, "sparkleY": 1, "sparkleAlpha": 0.38, "sparkleScale": 1.02 }
+    ]
+  },
+  "overlays": [
+    {
+      "id": "scene.steam",
+      "file": "scene-steam.png",
+      "generator": "food-steam-v1",
+      "z": 20
+    },
+    {
+      "id": "scene.sparkle",
+      "file": "scene-sparkle.png",
+      "generator": "satisfaction-sparkle-v1",
+      "z": 30
+    }
+  ],
+  "scene": {
+    "mode": "eat-final-art"
+  }
+}

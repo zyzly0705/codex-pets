@@ -1,0 +1,203 @@
+{
+  "pack": "yoyo",
+  "generatedAt": "2026-05-29T20:31:34.965Z",
+  "source": "asset-status.json#/assets[].candidates",
+  "totalTargets": 5,
+  "totalCandidates": 19,
+  "dispositionCounts": {
+    "v1-vibe": 1,
+    "cleanup-base": 1,
+    "reference": 13,
+    "candidate": 1,
+    "base": 3
+  },
+  "items": [
+    {
+      "targetPath": "home/room-stage-v2.webp",
+      "kind": "room",
+      "reason": "Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task.",
+      "candidates": [
+        {
+          "path": "assets/yoyo/home/room-stage-v2.webp",
+          "disposition": "v1-vibe",
+          "note": "Accepted as the current runtime base because it is compact, high-energy, warm, and already stored; preserve this direction while removing animal-pet props later.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets/yoyo/home/room-shell-clean-2d.webp",
+          "disposition": "cleanup-base",
+          "note": "Cleaner compact shell, useful for removing pet semantics but too quiet to be the final mood by itself.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets-src/yoyo/home/ai/yoyo-room-refined.png",
+          "disposition": "reference",
+          "note": "High-resolution source for the current day room.",
+          "exists": true,
+          "width": 1536,
+          "height": 1024
+        },
+        {
+          "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-default.png",
+          "disposition": "reference",
+          "note": "Aseprite day-room export.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets/yoyo/qa/candidates/home-room-stage-v2-candidate-01.webp",
+          "disposition": "candidate",
+          "note": "Clean companion-room candidate; use as semantic cleanup reference, but keep the livelier v1 compact-room mood.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "targetPath": "home/room-stage-night.webp",
+      "kind": "room",
+      "reason": "Strong mood reference, but it should be normalized with the clean companion room kit.",
+      "candidates": [
+        {
+          "path": "assets/yoyo/home/room-stage-night.webp",
+          "disposition": "reference",
+          "note": "Current runtime night room with pet semantics.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets-src/yoyo/home/ai/yoyo-room-night.png",
+          "disposition": "reference",
+          "note": "High-resolution night-room source.",
+          "exists": true,
+          "width": 1536,
+          "height": 1024
+        },
+        {
+          "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-night.png",
+          "disposition": "reference",
+          "note": "Aseprite night-room export.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets/yoyo/home/room-shell-clean-2d.webp",
+          "disposition": "base",
+          "note": "Use as the cleaned base for future night variant.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "targetPath": "home/room-stage-rainy.webp",
+      "kind": "room",
+      "reason": "Useful weather variant, but should follow the same cleaned room contract as day and night.",
+      "candidates": [
+        {
+          "path": "assets/yoyo/home/room-stage-rainy.webp",
+          "disposition": "reference",
+          "note": "Current runtime rainy room with pet semantics.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets-src/yoyo/home/ai/yoyo-room-rainy.png",
+          "disposition": "reference",
+          "note": "High-resolution rainy-room source.",
+          "exists": true,
+          "width": 1536,
+          "height": 1024
+        },
+        {
+          "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-rainy.png",
+          "disposition": "reference",
+          "note": "Aseprite rainy-room export.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets/yoyo/home/room-shell-clean-2d.webp",
+          "disposition": "base",
+          "note": "Use as the cleaned base for future rainy variant.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "targetPath": "home/room-stage-party.webp",
+      "kind": "room",
+      "reason": "Useful event variant, but should be rebuilt after the base room style is locked.",
+      "candidates": [
+        {
+          "path": "assets/yoyo/home/room-stage-party.webp",
+          "disposition": "reference",
+          "note": "Current runtime party room with pet semantics.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets-src/yoyo/home/ai/yoyo-room-party.png",
+          "disposition": "reference",
+          "note": "High-resolution party-room source.",
+          "exists": true,
+          "width": 1536,
+          "height": 1024
+        },
+        {
+          "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-party.png",
+          "disposition": "reference",
+          "note": "Aseprite party-room export.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        },
+        {
+          "path": "assets/yoyo/home/room-shell-clean-2d.webp",
+          "disposition": "base",
+          "note": "Use as the cleaned base for future party variant.",
+          "exists": true,
+          "width": 1080,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "targetPath": "home/composite-pet-cushion-yoyo.webp",
+      "kind": "composite",
+      "reason": "Useful comfort concept, but label and framing should shift from petting to companion comfort.",
+      "candidates": [
+        {
+          "path": "assets/yoyo/home/composite-pet-cushion-yoyo.webp",
+          "disposition": "reference",
+          "note": "Current runtime comfort composite.",
+          "exists": true,
+          "width": 280,
+          "height": 220
+        },
+        {
+          "path": "assets/yoyo/qa/candidates/found/composite-pet-cushion-yoyo-redesign-v1.webp",
+          "disposition": "reference",
+          "note": "Older processed comfort composite from redesign v1, migrated out of output.",
+          "exists": true,
+          "width": 280,
+          "height": 220
+        }
+      ]
+    }
+  ]
+}

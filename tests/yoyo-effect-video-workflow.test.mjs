@@ -12,6 +12,12 @@ const manifestPath = join(repoRoot, 'assets-src/yoyo/effects/video-workflow-mani
 const pixiStagePath = join(repoRoot, 'src/pixi-effect-stage.js');
 const trayMenuPath = join(repoRoot, 'src/main/tray-menu.js');
 const interactionPath = join(repoRoot, 'src/modules/interaction.js');
+const preloadPath = join(repoRoot, 'src/preload.js');
+const effectsPath = join(repoRoot, 'src/main/effects.js');
+const cookTimelinePath = join(repoRoot, 'assets/yoyo/effects/cook-pot/timeline.json');
+const watchTvTimelinePath = join(repoRoot, 'assets/yoyo/effects/watch-tv/timeline.json');
+const playSwitchTimelinePath = join(repoRoot, 'assets/yoyo/effects/play-switch/timeline.json');
+const packagePath = join(repoRoot, 'package.json');
 
 test('Yoyo effect video manifest scopes only dharma and clone rebuilds', () => {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
@@ -106,4 +112,110 @@ test('right-click menu exposes clone and dharma as manual special performances',
   assert.match(interactionSource, /action === 'special:giant'/);
   assert.match(interactionSource, /startPerformance\('dharmaManifest', \{ manual: true, force: true \}\)/);
   assert.match(interactionSource, /window\.petApi\.triggerGiantEffect\(\)/);
+});
+
+test('cook pot uses Pixi sequence performance instead of static pose', () => {
+  const traySource = readFileSync(trayMenuPath, 'utf8');
+  const interactionSource = readFileSync(interactionPath, 'utf8');
+  const preloadSource = readFileSync(preloadPath, 'utf8');
+  const effectsSource = readFileSync(effectsPath, 'utf8');
+  const pixiSource = readFileSync(pixiStagePath, 'utf8');
+  const timeline = JSON.parse(readFileSync(cookTimelinePath, 'utf8'));
+
+  assert.equal(timeline.id, 'cook-pot');
+  assert.equal(timeline.engine, 'pixi-stage');
+  assert.equal(timeline.effectType, 'cook-pot');
+  assert.ok(timeline.sequenceFrameCount >= 16, 'cook pot should budget enough frames for real motion');
+  assert.ok(timeline.layers.includes('pot-back'));
+  assert.ok(timeline.layers.includes('character-sprite-sequence'));
+  assert.ok(timeline.layers.includes('pot-front-mask'));
+  assert.ok(timeline.layers.includes('steam-particles'));
+
+  assert.match(traySource, /menu-action', 'special:cook'/);
+  assert.match(interactionSource, /action === 'special:cook'/);
+  assert.match(interactionSource, /startPerformance\('cookPotScene', \{ manual: true, force: true \}\)/);
+  assert.match(interactionSource, /window\.petApi\.triggerCookEffect\(\)/);
+  assert.match(preloadSource, /triggerCookEffect: \(\) => ipcRenderer\.invoke\('effect:cook'\)/);
+  assert.match(effectsSource, /function triggerCookEffect\(deps\)/);
+  assert.match(effectsSource, /effectType: 'cook-pot'/);
+  assert.match(pixiSource, /function makeCookPotStage\(image, options\)/);
+  assert.match(pixiSource, /state\.effectType === 'cook-pot'/);
+});
+
+test('watch tv uses Spine action runtime instead of hand-positioned Pixi props', () => {
+  const traySource = readFileSync(trayMenuPath, 'utf8');
+  const interactionSource = readFileSync(interactionPath, 'utf8');
+  const preloadSource = readFileSync(preloadPath, 'utf8');
+  const effectsSource = readFileSync(effectsPath, 'utf8');
+  const pixiSource = readFileSync(pixiStagePath, 'utf8');
+  const timeline = JSON.parse(readFileSync(watchTvTimelinePath, 'utf8'));
+  const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
+
+  assert.equal(timeline.id, 'watch-tv');
+  assert.equal(timeline.engine, 'spine-pixi-v8');
+  assert.equal(timeline.effectType, 'spine-action');
+  assert.equal(timeline.runtimeMode, 'spine-action');
+  assert.equal(timeline.spine.animation, 'watch_tv');
+  assert.equal(timeline.spine.idleAnimation, 'idle_sit');
+  assert.equal(timeline.spine.skin, 'default');
+  assert.ok(timeline.spine.skeleton.endsWith('yoyo.skel.json'));
+  assert.ok(timeline.spine.atlas.endsWith('yoyo.atlas'));
+  assert.ok(pkg.dependencies['@esotericsoftware/spine-pixi-v8']);
+  assert.ok(existsSync(join(repoRoot, 'assets/yoyo/effects/watch-tv/spine/yoyo.skel.json')));
+  assert.ok(existsSync(join(repoRoot, 'assets/yoyo/effects/watch-tv/spine/yoyo.atlas')));
+  assert.ok(existsSync(join(repoRoot, 'assets/yoyo/effects/watch-tv/spine/yoyo.png')));
+
+  assert.match(traySource, /menu-action', 'special:watch-tv'/);
+  assert.match(interactionSource, /action === 'special:watch-tv'/);
+  assert.match(interactionSource, /startPerformance\('watchTvScene', \{ manual: true, force: true \}\)/);
+  assert.match(interactionSource, /window\.petApi\.triggerWatchTvEffect\(\)/);
+  assert.match(preloadSource, /triggerWatchTvEffect: \(\) => ipcRenderer\.invoke\('effect:watch-tv'\)/);
+  assert.match(effectsSource, /function triggerWatchTvEffect\(deps\)/);
+  assert.match(effectsSource, /effectType: 'spine-action'/);
+  assert.match(effectsSource, /resolveSpineTimelineAssets\(spritePath, effectId, timeline\)/);
+  assert.match(pixiSource, /async function makeSpineActionStage\(options\)/);
+  assert.match(pixiSource, /window\.spine\.Spine\.from/);
+  assert.match(pixiSource, /tvScreen\.clear\(\)/);
+  assert.match(pixiSource, /state\.effectType === 'spine-action'/);
+  assert.doesNotMatch(pixiSource, /function makeWatchTvStage\(image, options\)/);
+});
+
+test('watch tv Spine action is strict and does not fall back to atlas proxy', () => {
+  const timeline = JSON.parse(readFileSync(watchTvTimelinePath, 'utf8'));
+  const pixiSource = readFileSync(pixiStagePath, 'utf8');
+
+  assert.equal(timeline.strictAssets, true);
+  assert.equal(timeline.fallback, undefined);
+  assert.doesNotMatch(pixiSource, /makeSpineFallbackStage/);
+  assert.doesNotMatch(pixiSource, /atlas-proxy/);
+  assert.match(pixiSource, /makeMissingSpineAssetStage\(options\)/);
+  assert.match(pixiSource, /spine_missing_required_assets/);
+});
+
+test('play switch reuses Spine action runtime with a dynamic game screen', () => {
+  const traySource = readFileSync(trayMenuPath, 'utf8');
+  const interactionSource = readFileSync(interactionPath, 'utf8');
+  const preloadSource = readFileSync(preloadPath, 'utf8');
+  const effectsSource = readFileSync(effectsPath, 'utf8');
+  const pixiSource = readFileSync(pixiStagePath, 'utf8');
+  const timeline = JSON.parse(readFileSync(playSwitchTimelinePath, 'utf8'));
+
+  assert.equal(timeline.id, 'play-switch');
+  assert.equal(timeline.effectType, 'spine-action');
+  assert.equal(timeline.runtimeMode, 'spine-action');
+  assert.equal(timeline.strictAssets, true);
+  assert.equal(timeline.spine.animation, 'play_switch');
+  assert.equal(timeline.scene.mode, 'game');
+  assert.ok(existsSync(join(repoRoot, 'assets/yoyo/effects/play-switch/spine/yoyo.skel.json')));
+  assert.ok(existsSync(join(repoRoot, 'assets/yoyo/effects/play-switch/spine/yoyo.atlas')));
+  assert.ok(existsSync(join(repoRoot, 'assets/yoyo/effects/play-switch/spine/yoyo.png')));
+
+  assert.match(traySource, /menu-action', 'special:play-switch'/);
+  assert.match(interactionSource, /action === 'special:play-switch'/);
+  assert.match(interactionSource, /startPerformance\('playSwitchScene', \{ manual: true, force: true \}\)/);
+  assert.match(interactionSource, /window\.petApi\.triggerPlaySwitchEffect\(\)/);
+  assert.match(preloadSource, /triggerPlaySwitchEffect: \(\) => ipcRenderer\.invoke\('effect:play-switch'\)/);
+  assert.match(effectsSource, /function triggerPlaySwitchEffect\(deps\)/);
+  assert.match(effectsSource, /effectId: 'play-switch'/);
+  assert.match(pixiSource, /sceneMode === 'game'/);
 });

@@ -1,0 +1,18 @@
+{
+  "asset": "home/room-stage-v2.webp",
+  "candidate": "assets/yoyo/qa/candidates/home-room-stage-v2-candidate-01.webp",
+  "source": "assets-src/yoyo/redraw-runs/2026-05-29-room-stage-v2-candidate-01/source.png",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-05-29T07:12:29.250Z",
+  "status": "candidate",
+  "dimensions": {
+    "width": 1080,
+    "height": 720
+  },
+  "acceptance": [
+    "human-like companion room",
+    "no animal-pet care objects",
+    "central runtime overlay space",
+    "clean-2d-chibi style"
+  ]
+}

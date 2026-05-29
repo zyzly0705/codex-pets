@@ -1,0 +1,127 @@
+{
+  "id": "yoyo-v3-prompt-pack",
+  "generator": "built-in image_gen",
+  "sourceReferences": [
+    "assets/yoyo/home/room-stage-v2.webp",
+    "assets/yoyo/qa/candidates/existing-runtime-rooms-contact.png",
+    "assets-src/yoyo/reference/style/yoyo-style-board.png",
+    "assets-src/yoyo/reference/rig/yoyo-standing-clean2d-v3-alpha.png"
+  ],
+  "sharedNegativePrompt": "No dog bowl, no kibble, no paw motif, no animal bed, no animal ears, no tail, no kennel, no pet-store props, no large realistic room, no dark stock-art mood, no text, no watermark.",
+  "prompts": [
+    {
+      "id": "room-v3-day",
+      "type": "room",
+      "runtime": "assets/yoyo/home/room-v3-day.webp",
+      "prompt": "Create a 1080x720 compact lively clean-2D chibi desktop companion room for Yoyo. Preserve the warm busy energy of the existing room-stage-v2 reference: mint teal wall, honey wood floor, pink curtains, cozy shelves, plants, small golden lights, large cream center rug, and a tight desktop-pet stage feeling. Make it a human little-girl companion room, not an animal pet room. Include a small human meal table area, child bed/sofa area, study shelf, toy area, and warm lamp details. Keep the center rug clear for Yoyo. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
+    },
+    {
+      "id": "room-v3-night",
+      "type": "room",
+      "runtime": "assets/yoyo/home/room-v3-night.webp",
+      "prompt": "Create a 1080x720 night variant of the Yoyo V3 compact lively clean-2D chibi room. Same layout, same object positions, same scale, with moonlit window, warm bedside lamp, soft shelf glow, and cozy sleep mood. Preserve the lively compact desktop-pet stage, not a large room. Human companion room only. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
+    },
+    {
+      "id": "room-v3-rainy",
+      "type": "room",
+      "runtime": "assets/yoyo/home/room-v3-rainy.webp",
+      "prompt": "Create a 1080x720 rainy-day variant of the Yoyo V3 compact lively clean-2D chibi room. Same layout, same object positions, same scale, with rain visible outside the window, cozy indoor warm lights, plants, shelves, and a clear center rug. Human little-girl companion room only. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
+    },
+    {
+      "id": "room-v3-party",
+      "type": "room",
+      "runtime": "assets/yoyo/home/room-v3-party.webp",
+      "prompt": "Create a 1080x720 cheerful party variant of the Yoyo V3 compact lively clean-2D chibi room. Same layout, same object positions, same scale, with balloons, bunting, tiny wrapped gifts, soft confetti, and a festive but readable desktop-pet stage. Human companion birthday-room feeling, not animal pet party props. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
+    },
+    {
+      "id": "prop-v3-meal-table",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-meal-table.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a small low human meal table for Yoyo, with rice bowl, omelet, fruit, spoon, cup, and a soft pink tablecloth. The table must read as human food, not pet food. No dog bowl, no kibble, no paw motifs. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-bed",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-bed.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a small childlike cozy bed or daybed for Yoyo with pink blanket, star pillow, and rounded wooden frame. It must read as a human child's cozy resting place, not an animal bed. No paw motifs. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-wash-stand",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-wash-stand.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a small wash stand for Yoyo with basin, towel, bubbles, tiny bath items, and warm home style. It should feel like washing up for a human little companion, not pet grooming. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-toy-shelf",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-toy-shelf.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a compact toy shelf and soft toy basket for Yoyo, with blocks, plush stars, and warm wooden details. Human childlike play corner, not pet toys. No paw motifs, no animal feeding items. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-comfort-cushion",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-comfort-cushion.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a cozy comfort cushion and small blanket for Yoyo's companionship spot. It should feel like a human comfort nook, not animal bedding. No paw motifs, no pet bed shape. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-media-screen",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-media-screen.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a small cozy media screen area with tiny TV, books, shelf, and warm lights for Yoyo watching anime. Human room object, not pet accessory. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-game-console",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-game-console.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a tiny game console setup for Yoyo, with handheld controller, cushions, and cheerful tabletop details. Human companion gaming object, no pet semantics. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-blocks",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-blocks.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: colorful building blocks stacked into a tiny house shape for Yoyo. Human childlike play object, not pet toy. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "prop-v3-study-desk",
+      "type": "transparent-prop",
+      "runtime": "assets/yoyo/home/prop-v3-study-desk.webp",
+      "prompt": "Create a clean-2D chibi transparent prop source on a perfectly flat #00ff00 chroma-key background: a tiny study desk with open book, pencil, lamp, notebook, and cozy wood details for Yoyo. Human companion learning scene. Subject only, generous padding, no cast shadow, no text, no watermark."
+    },
+    {
+      "id": "composite-v3-feed",
+      "type": "composite",
+      "runtime": "assets/yoyo/home/composite-v3-feed-yoyo.webp",
+      "prompt": "Create a clean-2D chibi composite scene on a transparent-friendly flat #00ff00 chroma-key background: Yoyo beside a small human meal table. Yoyo is a human little-girl desktop companion with black straight bangs, small top bun, navy-and-red outfit, and happy eating expression. She stands beside the table, not on it. Human meal tray, rice, fruit, egg, cup. No dog bowl, kibble, paw motif, animal ears, tail, text, or watermark."
+    },
+    {
+      "id": "composite-v3-sleep",
+      "type": "composite",
+      "runtime": "assets/yoyo/home/composite-v3-sleep-yoyo.webp",
+      "prompt": "Create a clean-2D chibi composite scene on a transparent-friendly flat #00ff00 chroma-key background: Yoyo sleeping in a cozy human childlike bed or daybed. Yoyo keeps black bangs, small top bun, navy-and-red outfit language, soft face, and peaceful sleeping expression. Warm blanket and star pillow. No animal bed, no paw motif, no animal ears, no tail, no text, no watermark."
+    },
+    {
+      "id": "composite-v3-bath",
+      "type": "composite",
+      "runtime": "assets/yoyo/home/composite-v3-bath-yoyo.webp",
+      "prompt": "Create a clean-2D chibi composite scene on a transparent-friendly flat #00ff00 chroma-key background: Yoyo washing up at a small human wash stand with towel, basin, bubbles, and warm bath items. Yoyo keeps her black bangs, small top bun, navy-and-red outfit language, and cheerful clean expression. No pet grooming framing, no paw motif, no animal ears, no tail, no text, no watermark."
+    },
+    {
+      "id": "composite-v3-play",
+      "type": "composite",
+      "runtime": "assets/yoyo/home/composite-v3-play-yoyo.webp",
+      "prompt": "Create a clean-2D chibi composite scene on a transparent-friendly flat #00ff00 chroma-key background: Yoyo playing with colorful blocks and a small toy shelf. Human childlike play scene with joyful expression. Yoyo keeps black bangs, small top bun, navy-and-red outfit language. No pet toys, no paw motif, no animal ears, no tail, no text, no watermark."
+    },
+    {
+      "id": "composite-v3-comfort",
+      "type": "composite",
+      "runtime": "assets/yoyo/home/composite-v3-comfort-yoyo.webp",
+      "prompt": "Create a clean-2D chibi composite scene on a transparent-friendly flat #00ff00 chroma-key background: Yoyo sitting near a cozy comfort cushion and small blanket, smiling softly for a companionship or head-pat moment. Human comfort nook, not animal bedding. Yoyo keeps black bangs, small top bun, navy-and-red outfit language. No paw motif, no animal ears, no tail, no text, no watermark."
+    },
+    {
+      "id": "character-rig-v3-source",
+      "type": "character-rig-source",
+      "runtime": "assets-src/yoyo/v3/character-rig/yoyo-v3-reference-lock.png",
+      "prompt": "Use the approved V3 Yoyo identity reference as the character source: a cute 3-5 year old chibi little girl with a large round head, short childlike limbs, black straight bangs, small top bun, navy vest and skirt, white shirt, red bow, soft friendly face, and clean front-facing pose. Preserve this exact body proportion and do not elongate the legs. Plain removable chroma-key background, no props, no text, no watermark."
+    }
+  ]
+}

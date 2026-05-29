@@ -1,0 +1,30 @@
+{
+  "id": "sleep-final",
+  "version": 1,
+  "rigId": "yoyo-sleep-final-art-v1",
+  "intent": "Final-art Yoyo sleep action built from the generated sleep-final-art-v1 visual master.",
+  "sourceArt": "assets-src/yoyo/final-art/sleep-final-art-v1.png",
+  "outputDir": "output/yoyo-sleep-final-art-v1",
+  "sourceRigDir": "assets-src/yoyo/final-art/sleep-final-rig-v1",
+  "runtimeDir": "assets/yoyo/effects/sleep-final",
+  "previewName": "sleep-final-preview.png",
+  "stage": { "width": 512, "height": 384, "background": "#f6efe7" },
+  "motion": {
+    "id": "sleep-final",
+    "fps": 8,
+    "loop": true,
+    "durationMs": 3600,
+    "keyframes": [
+      { "t": 0, "sparkleY": 0, "sparkleAlpha": 0.2, "sparkleScale": 1 },
+      { "t": 125, "sparkleY": -1, "sparkleAlpha": 0.28, "sparkleScale": 1.02 },
+      { "t": 250, "sparkleY": -2, "sparkleAlpha": 0.34, "sparkleScale": 1.04 },
+      { "t": 375, "sparkleY": -3, "sparkleAlpha": 0.3, "sparkleScale": 1.03 },
+      { "t": 500, "sparkleY": -2, "sparkleAlpha": 0.22, "sparkleScale": 1 },
+      { "t": 625, "sparkleY": -1, "sparkleAlpha": 0.26, "sparkleScale": 1.01 }
+    ]
+  },
+  "overlays": [
+    { "id": "scene.sparkle", "file": "scene-sparkle.png", "generator": "sleep-stars-v1", "z": 30 }
+  ],
+  "scene": { "mode": "sleep-final-art" }
+}

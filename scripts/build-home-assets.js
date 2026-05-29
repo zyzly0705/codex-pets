@@ -390,6 +390,41 @@ async function renderPixelAsset(name, buffer, width) {
     .toFile(path.join(OUT_DIR, `${name}.webp`));
 }
 
+async function renderAcceptedFoodAssets() {
+  ensureDir(OUT_DIR);
+  ensureDir(SRC_DIR);
+  const acceptedSource = path.join(
+    ROOT,
+    'assets-src',
+    'yoyo',
+    'redraw-runs',
+    '2026-05-29-prop-food-candidate-01',
+    'source-alpha.png',
+  );
+  const acceptedCandidate = path.join(ROOT, 'assets', 'yoyo', 'qa', 'candidates', 'home-prop-food-candidate-01.webp');
+  const visibleSource = fs.existsSync(acceptedSource) ? acceptedSource : acceptedCandidate;
+  const transparentPng = await sharp({
+    create: { width: 210, height: 150, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+  }).png().toBuffer();
+  const transparentWebp = await sharp(transparentPng).webp({ lossless: true, quality: 100 }).toBuffer();
+
+  await sharp(visibleSource).png().toFile(path.join(SRC_DIR, 'prop-food.png'));
+  await sharp(visibleSource).png().toFile(path.join(SRC_DIR, 'prop-food-back.png'));
+  await sharp(visibleSource)
+    .resize({ width: 210, height: 150, fit: 'fill' })
+    .webp({ lossless: true, quality: 100 })
+    .toFile(path.join(OUT_DIR, 'prop-food.webp'));
+  await sharp(visibleSource)
+    .resize({ width: 210, height: 150, fit: 'fill' })
+    .webp({ lossless: true, quality: 100 })
+    .toFile(path.join(OUT_DIR, 'prop-food-back.webp'));
+
+  for (const name of ['prop-food-meal-full', 'prop-food-meal-low', 'prop-food-front']) {
+    fs.writeFileSync(path.join(SRC_DIR, `${name}.png`), transparentPng);
+    fs.writeFileSync(path.join(OUT_DIR, `${name}.webp`), transparentWebp);
+  }
+}
+
 async function renderRoomScene(scene) {
   const source = path.join(SRC_DIR, 'ai', scene.source);
   if (!fs.existsSync(source)) {
@@ -461,11 +496,7 @@ async function main() {
   for (const scene of ROOM_SCENES) {
     await renderRoomScene(scene);
   }
-  await renderPixelAsset('prop-food', propSvg('food'), 144);
-  await renderPixelAsset('prop-food-back', foodLayerSvg('back'), 144);
-  await renderPixelAsset('prop-food-meal-full', foodLayerSvg('mealFull'), 144);
-  await renderPixelAsset('prop-food-meal-low', foodLayerSvg('mealLow'), 144);
-  await renderPixelAsset('prop-food-front', foodLayerSvg('front'), 144);
+  await renderAcceptedFoodAssets();
   await renderPixelAsset('prop-bath', propSvg('bath'), 180);
   await renderPixelAsset('prop-bath-back', bathLayerSvg('back'), 180);
   await renderPixelAsset('prop-bath-water', bathLayerSvg('water'), 180);

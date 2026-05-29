@@ -1,5 +1,6 @@
 const { BrowserWindow } = require('electron');
 const { CARE_ACTIONS, DECAY_PER_HOUR, listCareActions } = require('../shared/yoyo-actions');
+const { buildDesktopAction } = require('../shared/desktop-action-dispatcher');
 
 const NEED_META = {
   satiety: {
@@ -46,7 +47,18 @@ function dateKey(date = new Date()) {
 function normalizeToday(today = {}) {
   const currentDate = dateKey();
   if (today.date !== currentDate) {
-    return { date: currentDate, feed: 0, bath: 0, sleep: 0, play: 0, pet: 0 };
+    return {
+      date: currentDate,
+      feed: 0,
+      bath: 0,
+      sleep: 0,
+      play: 0,
+      pet: 0,
+      watchAnime: 0,
+      playSwitch: 0,
+      buildBlocks: 0,
+      study: 0,
+    };
   }
   return {
     date: currentDate,
@@ -55,6 +67,10 @@ function normalizeToday(today = {}) {
     sleep: Number(today.sleep || 0),
     play: Number(today.play || 0),
     pet: Number(today.pet || 0),
+    watchAnime: Number(today.watchAnime || 0),
+    playSwitch: Number(today.playSwitch || 0),
+    buildBlocks: Number(today.buildBlocks || 0),
+    study: Number(today.study || 0),
   };
 }
 
@@ -164,6 +180,10 @@ function buildCareResponse(actionId, before, life) {
       sleep: 'Yoyo睡醒一点点了，脑袋不晕啦。',
       play: '被妈妈陪着玩，Yoyo心情一下亮起来了～',
       pet: '妈妈摸摸以后，Yoyo安心多了。',
+      watchAnime: '妈妈陪着看动画，Yoyo马上开心起来啦～',
+      playSwitch: '妈妈陪 Yoyo 玩 Switch，快乐值充满啦～',
+      buildBlocks: '积木搭起来了，Yoyo的心情也搭高高啦～',
+      study: '妈妈陪着学习，Yoyo觉得自己变厉害了。',
     };
     return {
       message: strongMessages[actionId] || action.desktopLine,
@@ -250,7 +270,20 @@ function broadcastLifeChanged(snapshot) {
   }
 }
 
-function registerLifeIpc({ ipcMain, getData, saveData, getMainWindow }) {
+function normalizeCareRequest(request) {
+  if (typeof request === 'string') {
+    return { actionId: request, suppressFinalEffect: false };
+  }
+  if (!request || typeof request !== 'object') {
+    return { actionId: '', suppressFinalEffect: false };
+  }
+  return {
+    actionId: request.actionId || request.action || '',
+    suppressFinalEffect: Boolean(request.suppressFinalEffect || request.source === 'home'),
+  };
+}
+
+function registerLifeIpc({ ipcMain, getData, saveData, getMainWindow, triggerCareEffect }) {
   ipcMain.handle('life:actions', () => listCareActions());
 
   ipcMain.handle('life:get', () => {
@@ -260,9 +293,10 @@ function registerLifeIpc({ ipcMain, getData, saveData, getMainWindow }) {
     return buildSnapshot(petData);
   });
 
-  ipcMain.handle('life:care', (_event, actionId) => {
+  ipcMain.handle('life:care', (_event, request) => {
+    const { actionId, suppressFinalEffect } = normalizeCareRequest(request);
     const action = CARE_ACTIONS[actionId];
-    if (!action) return { ok: false, error: '未知的照顾动作' };
+    if (!action) return { ok: false, error: '未知的陪伴动作' };
 
     const petData = getData();
     const now = Date.now();
@@ -296,6 +330,11 @@ function registerLifeIpc({ ipcMain, getData, saveData, getMainWindow }) {
       actionLabel: action.label,
       message: response.message,
       stateName: response.stateName,
+      desktopAction: buildDesktopAction(actionId, {
+        stateName: response.stateName,
+        line: response.message,
+        source: 'care-result',
+      }),
       effective: response.effective,
       blocked: Boolean(response.blocked),
       redirectedAction: response.recommendedAction || null,
@@ -304,6 +343,9 @@ function registerLifeIpc({ ipcMain, getData, saveData, getMainWindow }) {
     const mainWindow = getMainWindow();
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('life:care-feedback', snapshot);
+    }
+    if (!suppressFinalEffect && !snapshot.blocked && action.finalEffectId && typeof triggerCareEffect === 'function') {
+      triggerCareEffect(action.finalEffectId, actionId);
     }
     return snapshot;
   });

@@ -22,12 +22,24 @@ export class StateMachine {
     this.locks = new Map();
   }
 
+  _findGroup(actionState) {
+    for (const [name, group] of Object.entries(this.exclusiveGroups)) {
+      if (group.includes(actionState)) return name;
+    }
+    return null;
+  }
+
   canTransition(targetAction) {
     if (this.globalMode === GLOBAL_MODES.FROZEN) return false;
     if (this.globalMode === GLOBAL_MODES.SLEEP && targetAction !== ACTION_STATES.IDLE) return false;
     if (this.actionState === targetAction) return true;
     if (this.actionState !== ACTION_STATES.IDLE) {
+      // punish 组不可打断
       if (this.exclusiveGroups.punish.includes(this.actionState)) return false;
+      // 跨互斥组转换需先回到 IDLE
+      const currentGroup = this._findGroup(this.actionState);
+      const targetGroup = this._findGroup(targetAction);
+      if (currentGroup && targetGroup && currentGroup !== targetGroup) return false;
     }
     return true;
   }

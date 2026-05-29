@@ -1,0 +1,47 @@
+{
+  "id": "bath-final",
+  "version": 1,
+  "rigId": "yoyo-bath-final-art-v1",
+  "intent": "Final-art Yoyo bath action built from the generated bath-final-art-v1 visual master.",
+  "sourceArt": "assets-src/yoyo/final-art/bath-final-art-v1.png",
+  "outputDir": "output/yoyo-bath-final-art-v1",
+  "sourceRigDir": "assets-src/yoyo/final-art/bath-final-rig-v1",
+  "runtimeDir": "assets/yoyo/effects/bath-final",
+  "previewName": "bath-final-preview.png",
+  "stage": {
+    "width": 512,
+    "height": 384,
+    "background": "#f6efe7"
+  },
+  "motion": {
+    "id": "bath-final",
+    "fps": 8,
+    "loop": true,
+    "durationMs": 3600,
+    "keyframes": [
+      { "t": 0, "shimmerX": 0, "shimmerAlpha": 0.24, "steamY": 0, "steamAlpha": 0.22 },
+      { "t": 125, "shimmerX": 1, "shimmerAlpha": 0.3, "steamY": -1, "steamAlpha": 0.28 },
+      { "t": 250, "shimmerX": 2, "shimmerAlpha": 0.34, "steamY": -2, "steamAlpha": 0.32 },
+      { "t": 375, "shimmerX": 1, "shimmerAlpha": 0.3, "steamY": -3, "steamAlpha": 0.28 },
+      { "t": 500, "shimmerX": 0, "shimmerAlpha": 0.24, "steamY": -2, "steamAlpha": 0.22 },
+      { "t": 625, "shimmerX": -1, "shimmerAlpha": 0.28, "steamY": -1, "steamAlpha": 0.26 }
+    ]
+  },
+  "overlays": [
+    {
+      "id": "scene.shimmer",
+      "file": "scene-shimmer.png",
+      "generator": "water-shimmer-v1",
+      "z": 20
+    },
+    {
+      "id": "scene.steam",
+      "file": "scene-steam.png",
+      "generator": "steam-v1",
+      "z": 30
+    }
+  ],
+  "scene": {
+    "mode": "bath-final-art"
+  }
+}

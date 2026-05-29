@@ -1,0 +1,123 @@
+{
+  "pack": "yoyo",
+  "generatedAt": "2026-05-29T20:31:34.760Z",
+  "source": "asset-status.json",
+  "total": 5,
+  "items": [
+    {
+      "id": "home-room-stage-v2",
+      "path": "home/room-stage-v2.webp",
+      "targetPath": "home/room-stage-v2.webp",
+      "sourceStatusPath": "home/room-stage-v2.webp",
+      "status": "queued",
+      "priority": "high",
+      "kind": "room",
+      "reason": "Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task.",
+      "briefPath": "qa/redraw-briefs/home-room-stage-v2.md",
+      "references": [
+        "../../docs/Yoyo-Art-Bible.md",
+        "home/room-shell-clean-2d.webp"
+      ],
+      "acceptance": [
+        "Reads as a human-like companion asset, not an animal pet asset.",
+        "Avoid these semantics: dog bowl, kibble, paw motif, animal bed, animal ears, tail.",
+        "Matches the clean-2d-chibi Yoyo style with soft linework and low visual noise.",
+        "Preserves the target runtime path so existing Electron and Pixi code keeps working.",
+        "Room composition keeps a cozy child-scale desktop companion space with clear usable zones."
+      ],
+      "order": 1
+    },
+    {
+      "id": "home-room-stage-night",
+      "path": "home/room-stage-night.webp",
+      "targetPath": "home/room-stage-night.webp",
+      "sourceStatusPath": "home/room-stage-night.webp",
+      "status": "queued",
+      "priority": "medium",
+      "kind": "room",
+      "reason": "Strong mood reference, but it should be normalized with the clean companion room kit.",
+      "briefPath": "qa/redraw-briefs/home-room-stage-night.md",
+      "references": [
+        "../../docs/Yoyo-Art-Bible.md",
+        "home/room-shell-clean-2d.webp"
+      ],
+      "acceptance": [
+        "Reads as a human-like companion asset, not an animal pet asset.",
+        "Avoid these semantics: dog bowl, kibble, paw motif, animal bed, animal ears, tail.",
+        "Matches the clean-2d-chibi Yoyo style with soft linework and low visual noise.",
+        "Preserves the target runtime path so existing Electron and Pixi code keeps working.",
+        "Room composition keeps a cozy child-scale desktop companion space with clear usable zones."
+      ],
+      "order": 2
+    },
+    {
+      "id": "home-room-stage-rainy",
+      "path": "home/room-stage-rainy.webp",
+      "targetPath": "home/room-stage-rainy.webp",
+      "sourceStatusPath": "home/room-stage-rainy.webp",
+      "status": "queued",
+      "priority": "medium",
+      "kind": "room",
+      "reason": "Useful weather variant, but should follow the same cleaned room contract as day and night.",
+      "briefPath": "qa/redraw-briefs/home-room-stage-rainy.md",
+      "references": [
+        "../../docs/Yoyo-Art-Bible.md",
+        "home/room-shell-clean-2d.webp"
+      ],
+      "acceptance": [
+        "Reads as a human-like companion asset, not an animal pet asset.",
+        "Avoid these semantics: dog bowl, kibble, paw motif, animal bed, animal ears, tail.",
+        "Matches the clean-2d-chibi Yoyo style with soft linework and low visual noise.",
+        "Preserves the target runtime path so existing Electron and Pixi code keeps working.",
+        "Room composition keeps a cozy child-scale desktop companion space with clear usable zones."
+      ],
+      "order": 3
+    },
+    {
+      "id": "home-room-stage-party",
+      "path": "home/room-stage-party.webp",
+      "targetPath": "home/room-stage-party.webp",
+      "sourceStatusPath": "home/room-stage-party.webp",
+      "status": "queued",
+      "priority": "medium",
+      "kind": "room",
+      "reason": "Useful event variant, but should be rebuilt after the base room style is locked.",
+      "briefPath": "qa/redraw-briefs/home-room-stage-party.md",
+      "references": [
+        "../../docs/Yoyo-Art-Bible.md",
+        "home/room-shell-clean-2d.webp"
+      ],
+      "acceptance": [
+        "Reads as a human-like companion asset, not an animal pet asset.",
+        "Avoid these semantics: dog bowl, kibble, paw motif, animal bed, animal ears, tail.",
+        "Matches the clean-2d-chibi Yoyo style with soft linework and low visual noise.",
+        "Preserves the target runtime path so existing Electron and Pixi code keeps working.",
+        "Room composition keeps a cozy child-scale desktop companion space with clear usable zones."
+      ],
+      "order": 4
+    },
+    {
+      "id": "home-composite-pet-cushion-yoyo",
+      "path": "home/composite-pet-cushion-yoyo.webp",
+      "targetPath": "home/composite-pet-cushion-yoyo.webp",
+      "sourceStatusPath": "home/composite-pet-cushion-yoyo.webp",
+      "status": "queued",
+      "priority": "medium",
+      "kind": "composite",
+      "reason": "Useful comfort concept, but label and framing should shift from petting to companion comfort.",
+      "briefPath": "qa/redraw-briefs/home-composite-pet-cushion-yoyo.md",
+      "references": [
+        "../../docs/Yoyo-Art-Bible.md",
+        "home/composite-sleep-bed-yoyo.webp"
+      ],
+      "acceptance": [
+        "Reads as a human-like companion asset, not an animal pet asset.",
+        "Avoid these semantics: dog bowl, kibble, paw motif, animal bed, animal ears, tail.",
+        "Matches the clean-2d-chibi Yoyo style with soft linework and low visual noise.",
+        "Preserves the target runtime path so existing Electron and Pixi code keeps working.",
+        "Composite keeps Yoyo readable at runtime scale and frames the interaction as care or comfort."
+      ],
+      "order": 5
+    }
+  ]
+}

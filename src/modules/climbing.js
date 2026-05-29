@@ -1,5 +1,7 @@
 // climbing.js - 攀爬系统
-import { state, canvas, randomFrom, say, setState } from './core-state.js';
+import { state, canvas, setState } from './core-state.js';
+import { randomFrom } from './utils.js';
+import { say } from './speech-queue.js';
 import { stateMachine, ACTION_STATES } from './state-machine.js';
 import { incrementAchievementStat, trackFeatureUsed } from './growth-system.js';
 

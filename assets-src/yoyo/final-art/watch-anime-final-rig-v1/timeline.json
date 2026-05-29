@@ -1,0 +1,18 @@
+{
+  "id": "watch-anime-final",
+  "version": 1,
+  "engine": "codex-pet-auto-rig",
+  "effectType": "auto-rig-action",
+  "runtimeMode": "pixi-auto-rig",
+  "strictAssets": true,
+  "durationMs": 3600,
+  "rig": "rig/yoyo.rig.json",
+  "motion": "watch-anime-final",
+  "scene": {
+    "mode": "watch-anime-final-art",
+    "artSource": "assets-src/yoyo/final-art/watch-anime-final-art-v1.png"
+  },
+  "qa": {
+    "requireNonBlankPreview": true
+  }
+}

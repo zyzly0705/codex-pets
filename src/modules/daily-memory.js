@@ -1,6 +1,7 @@
 // daily-memory.js - records a lightweight shared day and turns it into memory lines
 import { get, set } from './store-client.js';
-import { say, randomFrom } from './core-state.js';
+import { say } from './speech-queue.js';
+import { randomFrom } from './utils.js';
 import { yoyoRelationship } from './relationship-system.js';
 import { maybeEnhanceLine } from './ai-dialogue.js';
 

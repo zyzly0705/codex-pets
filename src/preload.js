@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('petApi', {
+const api = {
+  // ===== 原有扁平方法（向后兼容） =====
   listPets: () => ipcRenderer.invoke('pets:list'),
   importPet: () => ipcRenderer.invoke('pet:import'),
   getWeather: () => ipcRenderer.invoke('weather:get'),
@@ -18,6 +19,9 @@ contextBridge.exposeInMainWorld('petApi', {
   triggerEffect: (type) => ipcRenderer.invoke('effect:fullscreen', type),
   triggerCloneEffect: () => ipcRenderer.invoke('effect:clone'),
   triggerGiantEffect: () => ipcRenderer.invoke('effect:giant'),
+  triggerCookEffect: () => ipcRenderer.invoke('effect:cook'),
+  triggerWatchTvEffect: () => ipcRenderer.invoke('effect:watch-tv'),
+  triggerPlaySwitchEffect: () => ipcRenderer.invoke('effect:play-switch'),
   openHome: () => ipcRenderer.invoke('home:open'),
   getLife: () => ipcRenderer.invoke('life:get'),
   getLifeActions: () => ipcRenderer.invoke('life:actions'),
@@ -26,37 +30,68 @@ contextBridge.exposeInMainWorld('petApi', {
   onMenuAction: (callback) => ipcRenderer.on('menu-action', (_e, action) => callback(action)),
   onLifeChanged: (callback) => ipcRenderer.on('life:changed', (_e, data) => callback(data)),
   onLifeCareFeedback: (callback) => ipcRenderer.on('life:care-feedback', (_e, data) => callback(data)),
-  // 新增：右键菜单动作监听
   onAction: (callback) => ipcRenderer.on('action:pet', () => callback()),
   onWhip: (callback) => ipcRenderer.on('action:whip', () => callback()),
   onDance: (callback) => ipcRenderer.on('action:dance', (_e, checked) => callback(checked)),
   onFollow: (callback) => ipcRenderer.on('action:follow', (_e, checked) => callback(checked)),
   onSleep: (callback) => ipcRenderer.on('action:sleep', (_e, checked) => callback(checked)),
-  // 系统恢复/解锁监听
   onSystemResume: (callback) => ipcRenderer.on('system:resume', () => callback()),
-  // 繁忙提醒监听
   onBusyReminder: (callback) => ipcRenderer.on('system:busy-reminder', () => callback()),
   onManualEffect: (callback) => ipcRenderer.on('effect:manual', (_, data) => callback(data)),
-  // 键盘活动监听
-  onKeyboardActivity: (cb) => ipcRenderer.on('keyboard:activity', cb),
-  // 前台应用变化监听（WPS工作陪伴）
+  onKeyboardActivity: (cb) => ipcRenderer.on('keyboard:activity', (_e, data) => cb(data)),
   onActiveAppChanged: (callback) => ipcRenderer.on('active-app-changed', (_, data) => callback(data)),
-  // 状态同步到主进程
   syncMenuState: (state) => ipcRenderer.send('menu-state:sync', state),
-  // 设置相关
   onSettingsChanged: (callback) => ipcRenderer.on('settings-changed', (_, data) => callback(data)),
   onSettingsReset: (callback) => ipcRenderer.on('settings-reset', () => callback()),
   onBehaviorPreferencesReset: (callback) => ipcRenderer.on('behavior-preferences-reset', () => callback()),
-  // 换装系统
   onOutfitChange: (cb) => ipcRenderer.on('outfit:change', (e, category, itemId) => cb(category, itemId)),
   onOutfitPreset: (cb) => ipcRenderer.on('outfit:preset', (e, presetId) => cb(presetId)),
   onOutfitRandom: (cb) => ipcRenderer.on('outfit:random', () => cb()),
   onOutfitReset: (cb) => ipcRenderer.on('outfit:reset', () => cb()),
-  // ===== 统一 Store API =====
   storeLoad:  ()          => ipcRenderer.invoke('store:load'),
   storeSet:   (key, val)  => ipcRenderer.invoke('store:set', key, val),
   storeBatch: (updates)   => ipcRenderer.invoke('store:batch', updates),
   behaviorDebugEnabled: () => ipcRenderer.invoke('debug:behavior-enabled'),
+  desktopRunTestEnabled: () => ipcRenderer.invoke('debug:desktop-run-test-enabled'),
+  live2dDemoEnabled: () => ipcRenderer.invoke('debug:live2d-demo-enabled'),
   debugLog: (type, payload) => ipcRenderer.send('debug:log', type, payload),
   debugLogPath: () => ipcRenderer.invoke('debug:log-path'),
-});
+
+  // ===== 命名空间分组（新代码推荐使用） =====
+  effects: {
+    trigger: (type) => ipcRenderer.invoke('effect:fullscreen', type),
+    clone: () => ipcRenderer.invoke('effect:clone'),
+    giant: () => ipcRenderer.invoke('effect:giant'),
+    cook: () => ipcRenderer.invoke('effect:cook'),
+    watchTv: () => ipcRenderer.invoke('effect:watch-tv'),
+    playSwitch: () => ipcRenderer.invoke('effect:play-switch'),
+    onManual: (cb) => ipcRenderer.on('effect:manual', (_, data) => cb(data)),
+  },
+  store: {
+    load:  ()          => ipcRenderer.invoke('store:load'),
+    set:   (key, val)  => ipcRenderer.invoke('store:set', key, val),
+    batch: (updates)   => ipcRenderer.invoke('store:batch', updates),
+  },
+  life: {
+    get: () => ipcRenderer.invoke('life:get'),
+    actions: () => ipcRenderer.invoke('life:actions'),
+    care: (action) => ipcRenderer.invoke('life:care', action),
+    onChanged: (cb) => ipcRenderer.on('life:changed', (_e, data) => cb(data)),
+    onCareFeedback: (cb) => ipcRenderer.on('life:care-feedback', (_e, data) => cb(data)),
+  },
+  window: {
+    getBounds: () => ipcRenderer.invoke('window:get-bounds'),
+    moveBy: (delta) => ipcRenderer.invoke('window:move-by', delta),
+    setIgnoreMouse: (ignore) => ipcRenderer.invoke('window:set-ignore-mouse', ignore),
+    scanWindows: () => ipcRenderer.invoke('windows:scan'),
+  },
+  pet: {
+    setPosition: (pos) => ipcRenderer.invoke('pet:setPosition', pos),
+    getPosition: () => ipcRenderer.invoke('pet:getPosition'),
+    setActiveVisual: (payload) => ipcRenderer.invoke('pet:setActiveVisual', payload),
+    listPets: () => ipcRenderer.invoke('pets:list'),
+    importPet: () => ipcRenderer.invoke('pet:import'),
+  },
+};
+
+contextBridge.exposeInMainWorld('petApi', api);

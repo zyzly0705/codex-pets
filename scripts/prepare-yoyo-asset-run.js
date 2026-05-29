@@ -167,6 +167,7 @@ function styleContract(profile = 'clean-2d') {
       'smooth but not blurry edges, restrained cel shading',
       'black straight bangs with small top bun',
       'soft friendly face language',
+      'human-like girl companion, not a pet, dog, animal mascot, or pet-care character',
       'avoid pixelated stair-steps, painterly rendering, glossy 3D, or anime key art',
     ],
     pixel: [
@@ -175,6 +176,7 @@ function styleContract(profile = 'clean-2d') {
       'flat cel shading with limited palette',
       'black straight bangs with small top bun',
       'soft friendly face language',
+      'human-like girl companion, not a pet, dog, animal mascot, or pet-care character',
       'no painterly, glossy 3D, anime key art, or marketing illustration finish',
     ],
     'soft-illustration': [
@@ -183,6 +185,7 @@ function styleContract(profile = 'clean-2d') {
       'slightly richer fabric and hair detail than clean-2d',
       'black straight bangs with small top bun',
       'warm friendly expression',
+      'human-like girl companion, not a pet, dog, animal mascot, or pet-care character',
       'avoid realistic proportions, glossy 3D, noisy painterly texture, or tiny unreadable detail',
     ],
   };
@@ -211,7 +214,122 @@ function makeRequest(args) {
       'transparent or clean chroma-key background for extraction',
       'passes browser screenshot review at home UI size',
     ],
+    toolchain: toolchainForKind(args.kind),
   };
+}
+
+function toolchainForKind(kind) {
+  const common = [
+    {
+      tool: 'Codex asset run',
+      role: 'Owns manifests, prompt packs, import scripts, runtime wiring, screenshots, and tests.',
+      output: 'workflow-manifest.json, processed runtime assets, qa screenshots, and passing checks.',
+    },
+    {
+      tool: 'Aseprite',
+      role: 'Final cleanup for edge quality, palette drift, frame timing, layer separation, and sprite export.',
+      output: 'Editable .aseprite source plus inspected PNG/WebP exports.',
+    },
+  ];
+
+  const chains = {
+    style: [
+      {
+        tool: 'Figma',
+        role: 'Create the style board, component scale references, palette tokens, and negative examples.',
+        output: 'A shared board with approved examples and rejection examples before production assets begin.',
+      },
+      {
+        tool: 'AI image generator',
+        role: 'Generate style-board candidates only after the visual contract is written.',
+        output: 'Large candidate boards saved in candidates/ and accepted source in sources/.',
+      },
+      ...common,
+    ],
+    character: [
+      {
+        tool: 'Scenario or other character-consistency image tool',
+        role: 'Generate a locked full-body Yoyo identity sheet from the approved master reference.',
+        output: 'Front, side, back, expression, and pose-safe character references.',
+      },
+      ...common,
+    ],
+    pose: [
+      {
+        tool: 'Scenario or other character-consistency image tool',
+        role: 'Generate full-body pose candidates while preserving Yoyo identity.',
+        output: 'Transparent or chroma-key pose candidates with visible support/contact points.',
+      },
+      {
+        tool: 'Figma',
+        role: 'Check prop contact, scale, and composition against the room/object board.',
+        output: 'A placement proof or annotated frame before runtime integration.',
+      },
+      ...common,
+    ],
+    'home-object': [
+      {
+        tool: 'Figma',
+        role: 'Design object scale, perspective, layer split, and room placement first.',
+        output: 'Back/front layer plan and object bounding boxes.',
+      },
+      {
+        tool: 'AI image generator',
+        role: 'Generate or redraw props from the approved composition and style lock.',
+        output: 'High-resolution object candidates with no baked Yoyo unless explicitly requested.',
+      },
+      ...common,
+    ],
+    room: [
+      {
+        tool: 'Figma',
+        role: 'Own the room floor plan, camera, contact zones, prop slots, and empty-space budget.',
+        output: 'A whiteboard-style room map and tokenized layout spec.',
+      },
+      {
+        tool: 'AI image generator',
+        role: 'Generate coherent room-shell candidates from the approved map, not from ad hoc prompting.',
+        output: 'Large room source art with floor contact zones and no baked UI.',
+      },
+      ...common,
+    ],
+    'action-row': [
+      {
+        tool: 'Runway/Krea/Kling/Luma video tool',
+        role: 'Generate short motion references for complex body mechanics and timing.',
+        output: 'Video reference clips or extracted keyframes, not direct runtime sprites.',
+      },
+      {
+        tool: 'Scenario or other character-consistency image tool',
+        role: 'Generate high-frame action strips using Yoyo identity and motion references.',
+        output: '24-32 frame strips with stable identity and no cropped body parts.',
+      },
+      ...common,
+    ],
+    effect: [
+      {
+        tool: 'Runway/Krea/Kling/Luma video tool',
+        role: 'Explore motion rhythm for dramatic effects such as dharma, clone, or dig transitions.',
+        output: 'Reference-only clips or keyframes.',
+      },
+      {
+        tool: 'AI image generator',
+        role: 'Generate attached hard-edged effect strips or stills after the timing is locked.',
+        output: 'Small readable effect assets that do not overpower Yoyo.',
+      },
+      ...common,
+    ],
+    qa: [
+      {
+        tool: 'Browser/Electron capture',
+        role: 'Verify the real runtime composition at actual app size.',
+        output: 'Default/action screenshots and contact sheets.',
+      },
+      ...common,
+    ],
+  };
+
+  return chains[kind] || common;
 }
 
 function makePrompt(request) {
@@ -260,6 +378,8 @@ Hard negatives:
 - Do not crop the body.
 - Do not make only a bust, portrait, or half-body pose.
 - Do not draw a bed, room, UI, text, frame labels, grid, watermark, or extra character unless the brief explicitly asks for it.
+- Do not make Yoyo look like a dog, animal mascot, or pet-care subject.
+- Do not use pet bowls, kibble, dog beds, paw motifs, or animal-house props; feeding means human food on a table or in normal human dishes.
 - Do not use painterly rendering, glossy 3D, soft gradients, heavy antialiasing, or high-detail anime key art.
 - Do not add floating symbols, detached sparkles, drop shadows, floor shadows, or motion streaks.
 
@@ -270,6 +390,96 @@ ${referenceLines}
 
 Extra notes:
 ${request.notes || '- none'}
+`;
+}
+
+function makeToolchainBrief(request) {
+  return `# Toolchain Brief: ${request.name}
+
+Use this before generating or importing art. The goal is to stop treating AI output as finished art and instead make each tool responsible for the thing it is good at.
+
+${request.toolchain.map((step, index) => `## ${index + 1}. ${step.tool}
+Role: ${step.role}
+
+Expected output: ${step.output}`).join('\n\n')}
+
+## Rejection Rules
+- Reject anything that changes Yoyo into a different person.
+- Reject half-body or floating-body output unless the brief explicitly asks for a foreground crop.
+- Reject room and furniture candidates that do not show clear floor contact zones.
+- Reject high-detail images that become noisy, blurry, or unreadable at runtime size.
+- Reject animation rows where frame count hides bad body mechanics instead of improving motion.
+`;
+}
+
+function makeFigmaBrief(request) {
+  return `# Figma Brief: ${request.name}
+
+Figma is the layout and standard-setting board, not the final sprite generator.
+
+Create:
+- One artboard for approved references.
+- One artboard for rejected examples and written rejection reasons.
+- One scale board showing Yoyo, floor/contact zones, and target prop or room bounds.
+- For room/object jobs, draw bounding boxes for back layer, character layer, and front layer.
+- For action/pose jobs, place the pose against the target prop or room slot and check contact.
+
+Export or screenshot the accepted board into this run's references/ or qa/ folder before integration.
+`;
+}
+
+function makeConsistencyBrief(request) {
+  return `# Character Consistency Brief: ${request.name}
+
+Use this with Scenario, Ideogram-style character consistency, or another image tool that supports reference images.
+
+Identity lock:
+- Yoyo is a small human-like girl, not a dog or animal mascot.
+- Black straight bangs, small top bun, round soft face, navy outfit, white shirt, red bow/ribbon accent.
+- Keep full-body chibi proportions and visible lower-body support.
+- Preserve the same face language and silhouette across candidates.
+
+Prompt:
+${makePrompt(request)}
+
+Selection notes:
+- Prefer clean readable body mechanics over decorative detail.
+- Keep candidates large enough to downsample cleanly.
+- Save rejected candidates with a one-line reason so the next run learns what failed.
+`;
+}
+
+function makeMotionBrief(request) {
+  return `# Motion Reference Brief: ${request.name}
+
+Use this with Runway, Krea, Kling, Luma, or another video tool only when the asset needs body mechanics or timing.
+
+Motion target:
+- ${request.brief}
+- ${request.motion.frames} production frames at ${request.motion.fps} fps.
+- Runtime source cell target: ${request.motion.cellWidth}x${request.motion.cellHeight}.
+
+Rules:
+- The video is a reference, not the runtime asset.
+- Keep camera locked and motion readable from a small desktop-pet view.
+- Avoid cuts, zooms, motion blur, shadows, text, UI, and extra characters.
+- Extract keyframes only after the character identity still matches Yoyo.
+`;
+}
+
+function makeAsepriteBrief(request) {
+  return `# Aseprite Cleanup Brief: ${request.name}
+
+Use Aseprite after a candidate is selected.
+
+Cleanup tasks:
+- Remove chroma-key or transparent edge noise.
+- Separate back/object, Yoyo, foreground, and effect layers when the asset needs composition.
+- Fix hands, feet, contact points, face readability, and outline breaks.
+- Normalize frame timing to ${request.motion.fps} fps when animated.
+- Export inspected source PNG/WebP files only after the visual gate passes.
+
+Do not use Aseprite to hide a broken composition. If contact, scale, or identity is wrong, regenerate or redraw the source first.
 `;
 }
 
@@ -547,17 +757,23 @@ function createAssetRun(runDir, args) {
       processed: 'processed/',
       integration: 'integration/',
       qa: 'qa/',
+      toolchain: 'toolchain/',
     },
     gates: ['spec', 'source-quality', 'visual', 'enhancement', 'processing', 'integration', 'runtime'],
   };
 
-  for (const dir of ['brief', 'references', 'candidates', 'enhanced', 'sources', 'processed', 'integration', 'qa', 'prompts']) {
+  for (const dir of ['brief', 'references', 'candidates', 'enhanced', 'sources', 'processed', 'integration', 'qa', 'prompts', 'toolchain']) {
     fs.mkdirSync(path.join(runDir, dir), { recursive: true });
   }
 
   writeFile(path.join(runDir, 'asset-request.json'), JSON.stringify(request, null, 2));
   writeFile(path.join(runDir, 'workflow-manifest.json'), JSON.stringify(manifest, null, 2));
   writeFile(path.join(runDir, 'prompts', 'visual-prompt.md'), makePrompt(request));
+  writeFile(path.join(runDir, 'toolchain', 'toolchain-brief.md'), makeToolchainBrief(request));
+  writeFile(path.join(runDir, 'toolchain', 'figma-brief.md'), makeFigmaBrief(request));
+  writeFile(path.join(runDir, 'toolchain', 'character-consistency-brief.md'), makeConsistencyBrief(request));
+  writeFile(path.join(runDir, 'toolchain', 'motion-reference-brief.md'), makeMotionBrief(request));
+  writeFile(path.join(runDir, 'toolchain', 'aseprite-cleanup-brief.md'), makeAsepriteBrief(request));
   writeFile(path.join(runDir, 'qa', 'review-checklist.md'), makeChecklist(request));
   writeFile(path.join(runDir, 'README.md'), makeReadme(request));
   writeFile(path.join(runDir, 'brief', 'acceptance.md'), `# Acceptance\n\n${request.acceptance.map((item) => `- ${item}`).join('\n')}`);

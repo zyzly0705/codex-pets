@@ -1,0 +1,20 @@
+{
+  "asset": "home/prop-food.webp",
+  "candidate": "assets/yoyo/qa/candidates/home-prop-food-candidate-01.webp",
+  "source": "assets-src/yoyo/redraw-runs/2026-05-29-prop-food-candidate-01/source-alpha.png",
+  "generator": "built-in image_gen plus chroma-key removal",
+  "generatedAt": "2026-05-29T07:19:20.120Z",
+  "status": "candidate",
+  "dimensions": {
+    "width": 210,
+    "height": 150
+  },
+  "hasAlpha": true,
+  "transparentCorners": 4,
+  "acceptance": [
+    "human tableware and meal",
+    "no dog bowl or kibble",
+    "alpha background",
+    "clean-2d-chibi style"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "watch-anime-final",
+  "version": 1,
+  "rigId": "yoyo-watch-anime-final-art-v1",
+  "intent": "Final-art Yoyo watch anime action built from the generated watch-anime-final-art-v1 visual master.",
+  "sourceArt": "assets-src/yoyo/final-art/watch-anime-final-art-v1.png",
+  "outputDir": "output/yoyo-watch-anime-final-art-v1",
+  "sourceRigDir": "assets-src/yoyo/final-art/watch-anime-final-rig-v1",
+  "runtimeDir": "assets/yoyo/effects/watch-anime-final",
+  "previewName": "watch-anime-final-preview.png",
+  "stage": { "width": 512, "height": 384, "background": "#f6efe7" },
+  "motion": {
+    "id": "watch-anime-final",
+    "fps": 8,
+    "loop": true,
+    "durationMs": 3600,
+    "keyframes": [
+      { "t": 0, "shimmerX": 0, "shimmerAlpha": 0.18 },
+      { "t": 125, "shimmerX": 1, "shimmerAlpha": 0.26 },
+      { "t": 250, "shimmerX": 2, "shimmerAlpha": 0.32 },
+      { "t": 375, "shimmerX": 1, "shimmerAlpha": 0.26 },
+      { "t": 500, "shimmerX": 0, "shimmerAlpha": 0.2 },
+      { "t": 625, "shimmerX": -1, "shimmerAlpha": 0.24 }
+    ]
+  },
+  "overlays": [
+    { "id": "scene.shimmer", "file": "scene-shimmer.png", "generator": "screen-glow-v1", "z": 25 }
+  ],
+  "scene": { "mode": "watch-anime-final-art" }
+}

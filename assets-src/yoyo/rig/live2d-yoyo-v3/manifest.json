@@ -1,0 +1,431 @@
+{
+  "version": 3,
+  "source": "assets-src/yoyo/reference/rig/yoyo-standing-clean2d-v2-alpha.png",
+  "document": {
+    "width": 1254,
+    "height": 1254
+  },
+  "output": "assets-src/yoyo/rig/live2d-yoyo-v3",
+  "groups": [
+    "Head",
+    "Face",
+    "Body",
+    "Arms",
+    "Legs"
+  ],
+  "layers": [
+    {
+      "name": "hair_back",
+      "group": "Head",
+      "groupPath": [
+        "Head"
+      ],
+      "file": "head-hair_back.png",
+      "left": 420,
+      "top": 120,
+      "width": 408,
+      "height": 438
+    },
+    {
+      "name": "bun",
+      "group": "Head",
+      "groupPath": [
+        "Head"
+      ],
+      "file": "head-bun.png",
+      "left": 520,
+      "top": 120,
+      "width": 205,
+      "height": 168
+    },
+    {
+      "name": "hair_front",
+      "group": "Head",
+      "groupPath": [
+        "Head"
+      ],
+      "file": "head-hair_front.png",
+      "left": 448,
+      "top": 182,
+      "width": 350,
+      "height": 335
+    },
+    {
+      "name": "bangs_center",
+      "group": "Head",
+      "groupPath": [
+        "Head"
+      ],
+      "file": "head-bangs_center.png",
+      "left": 506,
+      "top": 245,
+      "width": 226,
+      "height": 122
+    },
+    {
+      "name": "side_hair_left",
+      "group": "Head",
+      "groupPath": [
+        "Head"
+      ],
+      "file": "head-side_hair_left.png",
+      "left": 450,
+      "top": 352,
+      "width": 98,
+      "height": 214
+    },
+    {
+      "name": "side_hair_right",
+      "group": "Head",
+      "groupPath": [
+        "Head"
+      ],
+      "file": "head-side_hair_right.png",
+      "left": 701,
+      "top": 352,
+      "width": 98,
+      "height": 214
+    },
+    {
+      "name": "face_base",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-face_base.png",
+      "left": 467,
+      "top": 242,
+      "width": 314,
+      "height": 352
+    },
+    {
+      "name": "eye_left_open",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-eye_left_open.png",
+      "left": 526,
+      "top": 339,
+      "width": 90,
+      "height": 96
+    },
+    {
+      "name": "eye_right_open",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-eye_right_open.png",
+      "left": 632,
+      "top": 339,
+      "width": 90,
+      "height": 96
+    },
+    {
+      "name": "eye_left_blink",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-eye_left_blink.png",
+      "left": 526,
+      "top": 339,
+      "width": 90,
+      "height": 96
+    },
+    {
+      "name": "eye_right_blink",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-eye_right_blink.png",
+      "left": 632,
+      "top": 339,
+      "width": 90,
+      "height": 96
+    },
+    {
+      "name": "brow_left",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-brow_left.png",
+      "left": 519,
+      "top": 305,
+      "width": 92,
+      "height": 42
+    },
+    {
+      "name": "brow_right",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-brow_right.png",
+      "left": 639,
+      "top": 305,
+      "width": 92,
+      "height": 42
+    },
+    {
+      "name": "blush_left",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-blush_left.png",
+      "left": 509,
+      "top": 414,
+      "width": 74,
+      "height": 58
+    },
+    {
+      "name": "blush_right",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-blush_right.png",
+      "left": 665,
+      "top": 414,
+      "width": 74,
+      "height": 58
+    },
+    {
+      "name": "mouth_open",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-mouth_open.png",
+      "left": 573,
+      "top": 421,
+      "width": 98,
+      "height": 88
+    },
+    {
+      "name": "mouth_smile",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-mouth_smile.png",
+      "left": 573,
+      "top": 421,
+      "width": 98,
+      "height": 88
+    },
+    {
+      "name": "mouth_closed",
+      "group": "Face",
+      "groupPath": [
+        "Face"
+      ],
+      "file": "face-mouth_closed.png",
+      "left": 573,
+      "top": 421,
+      "width": 98,
+      "height": 88
+    },
+    {
+      "name": "collar",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-collar.png",
+      "left": 530,
+      "top": 519,
+      "width": 190,
+      "height": 112
+    },
+    {
+      "name": "bow_left",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-bow_left.png",
+      "left": 541,
+      "top": 552,
+      "width": 72,
+      "height": 75
+    },
+    {
+      "name": "bow_center",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-bow_center.png",
+      "left": 595,
+      "top": 552,
+      "width": 63,
+      "height": 82
+    },
+    {
+      "name": "bow_right",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-bow_right.png",
+      "left": 640,
+      "top": 552,
+      "width": 72,
+      "height": 75
+    },
+    {
+      "name": "torso_top",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-torso_top.png",
+      "left": 469,
+      "top": 523,
+      "width": 318,
+      "height": 232
+    },
+    {
+      "name": "skirt",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-skirt.png",
+      "left": 474,
+      "top": 673,
+      "width": 307,
+      "height": 215
+    },
+    {
+      "name": "button_left",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-button_left.png",
+      "left": 543,
+      "top": 622,
+      "width": 42,
+      "height": 42
+    },
+    {
+      "name": "button_right",
+      "group": "Body",
+      "groupPath": [
+        "Body"
+      ],
+      "file": "body-button_right.png",
+      "left": 672,
+      "top": 622,
+      "width": 42,
+      "height": 42
+    },
+    {
+      "name": "arm_left",
+      "group": "Arms",
+      "groupPath": [
+        "Arms"
+      ],
+      "file": "arms-arm_left.png",
+      "left": 419,
+      "top": 515,
+      "width": 154,
+      "height": 351
+    },
+    {
+      "name": "hand_left",
+      "group": "Arms",
+      "groupPath": [
+        "Arms"
+      ],
+      "file": "arms-hand_left.png",
+      "left": 423,
+      "top": 735,
+      "width": 122,
+      "height": 120
+    },
+    {
+      "name": "arm_right",
+      "group": "Arms",
+      "groupPath": [
+        "Arms"
+      ],
+      "file": "arms-arm_right.png",
+      "left": 677,
+      "top": 515,
+      "width": 154,
+      "height": 351
+    },
+    {
+      "name": "hand_right",
+      "group": "Arms",
+      "groupPath": [
+        "Arms"
+      ],
+      "file": "arms-hand_right.png",
+      "left": 707,
+      "top": 735,
+      "width": 122,
+      "height": 120
+    },
+    {
+      "name": "leg_left",
+      "group": "Legs",
+      "groupPath": [
+        "Legs"
+      ],
+      "file": "legs-leg_left.png",
+      "left": 505,
+      "top": 838,
+      "width": 149,
+      "height": 188
+    },
+    {
+      "name": "shoe_left",
+      "group": "Legs",
+      "groupPath": [
+        "Legs"
+      ],
+      "file": "legs-shoe_left.png",
+      "left": 503,
+      "top": 957,
+      "width": 125,
+      "height": 72
+    },
+    {
+      "name": "leg_right",
+      "group": "Legs",
+      "groupPath": [
+        "Legs"
+      ],
+      "file": "legs-leg_right.png",
+      "left": 606,
+      "top": 838,
+      "width": 149,
+      "height": 188
+    },
+    {
+      "name": "shoe_right",
+      "group": "Legs",
+      "groupPath": [
+        "Legs"
+      ],
+      "file": "legs-shoe_right.png",
+      "left": 627,
+      "top": 957,
+      "width": 125,
+      "height": 72
+    }
+  ],
+  "notes": [
+    "This v3 pack is identity-preserving and adds first-pass blink and mouth variants for Live2D-style facial setup.",
+    "Layers still overlap on purpose so Live2D/Spine cleanup can paint hidden areas instead of reconstructing identity from scratch.",
+    "Recommended next manual pass: paint cleaner blink lids, add eye-smile variants, and expand mouth set beyond open, smile, and closed."
+  ]
+}

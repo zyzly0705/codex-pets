@@ -4,7 +4,8 @@ This is the style lock for the full Yoyo asset redesign. It is the acceptance ba
 
 ## Canonical Style
 
-- Clean 2D chibi desktop pet, not pixel art and not polished anime key art.
+- Clean 2D chibi companion, not pixel art, not a pet, and not polished anime key art.
+- Yoyo is `妈妈的小伴侣`: a human-like little girl companion who eats human food, sleeps in a bed, watches animation, plays Switch, builds blocks, and studies.
 - Full-body readability at actual runtime size comes before detail.
 - Refined line art, clean contours, restrained cel shading, and readable edges.
 - Yoyo keeps black straight bangs, a small top bun, round soft face, tiny limbs, navy outfit, white shirt, and red bow/ribbon accents.
@@ -31,6 +32,7 @@ This is the style lock for the full Yoyo asset redesign. It is the acceptance ba
 - Every pose needs visible weight: feet, seat, bed, waterline, hands, or lower-body contact.
 - A pose that only works by hiding the body is rejected.
 - A character that looks pasted onto the room is rejected.
+- Dog bowls, kibble, dog beds, paw motifs, animal ears, tails, or animal-mascot styling are rejected.
 - Action rows should use high-frame source planning: core rows target 24 frames at 12 fps; complex rows target 32 frames at 12 fps.
 - Low-resolution, blurry, or mosaic-like input must go through `enhanced/` before becoming accepted source art.
 
@@ -45,7 +47,7 @@ This is the style lock for the full Yoyo asset redesign. It is the acceptance ba
 
 The accepted visual style board is saved at:
 
-`output/yoyo-asset-runs/yoyo-redesign-v1/assets/00-style-system/sources/yoyo-style-board.png`
+`assets-src/yoyo/reference/style/yoyo-style-board.png`
 
 ## Character Master
 

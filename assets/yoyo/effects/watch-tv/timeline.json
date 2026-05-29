@@ -1,0 +1,30 @@
+{
+  "id": "watch-tv",
+  "engine": "spine-pixi-v8",
+  "version": 1,
+  "effectType": "spine-action",
+  "runtimeMode": "spine-action",
+  "strictAssets": true,
+  "durationMs": 5600,
+  "spine": {
+    "skeleton": "spine/yoyo.skel.json",
+    "atlas": "spine/yoyo.atlas",
+    "skin": "default",
+    "animation": "watch_tv",
+    "idleAnimation": "idle_sit",
+    "scale": 0.9
+  },
+  "layers": [
+    "spine-skeleton",
+    "spine-slots",
+    "action-state"
+  ],
+  "palette": {
+    "tv": "#f08c6e",
+    "screenSky": "#8bdcff",
+    "screenGrass": "#8fdb70",
+    "screenPig": "#ff8fb2",
+    "snack": "#ffd36b",
+    "cushion": "#f7a7c4"
+  }
+}

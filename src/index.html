@@ -16,12 +16,17 @@
         <div class="bubble-tail"></div>
       </div>
       <canvas id="petCanvas" width="120" height="130"></canvas>
+      <iframe id="live2d-demo-frame" class="live2d-demo-frame" title="Live2D demo" aria-hidden="true"></iframe>
+      <div id="desktop-rig-host" class="desktop-rig-host" aria-hidden="true"></div>
+      <img id="desktop-toy-prop" class="desktop-toy-prop" alt="" aria-hidden="true" />
       <button id="care-cue" class="care-cue" type="button" aria-label="照顾 Yoyo">
         <span class="care-cue-icon" aria-hidden="true">♡</span>
       </button>
       <button id="feed-btn" class="feed-btn">🍪</button>
       <aside id="behavior-debug-panel" class="behavior-debug-panel" aria-hidden="true"></aside>
     </main>
+    <script src="../node_modules/pixi.js/dist/pixi.min.js"></script>
+    <script src="./shared/yoyo-expression-controls.js"></script>
     <script type="module" src="./renderer.js"></script>
   </body>
 </html>

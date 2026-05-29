@@ -1,0 +1,111 @@
+{
+  "source": "assets-src/yoyo/reference/rig/yoyo-standing-clean2d-v2-alpha.png",
+  "document": {
+    "width": 1254,
+    "height": 1254
+  },
+  "output": "assets-src/yoyo/rig/live2d-yoyo-v1",
+  "layers": [
+    {
+      "name": "hair_back",
+      "file": "hair_back.png",
+      "left": 420,
+      "top": 120,
+      "width": 408,
+      "height": 438
+    },
+    {
+      "name": "bun",
+      "file": "bun.png",
+      "left": 520,
+      "top": 120,
+      "width": 205,
+      "height": 168
+    },
+    {
+      "name": "hair_front",
+      "file": "hair_front.png",
+      "left": 448,
+      "top": 182,
+      "width": 350,
+      "height": 335
+    },
+    {
+      "name": "face_base",
+      "file": "face_base.png",
+      "left": 467,
+      "top": 242,
+      "width": 314,
+      "height": 352
+    },
+    {
+      "name": "eyes_brows",
+      "file": "eyes_brows.png",
+      "left": 503,
+      "top": 328,
+      "width": 243,
+      "height": 122
+    },
+    {
+      "name": "mouth_blush",
+      "file": "mouth_blush.png",
+      "left": 492,
+      "top": 400,
+      "width": 265,
+      "height": 160
+    },
+    {
+      "name": "bow",
+      "file": "bow.png",
+      "left": 540,
+      "top": 543,
+      "width": 170,
+      "height": 130
+    },
+    {
+      "name": "torso_dress",
+      "file": "torso_dress.png",
+      "left": 468,
+      "top": 520,
+      "width": 320,
+      "height": 368
+    },
+    {
+      "name": "arm_left",
+      "file": "arm_left.png",
+      "left": 419,
+      "top": 515,
+      "width": 154,
+      "height": 351
+    },
+    {
+      "name": "arm_right",
+      "file": "arm_right.png",
+      "left": 677,
+      "top": 515,
+      "width": 154,
+      "height": 351
+    },
+    {
+      "name": "leg_left",
+      "file": "leg_left.png",
+      "left": 505,
+      "top": 838,
+      "width": 149,
+      "height": 188
+    },
+    {
+      "name": "leg_right",
+      "file": "leg_right.png",
+      "left": 606,
+      "top": 838,
+      "width": 149,
+      "height": 188
+    }
+  ],
+  "notes": [
+    "This is a first-pass identity-preserving rig pack cut from the accepted Yoyo master.",
+    "Layers intentionally overlap. Clean edge paint and hidden-area fill should be done in Photoshop or Clip Studio before final rigging.",
+    "Recommended next manual pass: split eyes into L/R, mouth into open/closed shapes, and separate sleeve from hand where deformation is needed."
+  ]
+}

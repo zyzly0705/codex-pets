@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "id": "yoyo",
+  "displayName": "Yoyo",
+  "type": "companion",
+  "style": "clean-2d-chibi",
+  "runtimeCompatibility": {
+    "currentPetJson": "pet.json",
+    "preserveExistingRuntimePaths": true
+  },
+  "semantics": {
+    "species": "human-like companion",
+    "role": "small desktop life companion",
+    "avoid": [
+      "dog bowl",
+      "kibble",
+      "paw motif",
+      "animal bed",
+      "animal ears",
+      "tail"
+    ]
+  },
+  "identity": {
+    "acceptedMaster": "../assets-src/yoyo/identity/yoyo-character-master.png",
+    "currentCleanMaster": "../assets-src/yoyo/identity/yoyo-character-master-clean2d-v2.png",
+    "styleBible": "../../docs/Yoyo-Art-Bible.md"
+  },
+  "avatar": {
+    "driver": "pixi-spritesheet",
+    "sheet": "spritesheet.webp",
+    "actions": "pet.json#/states",
+    "cellWidth": 192,
+    "cellHeight": 208,
+    "columns": 8,
+    "rows": 42,
+    "scale": 0.75,
+    "anchor": {
+      "x": 0.5,
+      "y": 1
+    },
+    "goldenActions": [
+      "idle",
+      "runningLeft",
+      "runningRight",
+      "waving",
+      "eating",
+      "sleeping",
+      "review",
+      "petting",
+      "dancing"
+    ]
+  },
+  "home": {
+    "rooms": {
+      "day": "home/room-v3-day.webp",
+      "night": "home/room-v3-night.webp",
+      "rainy": "home/room-v3-rainy.webp",
+      "party": "home/room-v3-party.webp"
+    },
+    "runtimeSheet": "home/yoyo-home-sheet.webp",
+    "zoneSource": "../../src/shared/home-scene.js"
+  },
+  "careScenes": {
+    "feed": {
+      "composite": "home/composite-v3-feed-yoyo.webp",
+      "status": "keep"
+    },
+    "sleep": {
+      "composite": "home/composite-v3-sleep-yoyo.webp",
+      "status": "keep"
+    },
+    "bath": {
+      "composite": "home/composite-v3-bath-yoyo.webp",
+      "status": "keep"
+    },
+    "play": {
+      "composite": "home/composite-v3-play-yoyo.webp",
+      "status": "keep"
+    },
+    "comfort": {
+      "composite": "home/composite-v3-comfort-yoyo.webp",
+      "status": "keep"
+    }
+  },
+  "specialActions": {
+    "study": {
+      "timeline": "effects/study-final/timeline.json",
+      "status": "experimental"
+    },
+    "watchAnime": {
+      "timeline": "effects/watch-anime-final/timeline.json",
+      "status": "experimental"
+    },
+    "watchTV": {
+      "timeline": "effects/watch-tv/timeline.json",
+      "status": "experimental"
+    },
+    "cook": {
+      "timeline": "effects/cook-pot/timeline.json",
+      "status": "experimental"
+    },
+    "playSwitch": {
+      "timeline": "effects/play-switch-final/timeline.json",
+      "status": "experimental"
+    }
+  },
+  "v3": {
+    "active": true,
+    "sourceManifest": "../assets-src/yoyo/v3/manifest.json",
+    "rooms": {
+      "day": "home/room-v3-day.webp",
+      "night": "home/room-v3-night.webp",
+      "rainy": "home/room-v3-rainy.webp",
+      "party": "home/room-v3-party.webp"
+    },
+    "props": {
+      "feed": "home/prop-v3-meal-table.webp",
+      "bath": "home/prop-v3-wash-stand.webp",
+      "sleep": "home/prop-v3-bed.webp",
+      "play": "home/prop-v3-toy-shelf.webp",
+      "pet": "home/prop-v3-comfort-cushion.webp",
+      "watchAnime": "home/prop-v3-media-screen.webp",
+      "playSwitch": "home/prop-v3-game-console.webp",
+      "buildBlocks": "home/prop-v3-blocks.webp",
+      "study": "home/prop-v3-study-desk.webp"
+    },
+    "composites": {
+      "feed": "home/composite-v3-feed-yoyo.webp",
+      "sleep": "home/composite-v3-sleep-yoyo.webp",
+      "bath": "home/composite-v3-bath-yoyo.webp",
+      "play": "home/composite-v3-play-yoyo.webp",
+      "comfort": "home/composite-v3-comfort-yoyo.webp"
+    }
+  },
+  "qa": {
+    "report": "qa/asset-pack-report.md",
+    "redrawQueue": "qa/redraw-queue.json",
+    "redrawBriefs": "qa/redraw-briefs/",
+    "candidateRegistry": "qa/candidate-registry.json",
+    "requiredEvidence": [
+      "contact sheet",
+      "runtime screenshot",
+      "status summary",
+      "redraw watchlist"
+    ]
+  },
+  "imageChecks": [
+    {
+      "path": "spritesheet.webp",
+      "width": 1536,
+      "height": 8736
+    },
+    {
+      "path": "home/room-stage-v2.webp",
+      "width": 1080,
+      "height": 720
+    },
+    {
+      "path": "home/yoyo-home-sheet.webp",
+      "width": 1536,
+      "height": 8736
+    },
+    {
+      "path": "home/composite-sleep-bed-yoyo.webp",
+      "width": 440,
+      "height": 344
+    }
+  ]
+}

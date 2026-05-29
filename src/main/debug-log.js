@@ -23,6 +23,8 @@ function appendDebugLog(type, payload) {
 
 function registerDebugIpc({ ipcMain }) {
   ipcMain.handle('debug:behavior-enabled', () => BEHAVIOR_DEBUG_ENABLED);
+  ipcMain.handle('debug:desktop-run-test-enabled', () => process.env.YOYO_TEST_DESKTOP_RUN === '1');
+  ipcMain.handle('debug:live2d-demo-enabled', () => process.env.YOYO_TEST_LIVE2D === '1');
   ipcMain.handle('debug:log-path', () => debugLogPath);
   ipcMain.on('debug:log', (_event, type, payload) => appendDebugLog(type, payload));
 }

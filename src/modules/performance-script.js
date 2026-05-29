@@ -1,4 +1,5 @@
-import { state, say, setState, SPEECH_PRIORITY, speechQueue } from './core-state.js';
+import { state, setState } from './core-state.js';
+import { say, speechQueue, SPEECH_PRIORITY } from './speech-queue.js';
 import { stateMachine, ACTION_STATES } from './state-machine.js';
 import { applyEmotionEvent } from './emotion-system.js';
 import { debugLog } from './debug-log.js';
@@ -30,7 +31,9 @@ export const PERFORMANCE_SCRIPTS = {
     timeline: [
       { at: 0, expression: 'anticipation', say: '我先坐稳哦。', duration: 1800 },
       { at: 1200, expression: 'excited' },
+      { at: 3000, expression: 'happy', say: '荡得好高呀！', duration: 2200 },
       { at: 5200, expression: 'relaxed', say: '风刚刚好。', duration: 2400 },
+      { at: 6800, expression: 'content' },
     ],
   },
   fanCoolingScene: {
@@ -41,9 +44,11 @@ export const PERFORMANCE_SCRIPTS = {
     endState: 'idle',
     emotion: 'calm',
     timeline: [
-      { at: 0, expression: 'hot', say: '热乎乎的，吹一下风。', duration: 2400 },
-      { at: 2200, expression: 'relaxed' },
-      { at: 5200, expression: 'happy', say: '舒服多啦。', duration: 2200 },
+      { at: 0, expression: 'hot', say: '热乎乎的，吹一下风。', duration: 2200 },
+      { at: 1600, expression: 'relieved' },
+      { at: 3200, expression: 'relaxed', say: '哇，好凉快～', duration: 2200 },
+      { at: 5200, expression: 'happy', say: '舒服多啦。', duration: 2000 },
+      { at: 6600, expression: 'content' },
     ],
   },
   swimmingScene: {
@@ -55,8 +60,10 @@ export const PERFORMANCE_SCRIPTS = {
     emotion: 'happy',
     timeline: [
       { at: 0, expression: 'ready', say: '我下水啦。', duration: 1800 },
-      { at: 1600, expression: 'focused' },
-      { at: 4200, expression: 'sparkle', say: '水凉凉的，好舒服。', duration: 2800 },
+      { at: 1600, expression: 'excited' },
+      { at: 3400, expression: 'focused', say: '看我游得快不快！', duration: 2200 },
+      { at: 5600, expression: 'sparkle', say: '水凉凉的，好舒服。', duration: 2400 },
+      { at: 7200, expression: 'relaxed' },
     ],
   },
   airConditioningScene: {
@@ -67,9 +74,11 @@ export const PERFORMANCE_SCRIPTS = {
     endState: 'idle',
     emotion: 'calm',
     timeline: [
-      { at: 0, expression: 'hot', say: '我站在风下面一小会。', duration: 2600 },
-      { at: 2600, expression: 'relaxed' },
-      { at: 5600, expression: 'sleepy', say: '有点想眯一下。', duration: 2200 },
+      { at: 0, expression: 'hot', say: '我站在风下面一小会。', duration: 2200 },
+      { at: 1800, expression: 'relieved' },
+      { at: 3400, expression: 'relaxed', say: '呼——好舒服。', duration: 2200 },
+      { at: 5600, expression: 'sleepy', say: '有点想眯一下。', duration: 2000 },
+      { at: 7000, expression: 'content' },
     ],
   },
   sofaLyingScene: {
@@ -81,8 +90,10 @@ export const PERFORMANCE_SCRIPTS = {
     emotion: 'relaxed',
     timeline: [
       { at: 0, expression: 'tired', say: '我躺一下，就一下。', duration: 2400 },
-      { at: 2600, expression: 'relaxed' },
-      { at: 6200, expression: 'sleepy', say: '这个沙发好会抱人。', duration: 3000 },
+      { at: 1800, expression: 'relieved' },
+      { at: 3800, expression: 'relaxed', say: '好软好舒服……', duration: 2400 },
+      { at: 6200, expression: 'sleepy', say: '这个沙发好会抱人。', duration: 2800 },
+      { at: 8200, expression: 'dozing' },
     ],
   },
   cloneHeart: {
@@ -94,21 +105,63 @@ export const PERFORMANCE_SCRIPTS = {
     emotion: 'happy',
     timeline: [
       { at: 0, expression: 'proud', say: '看好了哦。', duration: 1600 },
-      { at: 3600, expression: 'heart' },
-      { at: 5050, expression: 'bashful', say: '都在喜欢妈妈。', duration: 2600 },
+      { at: 3900, expression: 'heart' },
+      { at: 4800, expression: 'bashful', say: '都在喜欢妈妈。', duration: 2600 },
     ],
   },
   dharmaManifest: {
     behavior: 'giant',
     state: 'clapping',
-    duration: 9000,
+    duration: 5600,
     lock: true,
     endState: 'idle',
     emotion: 'happy',
     timeline: [
       { at: 0, expression: 'focused', say: '我要认真一点了。', duration: 1800 },
-      { at: 1600, expression: 'sparkle', say: '法相天地。', duration: 2600 },
-      { at: 7200, expression: 'tired', say: '呼，收回来。', duration: 2400 },
+      { at: 1600, expression: 'sparkle', say: '法相天地。', duration: 2200 },
+      { at: 3600, expression: 'tired', say: '呼，收回来。', duration: 2200 },
+    ],
+  },
+  cookPotScene: {
+    behavior: 'cookPot',
+    state: 'jumping',
+    duration: 5400,
+    lock: true,
+    endState: 'bashful',
+    emotion: 'happy',
+    timeline: [
+      { at: 0, expression: 'curious', say: '妈妈，看我跳进汤锅温泉。', duration: 2100 },
+      { at: 1150, expression: 'focused', state: 'jumping' },
+      { at: 2450, expression: 'happy', state: 'clapping', say: '咕嘟咕嘟，好暖和。', duration: 2400 },
+      { at: 4200, expression: 'bashful', state: 'bashful', say: '不是被煮，是泡泡锅哦。', duration: 2400 },
+    ],
+  },
+  watchTvScene: {
+    behavior: 'watchTV',
+    state: 'watchTV',
+    duration: 5600,
+    lock: true,
+    endState: 'happyIdle',
+    emotion: 'happy',
+    timeline: [
+      { at: 0, expression: 'focused', say: '妈妈，动画开始啦。', duration: 1900 },
+      { at: 1300, expression: 'happy', state: 'watchTV' },
+      { at: 2750, expression: 'sparkle', say: '这个小粉猪好好笑。', duration: 2600 },
+      { at: 4550, expression: 'relaxed', say: '再看一小会儿嘛。', duration: 2200 },
+    ],
+  },
+  playSwitchScene: {
+    behavior: 'playSwitch',
+    state: 'playSwitch',
+    duration: 5600,
+    lock: true,
+    endState: 'happyIdle',
+    emotion: 'excited',
+    timeline: [
+      { at: 0, expression: 'focused', say: '妈妈，这一局我来。', duration: 1900 },
+      { at: 1150, expression: 'sparkle', state: 'playSwitch' },
+      { at: 2500, expression: 'excited', say: '跳过去啦！快看快看。', duration: 2300 },
+      { at: 4450, expression: 'happy', say: '赢啦，再来一局。', duration: 2200 },
     ],
   },
 };
@@ -227,6 +280,9 @@ export function adoptManualEffect(type, duration) {
   const map = {
     clone: 'cloneHeart',
     giant: 'dharmaManifest',
+    cook: 'cookPotScene',
+    watchTv: 'watchTvScene',
+    playSwitch: 'playSwitchScene',
   };
   const id = map[type];
   if (!id) return false;

@@ -23,17 +23,17 @@
 
 **Files:**
 - Modify: `scripts/build-home-assets.js`
-- Generate: `assets-src/yoyo/home/prop-food-back.svg`
-- Generate: `assets-src/yoyo/home/prop-food-meal-full.svg`
-- Generate: `assets-src/yoyo/home/prop-food-meal-low.svg`
-- Generate: `assets-src/yoyo/home/prop-food-front.svg`
+- Generate: `assets-src/yoyo/home/prop-food-back.png`
+- Generate: `assets-src/yoyo/home/prop-food-meal-full.png`
+- Generate: `assets-src/yoyo/home/prop-food-meal-low.png`
+- Generate: `assets-src/yoyo/home/prop-food-front.png`
 - Generate: `assets/yoyo/home/prop-food-back.webp`
 - Generate: `assets/yoyo/home/prop-food-meal-full.webp`
 - Generate: `assets/yoyo/home/prop-food-meal-low.webp`
 - Generate: `assets/yoyo/home/prop-food-front.webp`
 
-- [ ] Add helper SVG builders for the food bowl back, full meal, low meal, and front rim.
-- [ ] Build the new WebP assets with nearest-neighbor scaling.
+- [ ] Adopt the accepted human meal tray candidate for the food back layer and keep the other food layers as transparent compatibility PNGs.
+- [ ] Build the new WebP assets from the accepted PNG source.
 
 ### Task 3: Home DOM Layers
 

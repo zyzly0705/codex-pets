@@ -44,6 +44,14 @@
     .xp-bar-wrap { flex: 1; background: #f0f0f0; border-radius: 6px; height: 8px; overflow: hidden; }
     .xp-bar-fill { height: 100%; background: linear-gradient(90deg, #e91e63, #ff6090); border-radius: 6px; transition: width .4s; }
     .xp-text { font-size: 11px; color: #aaa; text-align: right; margin-top: 2px; }
+    .asset-pack-line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; color: #555; line-height: 1.5; }
+    .asset-pack-line + .asset-pack-line { margin-top: 4px; }
+    .asset-pack-value { color: #333; font-weight: 600; text-align: right; }
+    .asset-pack-status { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+    .asset-pack-pill { background: #fff5f5; border-radius: 8px; padding: 6px 4px; text-align: center; }
+    .asset-pack-pill strong { display: block; color: #e91e63; font-size: 15px; line-height: 1; }
+    .asset-pack-pill span { display: block; color: #999; font-size: 10px; margin-top: 2px; }
+    .asset-pack-queue { margin-top: 8px; padding: 7px 9px; background: #fff5f5; border-radius: 8px; color: #666; font-size: 11px; line-height: 1.45; }
 
     /* danger */
     .danger-btn { width: 100%; padding: 9px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 4px; }
@@ -81,6 +89,27 @@
     <div class="memory-line" id="dailySummary" style="margin-top:8px;">今天还没有留下小记忆。</div>
     <div class="mini-list" id="planSummary"></div>
     <div id="memoryCards"></div>
+  </div>
+
+  <!-- 素材包状态 -->
+  <div class="card" id="assetPackCard">
+    <div class="card-title">素材包</div>
+    <div class="asset-pack-line">
+      <span>当前包</span>
+      <span class="asset-pack-value" id="assetPackName">读取中</span>
+    </div>
+    <div class="asset-pack-line">
+      <span>核心动作</span>
+      <span class="asset-pack-value" id="assetPackGolden">—</span>
+    </div>
+    <div class="asset-pack-status" id="assetPackStatus">
+      <div class="asset-pack-pill"><strong>—</strong><span>保留</span></div>
+      <div class="asset-pack-pill"><strong>—</strong><span>待重画</span></div>
+      <div class="asset-pack-pill"><strong>—</strong><span>实验</span></div>
+    </div>
+    <div class="desc" id="assetPackReport" style="margin-top:8px;">等待 QA 报告。</div>
+    <div class="asset-pack-queue" id="assetPackRedrawQueue">待生产 0 项</div>
+    <div class="asset-pack-queue" id="assetPackCandidates">候选来源 0 个</div>
   </div>
 
   <!-- 基础设置 -->
@@ -169,6 +198,50 @@
     }
     fillHourSelect('workStartHour', 9);
     fillHourSelect('workEndHour', 18);
+
+    function renderAssetPackSummary(pets) {
+      const yoyo = (pets || []).find(pet => pet.id === 'yoyo') || (pets || []).find(pet => pet.assetPack);
+      const assetPack = yoyo?.assetPack;
+      if (!assetPack) {
+        document.getElementById('assetPackName').textContent = '未发现素材包';
+        document.getElementById('assetPackGolden').textContent = '—';
+        document.getElementById('assetPackReport').textContent = '当前宠物仍使用旧 pet.json 模式。';
+        document.getElementById('assetPackRedrawQueue').textContent = '待生产 0 项';
+        document.getElementById('assetPackCandidates').textContent = '候选来源 0 个';
+        return;
+      }
+
+      const counts = assetPack.inventorySummary?.statusCounts || {};
+      const total = assetPack.inventorySummary?.total || 0;
+      const uncovered = assetPack.inventorySummary?.uncovered;
+      const redrawQueue = assetPack.redrawQueueSummary || {};
+      const nextRedraw = redrawQueue.next;
+      const candidateRegistry = assetPack.candidateRegistrySummary || {};
+      const candidateCounts = candidateRegistry.dispositionCounts || {};
+      document.getElementById('assetPackName').textContent = `${assetPack.displayName || assetPack.id} · ${assetPack.style}`;
+      document.getElementById('assetPackGolden').textContent = `${assetPack.avatar?.goldenActions?.length || 0} 个 · ${assetPack.type}`;
+      document.getElementById('assetPackStatus').innerHTML = `
+        <div class="asset-pack-pill"><strong>${counts.keep || 0}</strong><span>保留</span></div>
+        <div class="asset-pack-pill"><strong>${counts.redraw || 0}</strong><span>待重画</span></div>
+        <div class="asset-pack-pill"><strong>${counts.experimental || 0}</strong><span>实验</span></div>
+      `;
+      document.getElementById('assetPackReport').textContent =
+        `QA 覆盖 ${total} 个素材，未归类 ${uncovered ?? '—'} 个。报告：${assetPack.qa?.report || '未生成'}`;
+      document.getElementById('assetPackRedrawQueue').textContent =
+        `待生产 ${redrawQueue.total || counts.redraw || 0} 项，高优先级 ${redrawQueue.highPriority || 0} 项`
+        + (nextRedraw ? `，下一项 ${nextRedraw.path}` : '');
+      document.getElementById('assetPackCandidates').textContent =
+        `候选来源 ${candidateRegistry.totalCandidates || 0} 个，正式候选 ${candidateCounts.candidate || 0} 个，基础素材 ${candidateCounts.base || 0} 个`;
+    }
+
+    ipcRenderer.invoke('pets:list')
+      .then(renderAssetPackSummary)
+      .catch(() => {
+        document.getElementById('assetPackName').textContent = '读取失败';
+        document.getElementById('assetPackReport').textContent = '素材包信息暂时不可用。';
+        document.getElementById('assetPackRedrawQueue').textContent = '待生产队列读取失败。';
+        document.getElementById('assetPackCandidates').textContent = '候选来源读取失败。';
+      });
 
     // ===== 直接从统一 Store 加载所有数据 =====
     ipcRenderer.invoke('store:load').then(data => {

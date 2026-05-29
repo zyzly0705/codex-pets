@@ -1,0 +1,34 @@
+{
+  "id": "play-switch",
+  "engine": "spine-pixi-v8",
+  "version": 1,
+  "effectType": "spine-action",
+  "runtimeMode": "spine-action",
+  "strictAssets": true,
+  "durationMs": 5600,
+  "spine": {
+    "skeleton": "spine/yoyo.skel.json",
+    "atlas": "spine/yoyo.atlas",
+    "skin": "default",
+    "animation": "play_switch",
+    "idleAnimation": "idle_sit",
+    "scale": 0.9
+  },
+  "scene": {
+    "mode": "game"
+  },
+  "layers": [
+    "spine-skeleton",
+    "spine-slots",
+    "dynamic-tv-game",
+    "action-state"
+  ],
+  "palette": {
+    "tv": "#f08c6e",
+    "screenSky": "#7fdcff",
+    "screenGrass": "#7edb73",
+    "screenPig": "#ff8fb2",
+    "player": "#ffd36b",
+    "enemy": "#8a7cff"
+  }
+}

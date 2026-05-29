@@ -36,11 +36,21 @@ test('prepares a hatch-style Yoyo asset run with spec, prompt, and QA checklist'
   const promptPath = join(runDir, 'prompts/visual-prompt.md');
   const checklistPath = join(runDir, 'qa/review-checklist.md');
   const manifestPath = join(runDir, 'workflow-manifest.json');
+  const toolchainPath = join(runDir, 'toolchain/toolchain-brief.md');
+  const figmaPath = join(runDir, 'toolchain/figma-brief.md');
+  const consistencyPath = join(runDir, 'toolchain/character-consistency-brief.md');
+  const motionPath = join(runDir, 'toolchain/motion-reference-brief.md');
+  const asepritePath = join(runDir, 'toolchain/aseprite-cleanup-brief.md');
 
   assert.ok(existsSync(requestPath), 'asset request should exist');
   assert.ok(existsSync(promptPath), 'visual prompt should exist');
   assert.ok(existsSync(checklistPath), 'review checklist should exist');
   assert.ok(existsSync(manifestPath), 'workflow manifest should exist');
+  assert.ok(existsSync(toolchainPath), 'toolchain brief should exist');
+  assert.ok(existsSync(figmaPath), 'figma brief should exist');
+  assert.ok(existsSync(consistencyPath), 'character consistency brief should exist');
+  assert.ok(existsSync(motionPath), 'motion reference brief should exist');
+  assert.ok(existsSync(asepritePath), 'aseprite cleanup brief should exist');
 
   const request = JSON.parse(readFileSync(requestPath, 'utf8'));
   assert.equal(request.name, 'sleep-pose');
@@ -63,11 +73,31 @@ test('prepares a hatch-style Yoyo asset run with spec, prompt, and QA checklist'
     'transparent or clean chroma-key background for extraction',
     'passes browser screenshot review at home UI size',
   ]);
+  assert.ok(request.toolchain.some((step) => step.tool === 'Figma'));
+  assert.ok(request.toolchain.some((step) => /character-consistency/u.test(step.tool)));
+  assert.ok(request.toolchain.some((step) => step.tool === 'Aseprite'));
 
   const prompt = readFileSync(promptPath, 'utf8');
   assert.match(prompt, /Full-body side sleeping Yoyo pose/u);
   assert.match(prompt, /Do not crop the body/u);
   assert.match(prompt, /flat chroma-key background/u);
+
+  const toolchain = readFileSync(toolchainPath, 'utf8');
+  assert.match(toolchain, /Toolchain Brief/u);
+  assert.match(toolchain, /half-body or floating-body/u);
+
+  const figma = readFileSync(figmaPath, 'utf8');
+  assert.match(figma, /layout and standard-setting board/u);
+  assert.match(figma, /contact/u);
+
+  const consistency = readFileSync(consistencyPath, 'utf8');
+  assert.match(consistency, /Yoyo is a small human-like girl/u);
+
+  const motion = readFileSync(motionPath, 'utf8');
+  assert.match(motion, /video is a reference/u);
+
+  const aseprite = readFileSync(asepritePath, 'utf8');
+  assert.match(aseprite, /edge noise/u);
 
   const checklist = readFileSync(checklistPath, 'utf8');
   assert.match(checklist, /Visual Gate/u);
@@ -101,6 +131,7 @@ test('prepares a full redesign batch with ordered asset jobs', () => {
   const boardPath = join(runDir, 'production-board.md');
   const stylePromptPath = join(runDir, 'assets/00-style-system/prompts/visual-prompt.md');
   const sleepRequestPath = join(runDir, 'assets/04-home-sleep-pose/asset-request.json');
+  const specialMotionPath = join(runDir, 'assets/10-special-action-rows/toolchain/motion-reference-brief.md');
 
   assert.ok(existsSync(batchPath), 'batch manifest should exist');
   assert.ok(existsSync(boardPath), 'production board should exist');
@@ -131,6 +162,7 @@ test('prepares a full redesign batch with ordered asset jobs', () => {
   assert.equal(sleepRequest.name, '04-home-sleep-pose');
   assert.equal(sleepRequest.kind, 'pose');
   assert.equal(sleepRequest.phase, 'pose-kit');
+  assert.ok(sleepRequest.toolchain.some((step) => step.tool === 'Figma'));
 
   const coreRowsRequest = JSON.parse(
     readFileSync(join(runDir, 'assets/09-core-action-rows/asset-request.json'), 'utf8'),
@@ -139,6 +171,7 @@ test('prepares a full redesign batch with ordered asset jobs', () => {
   assert.equal(coreRowsRequest.motion.fps, 12);
   assert.equal(coreRowsRequest.motion.cellWidth, 384);
   assert.equal(coreRowsRequest.motion.cellHeight, 416);
+  assert.ok(coreRowsRequest.toolchain.some((step) => /Runway\/Krea/u.test(step.tool)));
   assert.match(readFileSync(join(runDir, 'assets/09-core-action-rows/prompts/visual-prompt.md'), 'utf8'), /24 frames/u);
 
   const specialRowsRequest = JSON.parse(
@@ -146,5 +179,6 @@ test('prepares a full redesign batch with ordered asset jobs', () => {
   );
   assert.equal(specialRowsRequest.motion.frames, 32);
   assert.equal(specialRowsRequest.motion.fps, 12);
+  assert.match(readFileSync(specialMotionPath, 'utf8'), /32 production frames/u);
   assert.match(readFileSync(join(runDir, 'production-board.md'), 'utf8'), /high-frame action previews/u);
 });

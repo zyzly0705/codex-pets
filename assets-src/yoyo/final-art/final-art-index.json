@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "workflow": "yoyo-final-art-effect",
+  "actions": [
+    {
+      "actionId": "bath",
+      "label": "洗澡",
+      "effectId": "bath-final",
+      "sourceArt": "assets-src/yoyo/final-art/bath-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/bath-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/bath-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/bath-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "feed",
+      "label": "喂饭",
+      "effectId": "eat-final",
+      "sourceArt": "assets-src/yoyo/final-art/eat-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/eat-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/eat-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/eat-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "sleep",
+      "label": "休息",
+      "effectId": "sleep-final",
+      "sourceArt": "assets-src/yoyo/final-art/sleep-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/sleep-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/sleep-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/sleep-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "play",
+      "label": "陪玩",
+      "effectId": "play-final",
+      "sourceArt": "assets-src/yoyo/final-art/play-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/play-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/play-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/play-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "pet",
+      "label": "摸摸",
+      "effectId": "pet-final",
+      "sourceArt": "assets-src/yoyo/final-art/pet-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/pet-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/pet-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/pet-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "watchAnime",
+      "label": "看动画",
+      "effectId": "watch-anime-final",
+      "sourceArt": "assets-src/yoyo/final-art/watch-anime-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/watch-anime-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/watch-anime-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/watch-anime-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "playSwitch",
+      "label": "玩 Switch",
+      "effectId": "play-switch-final",
+      "sourceArt": "assets-src/yoyo/final-art/play-switch-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/play-switch-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/play-switch-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/play-switch-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "buildBlocks",
+      "label": "叠积木",
+      "effectId": "build-blocks-final",
+      "sourceArt": "assets-src/yoyo/final-art/build-blocks-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/build-blocks-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/build-blocks-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/build-blocks-final/rig/parts/scene-full.png"
+    },
+    {
+      "actionId": "study",
+      "label": "学习",
+      "effectId": "study-final",
+      "sourceArt": "assets-src/yoyo/final-art/study-final-art-v1.png",
+      "manifest": "assets-src/yoyo/final-art/study-final-effect.manifest.json",
+      "preview": "assets/yoyo/effects/study-final/rig/parts/scene-full.png",
+      "runtimeCapture": "assets/yoyo/effects/study-final/rig/parts/scene-full.png"
+    }
+  ],
+  "contactSheet": "assets/yoyo/qa/final-art/contact-sheet.png"
+}

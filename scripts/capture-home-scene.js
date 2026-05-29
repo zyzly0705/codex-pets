@@ -78,18 +78,21 @@ async function main() {
           affection: 66,
           profile: { level: 3, intimacy: 28 },
         }),
-        careForYoyo: async (action) => ({
-          ok: true,
-          action,
-          stateName: ({ feed: 'eating', bath: 'fanCooling', sleep: 'sleeping', play: 'dancing', pet: 'petting' })[action] || 'idle',
-          status: 'steady',
-          satiety: 82,
-          cleanliness: 78,
-          mood: 86,
-          energy: 72,
-          affection: 66,
-          profile: { level: 3, intimacy: 28 },
-        }),
+        careForYoyo: async (request) => {
+          const action = typeof request === 'string' ? request : request?.actionId || request?.action || '';
+          return {
+            ok: true,
+            action,
+            stateName: ({ feed: 'eating', bath: 'fanCooling', sleep: 'sleeping', play: 'dancing', pet: 'petting' })[action] || 'idle',
+            status: 'steady',
+            satiety: 82,
+            cleanliness: 78,
+            mood: 86,
+            energy: 72,
+            affection: 66,
+            profile: { level: 3, intimacy: 28 },
+          };
+        },
         storeLoad: async () => ({}),
         storeSet: async () => {},
         onLifeChanged: () => {},

@@ -2,6 +2,7 @@ const { app, dialog } = require('electron');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { readAssetPack } = require('./pet-pack');
 
 let activeSpritesheetPath = null;
 let activePet = null;
@@ -111,6 +112,7 @@ function readPet(dir) {
     states: manifest.states || undefined,
     render: manifest.render || undefined,
     capabilities: manifest.capabilities || undefined,
+    assetPack: readAssetPack(dir),
   };
 }
 

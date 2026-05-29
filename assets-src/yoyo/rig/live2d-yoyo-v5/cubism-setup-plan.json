@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "rigPackVersion": 5,
+  "modelName": "YoyoRigV5",
+  "phases": [
+    {
+      "id": "import",
+      "label": "Import PSD",
+      "tasks": [
+        "Import yoyo-live2d-rig-v5.psd into Cubism.",
+        "Preserve original draw order from the PSD groups Head, Face, Body, Arms, Legs.",
+        "Keep variant layers hidden at import and enable them through parameters later."
+      ]
+    },
+    {
+      "id": "face",
+      "label": "Face Setup",
+      "tasks": [
+        "Create facial ArtMeshes from face_base, brows, blush, eyes, and mouth variants.",
+        "Bind eyes to ParamEyeLOpen, ParamEyeROpen, ParamEyeLSmile, and ParamEyeRSmile.",
+        "Bind mouth variants to ParamMouthOpenY and ParamMouthForm using opacity swaps first."
+      ]
+    },
+    {
+      "id": "body",
+      "label": "Body Deformers",
+      "tasks": [
+        "Build deformer roots for torso, head, arms, and skirt before any large rotation experiments.",
+        "Keep bun and side hair under head-related deformers, but separate skirt motion from torso rotation.",
+        "Use conservative rotations until hidden paint areas are hand-cleaned."
+      ]
+    },
+    {
+      "id": "motion",
+      "label": "Starter Motions",
+      "tasks": [
+        "Author idle first with tiny breathing and hair sway.",
+        "Add blink, then happy idle, then a simple talk loop.",
+        "Delay big gestures until face and sleeve cleanup are polished."
+      ]
+    }
+  ],
+  "expressionPresetOrder": [
+    "neutral",
+    "blink",
+    "happy",
+    "talk_small",
+    "talk_round",
+    "talk_flat"
+  ],
+  "motionStarterSet": [
+    "idle",
+    "blink",
+    "happy_idle",
+    "talk_loop"
+  ],
+  "deformerStack": {
+    "head": [
+      "HeadAngleXY",
+      "HeadTurnZ",
+      "HairSway",
+      "FaceParts"
+    ],
+    "torso": [
+      "BodyAngleXY",
+      "Breath",
+      "DressFollow"
+    ],
+    "arms": [
+      "ShoulderRoot",
+      "ArmL",
+      "ArmR",
+      "HandFollow"
+    ],
+    "skirt": [
+      "SkirtRoot",
+      "SkirtSwing"
+    ]
+  },
+  "drawOrderHints": [
+    "hair_back before face_base",
+    "face_base before brows and eyes",
+    "torso_top before bow pieces",
+    "skirt after torso_top",
+    "hands above sleeves only if overlap cleanup is verified"
+  ]
+}

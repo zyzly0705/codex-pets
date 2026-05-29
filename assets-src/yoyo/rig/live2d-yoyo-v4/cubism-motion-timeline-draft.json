@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "rigPackVersion": 4,
+  "modelName": "YoyoRigV4",
+  "timelines": [
+    {
+      "id": "idle",
+      "durationMs": 3200,
+      "loop": true,
+      "segments": [
+        {
+          "startMs": 0,
+          "endMs": 800,
+          "label": "inhale",
+          "expression": "neutral",
+          "parameters": [
+            "ParamBodyAngleY",
+            "ParamMouthOpenY"
+          ]
+        },
+        {
+          "startMs": 800,
+          "endMs": 1600,
+          "label": "settle_left",
+          "expression": "neutral",
+          "parameters": [
+            "ParamHeadAngleZ",
+            "ParamHairSway"
+          ]
+        },
+        {
+          "startMs": 1600,
+          "endMs": 2400,
+          "label": "exhale",
+          "expression": "neutral",
+          "parameters": [
+            "ParamBodyAngleY",
+            "ParamMouthOpenY"
+          ]
+        },
+        {
+          "startMs": 2400,
+          "endMs": 3200,
+          "label": "settle_right",
+          "expression": "neutral",
+          "parameters": [
+            "ParamHeadAngleZ",
+            "ParamHairSway"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blink",
+      "durationMs": 180,
+      "loop": false,
+      "segments": [
+        {
+          "startMs": 0,
+          "endMs": 60,
+          "label": "close",
+          "expression": "blink",
+          "parameters": [
+            "ParamEyeLOpen",
+            "ParamEyeROpen"
+          ]
+        },
+        {
+          "startMs": 60,
+          "endMs": 90,
+          "label": "hold",
+          "expression": "blink",
+          "parameters": [
+            "ParamEyeLOpen",
+            "ParamEyeROpen"
+          ]
+        },
+        {
+          "startMs": 90,
+          "endMs": 180,
+          "label": "open",
+          "expression": "neutral",
+          "parameters": [
+            "ParamEyeLOpen",
+            "ParamEyeROpen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "happy_idle",
+      "durationMs": 2800,
+      "loop": true,
+      "segments": [
+        {
+          "startMs": 0,
+          "endMs": 700,
+          "label": "smile_settle",
+          "expression": "happy",
+          "parameters": [
+            "ParamEyeLSmile",
+            "ParamEyeRSmile",
+            "ParamMouthForm"
+          ]
+        },
+        {
+          "startMs": 700,
+          "endMs": 1400,
+          "label": "body_float_left",
+          "expression": "happy",
+          "parameters": [
+            "ParamBodyAngleY"
+          ]
+        },
+        {
+          "startMs": 1400,
+          "endMs": 2100,
+          "label": "smile_breath",
+          "expression": "happy",
+          "parameters": [
+            "ParamMouthForm",
+            "ParamMouthOpenY"
+          ]
+        },
+        {
+          "startMs": 2100,
+          "endMs": 2800,
+          "label": "body_float_right",
+          "expression": "happy",
+          "parameters": [
+            "ParamBodyAngleY"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "talk_loop",
+      "durationMs": 1400,
+      "loop": true,
+      "segments": [
+        {
+          "startMs": 0,
+          "endMs": 300,
+          "label": "syllable_a",
+          "expression": "talk_small",
+          "parameters": [
+            "ParamMouthOpenY",
+            "ParamMouthForm"
+          ]
+        },
+        {
+          "startMs": 300,
+          "endMs": 650,
+          "label": "syllable_o",
+          "expression": "talk_round",
+          "parameters": [
+            "ParamMouthOpenY",
+            "ParamMouthForm"
+          ]
+        },
+        {
+          "startMs": 650,
+          "endMs": 950,
+          "label": "syllable_e",
+          "expression": "talk_flat",
+          "parameters": [
+            "ParamMouthOpenY",
+            "ParamMouthForm"
+          ]
+        },
+        {
+          "startMs": 950,
+          "endMs": 1400,
+          "label": "return_round",
+          "expression": "talk_round",
+          "parameters": [
+            "ParamMouthOpenY",
+            "ParamMouthForm",
+            "ParamHeadAngleZ"
+          ]
+        }
+      ]
+    }
+  ]
+}

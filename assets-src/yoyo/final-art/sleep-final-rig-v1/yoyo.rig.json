@@ -1,0 +1,83 @@
+{
+  "id": "yoyo-sleep-final-art-v1",
+  "version": 1,
+  "format": "codex-pet-auto-rig",
+  "intent": "Final-art Yoyo sleep action built from the generated sleep-final-art-v1 visual master.",
+  "stage": {
+    "width": 512,
+    "height": 384,
+    "background": "#f6efe7"
+  },
+  "sources": {
+    "finalArt": "assets-src/yoyo/final-art/sleep-final-art-v1.png",
+    "manifest": "assets-src/yoyo/final-art/sleep-final-effect.manifest.json",
+    "note": "The visual master is used as the composed scene layer; manifest overlays provide deterministic animation layers."
+  },
+  "parts": [
+    {
+      "id": "scene.full",
+      "file": "assets-src/yoyo/final-art/sleep-final-rig-v1/parts/scene-full.png",
+      "z": 10
+    },
+    {
+      "id": "scene.sparkle",
+      "file": "assets-src/yoyo/final-art/sleep-final-rig-v1/parts/scene-sparkle.png",
+      "z": 30
+    }
+  ],
+  "placements": {
+    "scene": {
+      "x": 0,
+      "y": 0,
+      "width": 512,
+      "height": 384
+    }
+  },
+  "motions": {
+    "sleep-final": {
+      "fps": 8,
+      "loop": true,
+      "keyframes": [
+        {
+          "t": 0,
+          "sparkleY": 0,
+          "sparkleAlpha": 0.2,
+          "sparkleScale": 1
+        },
+        {
+          "t": 125,
+          "sparkleY": -1,
+          "sparkleAlpha": 0.28,
+          "sparkleScale": 1.02
+        },
+        {
+          "t": 250,
+          "sparkleY": -2,
+          "sparkleAlpha": 0.34,
+          "sparkleScale": 1.04
+        },
+        {
+          "t": 375,
+          "sparkleY": -3,
+          "sparkleAlpha": 0.3,
+          "sparkleScale": 1.03
+        },
+        {
+          "t": 500,
+          "sparkleY": -2,
+          "sparkleAlpha": 0.22,
+          "sparkleScale": 1
+        },
+        {
+          "t": 625,
+          "sparkleY": -1,
+          "sparkleAlpha": 0.26,
+          "sparkleScale": 1.01
+        }
+      ]
+    }
+  },
+  "qa": {
+    "finalArtPreview": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "cook-pot",
+  "engine": "pixi-stage",
+  "version": 1,
+  "effectType": "cook-pot",
+  "durationMs": 5200,
+  "sequenceFrameCount": 20,
+  "layers": [
+    "pot-back",
+    "character-sprite-sequence",
+    "pot-front-mask",
+    "steam-particles"
+  ],
+  "palette": {
+    "pot": "#f2a46f",
+    "potDark": "#b96542",
+    "broth": "#ffe0a0",
+    "steam": "#fff7e8",
+    "spark": "#ffd06d"
+  }
+}

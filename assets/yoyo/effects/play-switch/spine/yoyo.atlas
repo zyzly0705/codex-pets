@@ -1,0 +1,75 @@
+yoyo.png
+size: 512,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+torso
+  rotate: false
+  xy: 16, 20
+  size: 120, 136
+  orig: 120, 136
+  offset: 0, 0
+  index: -1
+head
+  rotate: false
+  xy: 156, 18
+  size: 150, 142
+  orig: 150, 142
+  offset: 0, 0
+  index: -1
+hair_bun
+  rotate: false
+  xy: 328, 20
+  size: 100, 86
+  orig: 100, 86
+  offset: 0, 0
+  index: -1
+arm_left
+  rotate: false
+  xy: 16, 178
+  size: 70, 112
+  orig: 70, 112
+  offset: 0, 0
+  index: -1
+arm_right
+  rotate: false
+  xy: 104, 178
+  size: 74, 112
+  orig: 74, 112
+  offset: 0, 0
+  index: -1
+leg_left
+  rotate: false
+  xy: 204, 180
+  size: 58, 100
+  orig: 58, 100
+  offset: 0, 0
+  index: -1
+leg_right
+  rotate: false
+  xy: 278, 180
+  size: 58, 100
+  orig: 58, 100
+  offset: 0, 0
+  index: -1
+remote
+  rotate: false
+  xy: 366, 150
+  size: 64, 46
+  orig: 64, 46
+  offset: 0, 0
+  index: -1
+snack
+  rotate: false
+  xy: 366, 218
+  size: 86, 76
+  orig: 86, 76
+  offset: 0, 0
+  index: -1
+floor_shadow
+  rotate: false
+  xy: 360, 320
+  size: 114, 34
+  orig: 114, 34
+  offset: 0, 0
+  index: -1

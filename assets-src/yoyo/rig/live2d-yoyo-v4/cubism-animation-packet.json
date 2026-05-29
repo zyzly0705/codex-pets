@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "rigPackVersion": 4,
+  "modelName": "YoyoRigV4",
+  "animations": [
+    {
+      "id": "idle",
+      "durationMs": 3200,
+      "loop": true,
+      "keyframes": [
+        {
+          "timeMs": 0,
+          "expression": "neutral",
+          "ParamBodyAngleY": -2,
+          "ParamHeadAngleZ": 0,
+          "ParamHairSway": -3,
+          "ParamMouthOpenY": 0.2
+        },
+        {
+          "timeMs": 800,
+          "expression": "neutral",
+          "ParamBodyAngleY": 4,
+          "ParamHeadAngleZ": -1.4,
+          "ParamHairSway": -6,
+          "ParamMouthOpenY": 0.32
+        },
+        {
+          "timeMs": 1600,
+          "expression": "neutral",
+          "ParamBodyAngleY": -1,
+          "ParamHeadAngleZ": 1.2,
+          "ParamHairSway": 2,
+          "ParamMouthOpenY": 0.18
+        },
+        {
+          "timeMs": 2400,
+          "expression": "neutral",
+          "ParamBodyAngleY": 3,
+          "ParamHeadAngleZ": 1.8,
+          "ParamHairSway": 6,
+          "ParamMouthOpenY": 0.28
+        },
+        {
+          "timeMs": 3200,
+          "expression": "neutral",
+          "ParamBodyAngleY": -2,
+          "ParamHeadAngleZ": 0,
+          "ParamHairSway": -3,
+          "ParamMouthOpenY": 0.2
+        }
+      ]
+    },
+    {
+      "id": "blink",
+      "durationMs": 180,
+      "loop": false,
+      "keyframes": [
+        {
+          "timeMs": 0,
+          "expression": "neutral",
+          "ParamEyeLOpen": 1,
+          "ParamEyeROpen": 1
+        },
+        {
+          "timeMs": 60,
+          "expression": "blink",
+          "ParamEyeLOpen": 0,
+          "ParamEyeROpen": 0
+        },
+        {
+          "timeMs": 90,
+          "expression": "blink",
+          "ParamEyeLOpen": 0,
+          "ParamEyeROpen": 0
+        },
+        {
+          "timeMs": 180,
+          "expression": "neutral",
+          "ParamEyeLOpen": 1,
+          "ParamEyeROpen": 1
+        }
+      ]
+    },
+    {
+      "id": "happy_idle",
+      "durationMs": 2800,
+      "loop": true,
+      "keyframes": [
+        {
+          "timeMs": 0,
+          "expression": "happy",
+          "ParamEyeLSmile": 0.7,
+          "ParamEyeRSmile": 0.7,
+          "ParamMouthForm": 0.68,
+          "ParamBodyAngleY": -1
+        },
+        {
+          "timeMs": 700,
+          "expression": "happy",
+          "ParamEyeLSmile": 1,
+          "ParamEyeRSmile": 1,
+          "ParamMouthForm": 0.82,
+          "ParamBodyAngleY": 3
+        },
+        {
+          "timeMs": 1400,
+          "expression": "happy",
+          "ParamEyeLSmile": 0.85,
+          "ParamEyeRSmile": 0.85,
+          "ParamMouthForm": 0.72,
+          "ParamBodyAngleY": 0
+        },
+        {
+          "timeMs": 2100,
+          "expression": "happy",
+          "ParamEyeLSmile": 1,
+          "ParamEyeRSmile": 1,
+          "ParamMouthForm": 0.8,
+          "ParamBodyAngleY": -3
+        },
+        {
+          "timeMs": 2800,
+          "expression": "happy",
+          "ParamEyeLSmile": 0.7,
+          "ParamEyeRSmile": 0.7,
+          "ParamMouthForm": 0.68,
+          "ParamBodyAngleY": -1
+        }
+      ]
+    },
+    {
+      "id": "talk_loop",
+      "durationMs": 1400,
+      "loop": true,
+      "keyframes": [
+        {
+          "timeMs": 0,
+          "expression": "talk_small",
+          "ParamMouthOpenY": 0.35,
+          "ParamMouthForm": -0.1,
+          "ParamHeadAngleZ": 0
+        },
+        {
+          "timeMs": 300,
+          "expression": "talk_round",
+          "ParamMouthOpenY": 1,
+          "ParamMouthForm": 1,
+          "ParamHeadAngleZ": 0.8
+        },
+        {
+          "timeMs": 650,
+          "expression": "talk_flat",
+          "ParamMouthOpenY": 0.2,
+          "ParamMouthForm": -1,
+          "ParamHeadAngleZ": -0.6
+        },
+        {
+          "timeMs": 950,
+          "expression": "talk_round",
+          "ParamMouthOpenY": 0.85,
+          "ParamMouthForm": 0.9,
+          "ParamHeadAngleZ": 1.2
+        },
+        {
+          "timeMs": 1400,
+          "expression": "talk_small",
+          "ParamMouthOpenY": 0.35,
+          "ParamMouthForm": -0.1,
+          "ParamHeadAngleZ": 0
+        }
+      ]
+    }
+  ]
+}

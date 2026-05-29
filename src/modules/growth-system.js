@@ -1,5 +1,8 @@
 // growth-system.js - 成长等级 + XP + 进化路线 + 签到 + 成就 + 记忆系统
-import { state, randomFrom, say, speechQueue, setState, playSound, SPEECH_PRIORITY, hasDailyFlag, setDailyFlag } from './core-state.js';
+import { state, setState, hasDailyFlag, setDailyFlag } from './core-state.js';
+import { randomFrom } from './utils.js';
+import { playSound } from './audio.js';
+import { say, speechQueue, SPEECH_PRIORITY } from './speech-queue.js';
 import { applyEmotionEvent } from './emotion-system.js';
 import { get, set } from './store-client.js';
 

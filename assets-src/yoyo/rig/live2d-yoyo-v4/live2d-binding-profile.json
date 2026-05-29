@@ -1,0 +1,228 @@
+{
+  "version": 1,
+  "rigPackVersion": 4,
+  "modelName": "YoyoRigV4",
+  "defaults": {
+    "ParamEyeLOpen": 1,
+    "ParamEyeROpen": 1,
+    "ParamEyeLSmile": 0,
+    "ParamEyeRSmile": 0,
+    "ParamMouthOpenY": 0.35,
+    "ParamMouthForm": 0.65
+  },
+  "parameters": [
+    {
+      "id": "ParamEyeLOpen",
+      "label": "Left Eye Open",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "targets": [
+        {
+          "value": 0,
+          "layer": "eye_left_blink",
+          "opacity": 1
+        },
+        {
+          "value": 1,
+          "layer": "eye_left_open",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "ParamEyeROpen",
+      "label": "Right Eye Open",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "targets": [
+        {
+          "value": 0,
+          "layer": "eye_right_blink",
+          "opacity": 1
+        },
+        {
+          "value": 1,
+          "layer": "eye_right_open",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "ParamEyeLSmile",
+      "label": "Left Eye Smile",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "targets": [
+        {
+          "value": 1,
+          "layer": "eye_left_smile",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "ParamEyeRSmile",
+      "label": "Right Eye Smile",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "targets": [
+        {
+          "value": 1,
+          "layer": "eye_right_smile",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "ParamMouthOpenY",
+      "label": "Mouth Open Y",
+      "min": 0,
+      "max": 1,
+      "default": 0.35,
+      "targets": [
+        {
+          "value": 0,
+          "layer": "mouth_closed",
+          "opacity": 1
+        },
+        {
+          "value": 0.2,
+          "layer": "mouth_flat",
+          "opacity": 1
+        },
+        {
+          "value": 0.35,
+          "layer": "mouth_small",
+          "opacity": 1
+        },
+        {
+          "value": 0.65,
+          "layer": "mouth_smile",
+          "opacity": 1
+        },
+        {
+          "value": 0.8,
+          "layer": "mouth_open",
+          "opacity": 1
+        },
+        {
+          "value": 1,
+          "layer": "mouth_o",
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "ParamMouthForm",
+      "label": "Mouth Form",
+      "min": -1,
+      "max": 1,
+      "default": 0.65,
+      "targets": [
+        {
+          "value": -1,
+          "layer": "mouth_flat",
+          "opacity": 1
+        },
+        {
+          "value": -0.2,
+          "layer": "mouth_small",
+          "opacity": 1
+        },
+        {
+          "value": 0.3,
+          "layer": "mouth_open",
+          "opacity": 1
+        },
+        {
+          "value": 0.65,
+          "layer": "mouth_smile",
+          "opacity": 1
+        },
+        {
+          "value": 1,
+          "layer": "mouth_o",
+          "opacity": 1
+        }
+      ]
+    }
+  ],
+  "expressions": [
+    {
+      "id": "neutral",
+      "label": "Neutral",
+      "values": {
+        "ParamEyeLOpen": 1,
+        "ParamEyeROpen": 1,
+        "ParamEyeLSmile": 0,
+        "ParamEyeRSmile": 0,
+        "ParamMouthOpenY": 0.35,
+        "ParamMouthForm": 0.65
+      }
+    },
+    {
+      "id": "blink",
+      "label": "Blink",
+      "values": {
+        "ParamEyeLOpen": 0,
+        "ParamEyeROpen": 0,
+        "ParamEyeLSmile": 0,
+        "ParamEyeRSmile": 0,
+        "ParamMouthOpenY": 0.2,
+        "ParamMouthForm": -0.2
+      }
+    },
+    {
+      "id": "happy",
+      "label": "Happy",
+      "values": {
+        "ParamEyeLOpen": 0.2,
+        "ParamEyeROpen": 0.2,
+        "ParamEyeLSmile": 1,
+        "ParamEyeRSmile": 1,
+        "ParamMouthOpenY": 0.65,
+        "ParamMouthForm": 0.8
+      }
+    },
+    {
+      "id": "talk_small",
+      "label": "Talk Small",
+      "values": {
+        "ParamEyeLOpen": 1,
+        "ParamEyeROpen": 1,
+        "ParamEyeLSmile": 0,
+        "ParamEyeRSmile": 0,
+        "ParamMouthOpenY": 0.35,
+        "ParamMouthForm": -0.1
+      }
+    },
+    {
+      "id": "talk_round",
+      "label": "Talk Round",
+      "values": {
+        "ParamEyeLOpen": 1,
+        "ParamEyeROpen": 1,
+        "ParamEyeLSmile": 0,
+        "ParamEyeRSmile": 0,
+        "ParamMouthOpenY": 1,
+        "ParamMouthForm": 1
+      }
+    },
+    {
+      "id": "talk_flat",
+      "label": "Talk Flat",
+      "values": {
+        "ParamEyeLOpen": 1,
+        "ParamEyeROpen": 1,
+        "ParamEyeLSmile": 0,
+        "ParamEyeRSmile": 0,
+        "ParamMouthOpenY": 0.1,
+        "ParamMouthForm": -1
+      }
+    }
+  ]
+}

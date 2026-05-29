@@ -1,7 +1,8 @@
 // relationship-system.js - long-term relationship state between Yoyo and the user
 import { get, set } from './store-client.js';
 import { debugLog } from './debug-log.js';
-import { setState, speechQueue } from './core-state.js';
+import { setState } from './core-state.js';
+import { speechQueue } from './speech-queue.js';
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);

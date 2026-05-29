@@ -1,0 +1,1148 @@
+{
+  "pack": "yoyo",
+  "generatedAt": "2026-05-29T20:31:34.759Z",
+  "assets": [
+    {
+      "path": "desktop-rig/v1/arms-arm_left.png",
+      "bytes": 64940,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/arms-arm_right.png",
+      "bytes": 63737,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/arms-hand_left.png",
+      "bytes": 22720,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/arms-hand_right.png",
+      "bytes": 21761,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-bow_center.png",
+      "bytes": 13468,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-bow_left.png",
+      "bytes": 11840,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-bow_right.png",
+      "bytes": 11132,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-button_left.png",
+      "bytes": 4079,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-button_right.png",
+      "bytes": 3971,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-collar.png",
+      "bytes": 44106,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-skirt.png",
+      "bytes": 113848,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/body-torso_top.png",
+      "bytes": 127619,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-blush_left.png",
+      "bytes": 10275,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-blush_right.png",
+      "bytes": 10432,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-brow_left.png",
+      "bytes": 6369,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-brow_right.png",
+      "bytes": 6212,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-eye_left_open.png",
+      "bytes": 28595,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-eye_right_open.png",
+      "bytes": 27316,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-face_base.png",
+      "bytes": 193254,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/face-mouth_smile.png",
+      "bytes": 2886,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/head-bangs_center.png",
+      "bytes": 44080,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/head-bun.png",
+      "bytes": 53704,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/head-hair_back.png",
+      "bytes": 284995,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/head-hair_front.png",
+      "bytes": 213220,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/head-side_hair_left.png",
+      "bytes": 47753,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/head-side_hair_right.png",
+      "bytes": 46282,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/legs-leg_left.png",
+      "bytes": 37062,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/legs-leg_right.png",
+      "bytes": 33156,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/legs-shoe_left.png",
+      "bytes": 9732,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/legs-shoe_right.png",
+      "bytes": 9741,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "desktop-rig/v1/manifest.json",
+      "bytes": 5446,
+      "status": "experimental",
+      "sourceStatusPath": "desktop-rig/",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "effects/bath-auto/rig/parts/bath-back.png",
+      "bytes": 5243,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-auto/rig/parts/bath-bubbles.png",
+      "bytes": 3758,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-auto/rig/parts/bath-front.png",
+      "bytes": 5135,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-auto/rig/parts/bath-water.png",
+      "bytes": 1834,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-auto/rig/parts/yoyo-idle-0.png",
+      "bytes": 39876,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-auto/rig/yoyo.rig.json",
+      "bytes": 3033,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-auto/timeline.json",
+      "bytes": 447,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-final/rig/parts/scene-full.png",
+      "bytes": 220161,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-final/rig/parts/scene-shimmer.png",
+      "bytes": 3196,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-final/rig/parts/scene-steam.png",
+      "bytes": 2582,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-final/rig/yoyo.rig.json",
+      "bytes": 2131,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-final/timeline.json",
+      "bytes": 411,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath/timeline.json",
+      "bytes": 983,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/build-blocks-final/rig/parts/scene-full.png",
+      "bytes": 301129,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/build-blocks-final/rig/parts/scene-sparkle.png",
+      "bytes": 3000,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/build-blocks-final/rig/yoyo.rig.json",
+      "bytes": 1932,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/build-blocks-final/timeline.json",
+      "bytes": 443,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/clone-heart/timeline.json",
+      "bytes": 207,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/cook-pot/timeline.json",
+      "bytes": 394,
+      "status": "experimental",
+      "sourceStatusPath": "effects/cook-pot/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/dance-let-go/sheet.webp",
+      "bytes": 322152,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/dharma-manifest/timeline.json",
+      "bytes": 217,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/eat-final/rig/parts/scene-full.png",
+      "bytes": 250711,
+      "status": "experimental",
+      "sourceStatusPath": "effects/eat-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/eat-final/rig/parts/scene-sparkle.png",
+      "bytes": 5541,
+      "status": "experimental",
+      "sourceStatusPath": "effects/eat-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/eat-final/rig/parts/scene-steam.png",
+      "bytes": 2793,
+      "status": "experimental",
+      "sourceStatusPath": "effects/eat-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/eat-final/rig/yoyo.rig.json",
+      "bytes": 2313,
+      "status": "experimental",
+      "sourceStatusPath": "effects/eat-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/eat-final/timeline.json",
+      "bytes": 407,
+      "status": "experimental",
+      "sourceStatusPath": "effects/eat-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/pet-final/rig/parts/scene-full.png",
+      "bytes": 233283,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/pet-final/rig/parts/scene-sparkle.png",
+      "bytes": 5541,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/pet-final/rig/yoyo.rig.json",
+      "bytes": 1864,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/pet-final/timeline.json",
+      "bytes": 407,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-final/rig/parts/scene-full.png",
+      "bytes": 321851,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-final/rig/parts/scene-sparkle.png",
+      "bytes": 3000,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-final/rig/yoyo.rig.json",
+      "bytes": 1870,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-final/timeline.json",
+      "bytes": 411,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-switch-final/rig/parts/scene-full.png",
+      "bytes": 290355,
+      "status": "experimental",
+      "sourceStatusPath": "effects/play-switch-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/play-switch-final/rig/parts/scene-shimmer.png",
+      "bytes": 7931,
+      "status": "experimental",
+      "sourceStatusPath": "effects/play-switch-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/play-switch-final/rig/yoyo.rig.json",
+      "bytes": 1739,
+      "status": "experimental",
+      "sourceStatusPath": "effects/play-switch-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/play-switch-final/timeline.json",
+      "bytes": 439,
+      "status": "experimental",
+      "sourceStatusPath": "effects/play-switch-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/play-switch/spine/yoyo.atlas",
+      "bytes": 1054,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-switch/spine/yoyo.png",
+      "bytes": 29729,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-switch/spine/yoyo.skel.json",
+      "bytes": 11594,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/play-switch/timeline.json",
+      "bytes": 692,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/sleep-final/rig/parts/scene-full.png",
+      "bytes": 300179,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/sleep-final/rig/parts/scene-sparkle.png",
+      "bytes": 2750,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/sleep-final/rig/yoyo.rig.json",
+      "bytes": 1878,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/sleep-final/timeline.json",
+      "bytes": 415,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/study-final/rig/parts/scene-full.png",
+      "bytes": 298719,
+      "status": "experimental",
+      "sourceStatusPath": "effects/study-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/study-final/rig/parts/scene-sparkle.png",
+      "bytes": 6047,
+      "status": "experimental",
+      "sourceStatusPath": "effects/study-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/study-final/rig/yoyo.rig.json",
+      "bytes": 1876,
+      "status": "experimental",
+      "sourceStatusPath": "effects/study-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/study-final/timeline.json",
+      "bytes": 415,
+      "status": "experimental",
+      "sourceStatusPath": "effects/study-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/watch-anime-final/rig/parts/scene-full.png",
+      "bytes": 302293,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-anime-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/watch-anime-final/rig/parts/scene-shimmer.png",
+      "bytes": 7931,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-anime-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/watch-anime-final/rig/yoyo.rig.json",
+      "bytes": 1737,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-anime-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/watch-anime-final/timeline.json",
+      "bytes": 439,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-anime-final/",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/watch-tv/spine/yoyo.atlas",
+      "bytes": 1054,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-tv/",
+      "reason": "Spine-backed action is useful but should be gated behind the special action driver."
+    },
+    {
+      "path": "effects/watch-tv/spine/yoyo.png",
+      "bytes": 30568,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-tv/",
+      "reason": "Spine-backed action is useful but should be gated behind the special action driver."
+    },
+    {
+      "path": "effects/watch-tv/spine/yoyo.skel.json",
+      "bytes": 11594,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-tv/",
+      "reason": "Spine-backed action is useful but should be gated behind the special action driver."
+    },
+    {
+      "path": "effects/watch-tv/timeline.json",
+      "bytes": 627,
+      "status": "experimental",
+      "sourceStatusPath": "effects/watch-tv/",
+      "reason": "Spine-backed action is useful but should be gated behind the special action driver."
+    },
+    {
+      "path": "home/composite-bath-wash-yoyo.webp",
+      "bytes": 39114,
+      "status": "keep",
+      "sourceStatusPath": "home/composite-bath-wash-yoyo.webp",
+      "reason": "Accepted bath composite for current care flow."
+    },
+    {
+      "path": "home/composite-feed-table-yoyo.webp",
+      "bytes": 24032,
+      "status": "keep",
+      "sourceStatusPath": "home/composite-feed-table-yoyo.webp",
+      "reason": "Accepted care-scene composite for feed flow while props are audited."
+    },
+    {
+      "path": "home/composite-pet-cushion-yoyo.webp",
+      "bytes": 24598,
+      "status": "redraw",
+      "sourceStatusPath": "home/composite-pet-cushion-yoyo.webp",
+      "reason": "Useful comfort concept, but label and framing should shift from petting to companion comfort."
+    },
+    {
+      "path": "home/composite-play-toys-yoyo.webp",
+      "bytes": 33600,
+      "status": "keep",
+      "sourceStatusPath": "home/composite-play-toys-yoyo.webp",
+      "reason": "Accepted play composite for current care flow."
+    },
+    {
+      "path": "home/composite-sleep-bed-yoyo.webp",
+      "bytes": 41106,
+      "status": "keep",
+      "sourceStatusPath": "home/composite-sleep-bed-yoyo.webp",
+      "reason": "Accepted localized sleep composite used by the current home scene."
+    },
+    {
+      "path": "home/composite-v3-bath-yoyo.webp",
+      "bytes": 21556,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/composite-v3-comfort-yoyo.webp",
+      "bytes": 30424,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/composite-v3-feed-yoyo.webp",
+      "bytes": 21952,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/composite-v3-play-yoyo.webp",
+      "bytes": 42034,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/composite-v3-sleep-yoyo.webp",
+      "bytes": 31744,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/decor-tv-game-toys.webp",
+      "bytes": 20178,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/decor-wall-soft-furnishing.webp",
+      "bytes": 33100,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/home-sleep-yoyo.webp",
+      "bytes": 29694,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bath-back.webp",
+      "bytes": 25090,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bath-bubbles.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bath-front.webp",
+      "bytes": 130,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bath-water.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bath.webp",
+      "bytes": 25090,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-bath.webp",
+      "reason": "Bath prop supports a human care scene and should remain."
+    },
+    {
+      "path": "home/prop-bed-back.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bed-blanket.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bed-clean.webp",
+      "bytes": 111804,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-bed-clean.webp",
+      "reason": "Cleaned bed variant is a good candidate for the golden care set."
+    },
+    {
+      "path": "home/prop-bed-front.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-bed.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-bed.webp",
+      "reason": "Child-bed concept fits human companion care."
+    },
+    {
+      "path": "home/prop-food-back.webp",
+      "bytes": 30260,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-food-back.webp",
+      "reason": "Accepted meal tray now lives in the persistent back layer so the kitchen reads as human tableware."
+    },
+    {
+      "path": "home/prop-food-front.webp",
+      "bytes": 40,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-food-front.webp",
+      "reason": "Legacy bowl rim was removed; front layer is now a transparent compatibility layer."
+    },
+    {
+      "path": "home/prop-food-meal-full.webp",
+      "bytes": 40,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-food-meal-full.webp",
+      "reason": "Transparent compatibility layer; visible food is now authored into the accepted meal tray."
+    },
+    {
+      "path": "home/prop-food-meal-low.webp",
+      "bytes": 40,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-food-meal-low.webp",
+      "reason": "Transparent compatibility layer; phase animation remains available without reintroducing old bowl art."
+    },
+    {
+      "path": "home/prop-food.webp",
+      "bytes": 30260,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-food.webp",
+      "reason": "Accepted human meal tray candidate with rice bowl, plate, fruit, egg, cup, and tableware."
+    },
+    {
+      "path": "home/prop-heart-back.webp",
+      "bytes": 10002,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-heart-front.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-heart-pulse.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-heart.webp",
+      "bytes": 10002,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-heart.webp",
+      "reason": "Relationship and affection prop fits companion positioning."
+    },
+    {
+      "path": "home/prop-toy-back.webp",
+      "bytes": 21796,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-toy-burst.webp",
+      "bytes": 74,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-toy-front.webp",
+      "bytes": 130,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-toy.webp",
+      "bytes": 21796,
+      "status": "keep",
+      "sourceStatusPath": "home/prop-toy.webp",
+      "reason": "Toy prop supports play without forcing animal-pet semantics."
+    },
+    {
+      "path": "home/prop-v3-bed.webp",
+      "bytes": 18502,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-blocks.webp",
+      "bytes": 9348,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-comfort-cushion.webp",
+      "bytes": 12198,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-game-console.webp",
+      "bytes": 10616,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-meal-table.webp",
+      "bytes": 8122,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-media-screen.webp",
+      "bytes": 15656,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-study-desk.webp",
+      "bytes": 21046,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-toy-shelf.webp",
+      "bytes": 17422,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/prop-v3-wash-stand.webp",
+      "bytes": 11436,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-shell-clean-2d.webp",
+      "bytes": 121630,
+      "status": "keep",
+      "sourceStatusPath": "home/room-shell-clean-2d.webp",
+      "reason": "Best current candidate for modular home shell and persistent room layout."
+    },
+    {
+      "path": "home/room-stage-night-sleep-yoyo.webp",
+      "bytes": 159220,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-stage-night.webp",
+      "bytes": 858322,
+      "status": "redraw",
+      "sourceStatusPath": "home/room-stage-night.webp",
+      "reason": "Strong mood reference, but it should be normalized with the clean companion room kit."
+    },
+    {
+      "path": "home/room-stage-party.webp",
+      "bytes": 992220,
+      "status": "redraw",
+      "sourceStatusPath": "home/room-stage-party.webp",
+      "reason": "Useful event variant, but should be rebuilt after the base room style is locked."
+    },
+    {
+      "path": "home/room-stage-rainy.webp",
+      "bytes": 871182,
+      "status": "redraw",
+      "sourceStatusPath": "home/room-stage-rainy.webp",
+      "reason": "Useful weather variant, but should follow the same cleaned room contract as day and night."
+    },
+    {
+      "path": "home/room-stage-v2.webp",
+      "bytes": 982784,
+      "status": "redraw",
+      "sourceStatusPath": "home/room-stage-v2.webp",
+      "reason": "Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task."
+    },
+    {
+      "path": "home/room-v3-day.webp",
+      "bytes": 193334,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-v3-night.webp",
+      "bytes": 182154,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-v3-party.webp",
+      "bytes": 234036,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-v3-rainy.webp",
+      "bytes": 209840,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/yoyo-home-sheet.webp",
+      "bytes": 6376998,
+      "status": "keep",
+      "sourceStatusPath": "home/yoyo-home-sheet.webp",
+      "reason": "Current home-scene runtime sheet and must remain available."
+    },
+    {
+      "path": "pet.json",
+      "bytes": 3595,
+      "status": "keep",
+      "sourceStatusPath": "pet.json",
+      "reason": "Current runtime source of truth for spritesheet rows during migration."
+    },
+    {
+      "path": "scenes/sleep/bed-back-bleed.webp",
+      "bytes": 15466,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/bed-back.webp",
+      "bytes": 13266,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/bed-front-bleed.webp",
+      "bytes": 14752,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/bed-front.webp",
+      "bytes": 13392,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/blanket-front-bleed.webp",
+      "bytes": 16006,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/blanket-front.webp",
+      "bytes": 15088,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/scene.rig.json",
+      "bytes": 2312,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/sleep-bed-yoyo.webp",
+      "bytes": 124772,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/sleep-fx.webp",
+      "bytes": 3664,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/sleep-micro-expression.webp",
+      "bytes": 3152,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/sleep-under-blanket-v2.webp",
+      "bytes": 42686,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/soft-shadow.webp",
+      "bytes": 3446,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/yoyo-sleep.webp",
+      "bytes": 15804,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/yoyo-visible-bleed.webp",
+      "bytes": 17174,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "scenes/sleep/yoyo-visible.webp",
+      "bytes": 13070,
+      "status": "experimental",
+      "sourceStatusPath": "scenes/sleep/",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "spritesheet.before-running-leg-fix.webp",
+      "bytes": 7205350,
+      "status": "archive",
+      "sourceStatusPath": "spritesheet.before-running-leg-fix.webp",
+      "reason": "Historical backup, useful for regression comparison but not accepted runtime art."
+    },
+    {
+      "path": "spritesheet.webp",
+      "bytes": 7205350,
+      "status": "keep",
+      "sourceStatusPath": "spritesheet.webp",
+      "reason": "Current desktop avatar runtime sheet; keep until the pack loader replaces row access."
+    }
+  ],
+  "uncovered": []
+}

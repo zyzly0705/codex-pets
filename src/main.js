@@ -49,8 +49,12 @@ const {
 } = require('./main/system');
 const {
   registerEffectsIpc,
+  triggerCookEffect,
   triggerCloneEffect,
+  triggerFinalArtEffect,
   triggerGiantEffect,
+  triggerPlaySwitchEffect,
+  triggerWatchTvEffect,
 } = require('./main/effects');
 const { setupAutoUpdater } = require('./main/updater');
 const { startNotificationScheduler } = require('./main/notifications');
@@ -75,8 +79,12 @@ function registerIpc() {
     appHeight: APP_HEIGHT,
     getActiveSpritesheetPath,
     getActiveEffectLayers,
+    triggerCookEffect: () => triggerCookEffect(effectDeps()),
     triggerCloneEffect: () => triggerCloneEffect(effectDeps()),
+    triggerCareEffect: (effectId, actionId) => triggerFinalArtEffect(effectDeps(), effectId, actionId),
     triggerGiantEffect: () => triggerGiantEffect(effectDeps()),
+    triggerPlaySwitchEffect: () => triggerPlaySwitchEffect(effectDeps()),
+    triggerWatchTvEffect: () => triggerWatchTvEffect(effectDeps()),
   };
 
   registerStoreIpc(deps);
@@ -146,6 +154,42 @@ app.whenReady().then(() => {
       const win = getMainWindow();
       if (win && !win.isDestroyed()) triggerCloneEffect(effectDeps());
     }, 2500);
+  }
+  if (process.env.YOYO_TEST_COOK === '1') {
+    setTimeout(() => {
+      const win = getMainWindow();
+      if (win && !win.isDestroyed()) triggerCookEffect(effectDeps());
+    }, 2500);
+  }
+  if (process.env.YOYO_TEST_WATCH_TV === '1') {
+    setTimeout(() => {
+      const win = getMainWindow();
+      if (win && !win.isDestroyed()) triggerWatchTvEffect(effectDeps());
+    }, 2500);
+  }
+  if (process.env.YOYO_TEST_PLAY_SWITCH === '1') {
+    setTimeout(() => {
+      const win = getMainWindow();
+      if (win && !win.isDestroyed()) triggerPlaySwitchEffect(effectDeps());
+    }, 2500);
+  }
+  if (process.env.YOYO_TEST_FINAL_ART) {
+    setTimeout(() => {
+      const win = getMainWindow();
+      if (win && !win.isDestroyed()) {
+        triggerFinalArtEffect(effectDeps(), process.env.YOYO_TEST_FINAL_ART, 'testFinalArt');
+      }
+    }, 2500);
+  }
+  if (process.env.YOYO_TEST_OPEN_HOME === '1' || process.argv.includes('--open-home')) {
+    setTimeout(() => {
+      openHome();
+    }, 1200);
+  }
+  if (process.env.YOYO_TEST_OPEN_SETTINGS === '1' || process.argv.includes('--open-settings')) {
+    setTimeout(() => {
+      openSettings();
+    }, 1200);
   }
 
   app.setLoginItemSettings({

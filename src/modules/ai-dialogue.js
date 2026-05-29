@@ -1,5 +1,5 @@
 // ai-dialogue.js - optional DeepSeek-backed Yoyo line enhancer
-import { say } from './core-state.js';
+import { say } from './speech-queue.js';
 import { getEmotionLabel, yoyoEmotion } from './emotion-system.js';
 import { debugLog } from './debug-log.js';
 import { guardYoyoLine } from './dialogue-guard.js';

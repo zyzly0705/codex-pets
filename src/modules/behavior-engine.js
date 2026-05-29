@@ -1,5 +1,7 @@
 // behavior-engine.js - BEHAVIORS 数组 + tick 逻辑 + 冷却 + 评分
-import { state, WEATHER_CODES, randomFrom, say, setState, speechQueue, feedBtn, isOnCooldown, setCooldown, SPEECH_PRIORITY, globalTimers, isStartupQuiet } from './core-state.js';
+import { state, WEATHER_CODES, setState, feedBtn, isOnCooldown, setCooldown, globalTimers, isStartupQuiet } from './core-state.js';
+import { randomFrom } from './utils.js';
+import { say, speechQueue, SPEECH_PRIORITY } from './speech-queue.js';
 import { stateMachine, ACTION_STATES, GLOBAL_MODES } from './state-machine.js';
 import { applyEmotionEvent, applyEmotionModifier, yoyoEmotion } from './emotion-system.js';
 import { yoyoGrowth, yoyoMemory, getLevel, applyGrowthModifiers, incrementAchievementStat, trackFeatureUsed, trackGrowthStat, daysSinceLastPet, hoursSinceLastWhip, isInBusyHour, MEMORY_LINES } from './growth-system.js';

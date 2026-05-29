@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "generatedFrom": "Yoyo Asset System Refactor Design 2026-05-29",
+  "taxonomy": ["keep", "redraw", "remove", "experimental", "archive"],
+  "assets": [
+    {
+      "path": "pet.json",
+      "status": "keep",
+      "reason": "Current runtime source of truth for spritesheet rows during migration."
+    },
+    {
+      "path": "spritesheet.webp",
+      "status": "keep",
+      "reason": "Current desktop avatar runtime sheet; keep until the pack loader replaces row access."
+    },
+    {
+      "path": "spritesheet.before-running-leg-fix.webp",
+      "status": "archive",
+      "reason": "Historical backup, useful for regression comparison but not accepted runtime art."
+    },
+    {
+      "path": "home/yoyo-home-sheet.webp",
+      "status": "keep",
+      "reason": "Current home-scene runtime sheet and must remain available."
+    },
+    {
+      "path": "home/",
+      "status": "keep",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-stage-v2.webp",
+      "status": "redraw",
+      "reason": "Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task.",
+      "candidates": [
+        { "path": "assets/yoyo/home/room-stage-v2.webp", "disposition": "v1-vibe", "note": "Accepted as the current runtime base because it is compact, high-energy, warm, and already stored; preserve this direction while removing animal-pet props later." },
+        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "cleanup-base", "note": "Cleaner compact shell, useful for removing pet semantics but too quiet to be the final mood by itself." },
+        { "path": "assets-src/yoyo/home/ai/yoyo-room-refined.png", "disposition": "reference", "note": "High-resolution source for the current day room." },
+        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-default.png", "disposition": "reference", "note": "Aseprite day-room export." },
+        { "path": "assets/yoyo/qa/candidates/home-room-stage-v2-candidate-01.webp", "disposition": "candidate", "note": "Clean companion-room candidate; use as semantic cleanup reference, but keep the livelier v1 compact-room mood." }
+      ]
+    },
+    {
+      "path": "home/room-stage-night.webp",
+      "status": "redraw",
+      "reason": "Strong mood reference, but it should be normalized with the clean companion room kit.",
+      "candidates": [
+        { "path": "assets/yoyo/home/room-stage-night.webp", "disposition": "reference", "note": "Current runtime night room with pet semantics." },
+        { "path": "assets-src/yoyo/home/ai/yoyo-room-night.png", "disposition": "reference", "note": "High-resolution night-room source." },
+        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-night.png", "disposition": "reference", "note": "Aseprite night-room export." },
+        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "base", "note": "Use as the cleaned base for future night variant." }
+      ]
+    },
+    {
+      "path": "home/room-stage-rainy.webp",
+      "status": "redraw",
+      "reason": "Useful weather variant, but should follow the same cleaned room contract as day and night.",
+      "candidates": [
+        { "path": "assets/yoyo/home/room-stage-rainy.webp", "disposition": "reference", "note": "Current runtime rainy room with pet semantics." },
+        { "path": "assets-src/yoyo/home/ai/yoyo-room-rainy.png", "disposition": "reference", "note": "High-resolution rainy-room source." },
+        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-rainy.png", "disposition": "reference", "note": "Aseprite rainy-room export." },
+        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "base", "note": "Use as the cleaned base for future rainy variant." }
+      ]
+    },
+    {
+      "path": "home/room-stage-party.webp",
+      "status": "redraw",
+      "reason": "Useful event variant, but should be rebuilt after the base room style is locked.",
+      "candidates": [
+        { "path": "assets/yoyo/home/room-stage-party.webp", "disposition": "reference", "note": "Current runtime party room with pet semantics." },
+        { "path": "assets-src/yoyo/home/ai/yoyo-room-party.png", "disposition": "reference", "note": "High-resolution party-room source." },
+        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-party.png", "disposition": "reference", "note": "Aseprite party-room export." },
+        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "base", "note": "Use as the cleaned base for future party variant." }
+      ]
+    },
+    {
+      "path": "home/room-shell-clean-2d.webp",
+      "status": "keep",
+      "reason": "Best current candidate for modular home shell and persistent room layout."
+    },
+    {
+      "path": "home/composite-feed-table-yoyo.webp",
+      "status": "keep",
+      "reason": "Accepted care-scene composite for feed flow while props are audited."
+    },
+    {
+      "path": "home/composite-sleep-bed-yoyo.webp",
+      "status": "keep",
+      "reason": "Accepted localized sleep composite used by the current home scene."
+    },
+    {
+      "path": "home/composite-bath-wash-yoyo.webp",
+      "status": "keep",
+      "reason": "Accepted bath composite for current care flow."
+    },
+    {
+      "path": "home/composite-play-toys-yoyo.webp",
+      "status": "keep",
+      "reason": "Accepted play composite for current care flow."
+    },
+    {
+      "path": "home/composite-pet-cushion-yoyo.webp",
+      "status": "redraw",
+      "reason": "Useful comfort concept, but label and framing should shift from petting to companion comfort.",
+      "candidates": [
+        { "path": "assets/yoyo/home/composite-pet-cushion-yoyo.webp", "disposition": "reference", "note": "Current runtime comfort composite." },
+        { "path": "assets/yoyo/qa/candidates/found/composite-pet-cushion-yoyo-redesign-v1.webp", "disposition": "reference", "note": "Older processed comfort composite from redesign v1, migrated out of output." }
+      ]
+    },
+    {
+      "path": "home/prop-food.webp",
+      "status": "keep",
+      "reason": "Accepted human meal tray candidate with rice bowl, plate, fruit, egg, cup, and tableware.",
+      "candidates": [
+        { "path": "assets/yoyo/home/prop-food.webp", "disposition": "accepted", "note": "Current runtime human meal tray." },
+        { "path": "assets-src/yoyo/home/prop-food.png", "disposition": "source", "note": "Accepted high-resolution source for the current table prop." },
+        { "path": "assets/yoyo/qa/candidates/found/prop-food-redesign-v1.webp", "disposition": "reference", "note": "Older processed table prop from redesign v1, migrated out of output." },
+        { "path": "assets/yoyo/qa/candidates/home-prop-food-candidate-01.webp", "disposition": "accepted-source", "note": "Generated meal-tray candidate adopted into runtime." }
+      ]
+    },
+    {
+      "path": "home/prop-food-back.webp",
+      "status": "keep",
+      "reason": "Accepted meal tray now lives in the persistent back layer so the kitchen reads as human tableware.",
+      "candidates": [
+        { "path": "assets/yoyo/home/prop-food-back.webp", "disposition": "accepted", "note": "Current runtime meal tray back layer." },
+        { "path": "assets-src/yoyo/home/prop-food-back.png", "disposition": "source", "note": "Accepted high-resolution source for the current back layer." },
+        { "path": "assets/yoyo/qa/candidates/home-prop-food-candidate-01.webp", "disposition": "accepted-source", "note": "Candidate meal tray adopted as the visible back layer." }
+      ]
+    },
+    {
+      "path": "home/prop-food-front.webp",
+      "status": "keep",
+      "reason": "Legacy bowl rim was removed; front layer is now a transparent compatibility layer.",
+      "candidates": [
+        { "path": "assets/yoyo/home/prop-food-front.webp", "disposition": "accepted", "note": "Transparent compatibility layer." },
+        { "path": "assets-src/yoyo/home/prop-food-front.png", "disposition": "source", "note": "Transparent compatibility source." }
+      ]
+    },
+    {
+      "path": "home/prop-food-meal-full.webp",
+      "status": "keep",
+      "reason": "Transparent compatibility layer; visible food is now authored into the accepted meal tray."
+    },
+    {
+      "path": "home/prop-food-meal-low.webp",
+      "status": "keep",
+      "reason": "Transparent compatibility layer; phase animation remains available without reintroducing old bowl art."
+    },
+    {
+      "path": "home/prop-bed.webp",
+      "status": "keep",
+      "reason": "Child-bed concept fits human companion care."
+    },
+    {
+      "path": "home/prop-bed-clean.webp",
+      "status": "keep",
+      "reason": "Cleaned bed variant is a good candidate for the golden care set."
+    },
+    {
+      "path": "home/prop-bath.webp",
+      "status": "keep",
+      "reason": "Bath prop supports a human care scene and should remain."
+    },
+    {
+      "path": "home/prop-toy.webp",
+      "status": "keep",
+      "reason": "Toy prop supports play without forcing animal-pet semantics."
+    },
+    {
+      "path": "home/prop-heart.webp",
+      "status": "keep",
+      "reason": "Relationship and affection prop fits companion positioning."
+    },
+    {
+      "path": "scenes/sleep/",
+      "status": "experimental",
+      "reason": "Layered sleep scene is valuable, but not yet the accepted runtime scene contract."
+    },
+    {
+      "path": "effects/",
+      "status": "experimental",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/eat-final/",
+      "status": "experimental",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/study-final/",
+      "status": "experimental",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/watch-anime-final/",
+      "status": "experimental",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/watch-tv/",
+      "status": "experimental",
+      "reason": "Spine-backed action is useful but should be gated behind the special action driver."
+    },
+    {
+      "path": "effects/play-switch-final/",
+      "status": "experimental",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/cook-pot/",
+      "status": "experimental",
+      "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "desktop-rig/",
+      "status": "experimental",
+      "reason": "Layered rig is a future body system and not yet accepted runtime art."
+    },
+    {
+      "path": "live2d/",
+      "status": "experimental",
+      "reason": "Live2D directory is a future integration placeholder."
+    }
+  ]
+}

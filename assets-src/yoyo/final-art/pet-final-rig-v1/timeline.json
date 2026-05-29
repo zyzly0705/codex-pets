@@ -1,0 +1,18 @@
+{
+  "id": "pet-final",
+  "version": 1,
+  "engine": "codex-pet-auto-rig",
+  "effectType": "auto-rig-action",
+  "runtimeMode": "pixi-auto-rig",
+  "strictAssets": true,
+  "durationMs": 3600,
+  "rig": "rig/yoyo.rig.json",
+  "motion": "pet-final",
+  "scene": {
+    "mode": "pet-final-art",
+    "artSource": "assets-src/yoyo/final-art/pet-final-art-v1.png"
+  },
+  "qa": {
+    "requireNonBlankPreview": true
+  }
+}

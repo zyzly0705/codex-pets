@@ -1,0 +1,30 @@
+{
+  "id": "play-switch-final",
+  "version": 1,
+  "rigId": "yoyo-play-switch-final-art-v1",
+  "intent": "Final-art Yoyo handheld game action built from the generated play-switch-final-art-v1 visual master.",
+  "sourceArt": "assets-src/yoyo/final-art/play-switch-final-art-v1.png",
+  "outputDir": "output/yoyo-play-switch-final-art-v1",
+  "sourceRigDir": "assets-src/yoyo/final-art/play-switch-final-rig-v1",
+  "runtimeDir": "assets/yoyo/effects/play-switch-final",
+  "previewName": "play-switch-final-preview.png",
+  "stage": { "width": 512, "height": 384, "background": "#f6efe7" },
+  "motion": {
+    "id": "play-switch-final",
+    "fps": 8,
+    "loop": true,
+    "durationMs": 3600,
+    "keyframes": [
+      { "t": 0, "shimmerX": 0, "shimmerAlpha": 0.18 },
+      { "t": 125, "shimmerX": 1, "shimmerAlpha": 0.28 },
+      { "t": 250, "shimmerX": 2, "shimmerAlpha": 0.34 },
+      { "t": 375, "shimmerX": 1, "shimmerAlpha": 0.28 },
+      { "t": 500, "shimmerX": 0, "shimmerAlpha": 0.2 },
+      { "t": 625, "shimmerX": -1, "shimmerAlpha": 0.25 }
+    ]
+  },
+  "overlays": [
+    { "id": "scene.shimmer", "file": "scene-shimmer.png", "generator": "screen-glow-v1", "z": 25 }
+  ],
+  "scene": { "mode": "play-switch-final-art" }
+}

@@ -1,0 +1,94 @@
+{
+  "id": "yoyo-bath-final-art-v1",
+  "version": 1,
+  "format": "codex-pet-auto-rig",
+  "intent": "Final-art Yoyo bath action built from the generated bath-final-art-v1 visual master.",
+  "stage": {
+    "width": 512,
+    "height": 384,
+    "background": "#f6efe7"
+  },
+  "sources": {
+    "finalArt": "assets-src/yoyo/final-art/bath-final-art-v1.png",
+    "manifest": "assets-src/yoyo/final-art/bath-final-effect.manifest.json",
+    "note": "The visual master is used as the composed scene layer; manifest overlays provide deterministic animation layers."
+  },
+  "parts": [
+    {
+      "id": "scene.full",
+      "file": "assets/yoyo/effects/bath-final/rig/parts/scene-full.png",
+      "z": 10
+    },
+    {
+      "id": "scene.shimmer",
+      "file": "assets/yoyo/effects/bath-final/rig/parts/scene-shimmer.png",
+      "z": 20
+    },
+    {
+      "id": "scene.steam",
+      "file": "assets/yoyo/effects/bath-final/rig/parts/scene-steam.png",
+      "z": 30
+    }
+  ],
+  "placements": {
+    "scene": {
+      "x": 0,
+      "y": 0,
+      "width": 512,
+      "height": 384
+    }
+  },
+  "motions": {
+    "bath-final": {
+      "fps": 8,
+      "loop": true,
+      "keyframes": [
+        {
+          "t": 0,
+          "shimmerX": 0,
+          "shimmerAlpha": 0.24,
+          "steamY": 0,
+          "steamAlpha": 0.22
+        },
+        {
+          "t": 125,
+          "shimmerX": 1,
+          "shimmerAlpha": 0.3,
+          "steamY": -1,
+          "steamAlpha": 0.28
+        },
+        {
+          "t": 250,
+          "shimmerX": 2,
+          "shimmerAlpha": 0.34,
+          "steamY": -2,
+          "steamAlpha": 0.32
+        },
+        {
+          "t": 375,
+          "shimmerX": 1,
+          "shimmerAlpha": 0.3,
+          "steamY": -3,
+          "steamAlpha": 0.28
+        },
+        {
+          "t": 500,
+          "shimmerX": 0,
+          "shimmerAlpha": 0.24,
+          "steamY": -2,
+          "steamAlpha": 0.22
+        },
+        {
+          "t": 625,
+          "shimmerX": -1,
+          "shimmerAlpha": 0.28,
+          "steamY": -1,
+          "steamAlpha": 0.26
+        }
+      ]
+    }
+  },
+  "qa": {
+    "finalArtPreview": true
+  }
+}

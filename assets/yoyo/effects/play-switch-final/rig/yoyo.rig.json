@@ -1,0 +1,77 @@
+{
+  "id": "yoyo-play-switch-final-art-v1",
+  "version": 1,
+  "format": "codex-pet-auto-rig",
+  "intent": "Final-art Yoyo handheld game action built from the generated play-switch-final-art-v1 visual master.",
+  "stage": {
+    "width": 512,
+    "height": 384,
+    "background": "#f6efe7"
+  },
+  "sources": {
+    "finalArt": "assets-src/yoyo/final-art/play-switch-final-art-v1.png",
+    "manifest": "assets-src/yoyo/final-art/play-switch-final-effect.manifest.json",
+    "note": "The visual master is used as the composed scene layer; manifest overlays provide deterministic animation layers."
+  },
+  "parts": [
+    {
+      "id": "scene.full",
+      "file": "assets/yoyo/effects/play-switch-final/rig/parts/scene-full.png",
+      "z": 10
+    },
+    {
+      "id": "scene.shimmer",
+      "file": "assets/yoyo/effects/play-switch-final/rig/parts/scene-shimmer.png",
+      "z": 25
+    }
+  ],
+  "placements": {
+    "scene": {
+      "x": 0,
+      "y": 0,
+      "width": 512,
+      "height": 384
+    }
+  },
+  "motions": {
+    "play-switch-final": {
+      "fps": 8,
+      "loop": true,
+      "keyframes": [
+        {
+          "t": 0,
+          "shimmerX": 0,
+          "shimmerAlpha": 0.18
+        },
+        {
+          "t": 125,
+          "shimmerX": 1,
+          "shimmerAlpha": 0.28
+        },
+        {
+          "t": 250,
+          "shimmerX": 2,
+          "shimmerAlpha": 0.34
+        },
+        {
+          "t": 375,
+          "shimmerX": 1,
+          "shimmerAlpha": 0.28
+        },
+        {
+          "t": 500,
+          "shimmerX": 0,
+          "shimmerAlpha": 0.2
+        },
+        {
+          "t": 625,
+          "shimmerX": -1,
+          "shimmerAlpha": 0.25
+        }
+      ]
+    }
+  },
+  "qa": {
+    "finalArtPreview": true
+  }
+}

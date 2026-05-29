@@ -12,6 +12,10 @@
 <script src="../node_modules/pixi.js/dist/pixi.min.js"></script>
 <script src="../node_modules/pixi-filters/dist/pixi-filters.js"></script>
 <script src="../node_modules/@pixi/particle-emitter/dist/particle-emitter.min.js"></script>
+<script src="../node_modules/@esotericsoftware/spine-pixi-v8/dist/iife/spine-pixi-v8.min.js"></script>
+<script>
+  if (typeof spine !== 'undefined' && !window.spine) window.spine = spine;
+</script>
 <script src="./pixi-effect-stage.js"></script>
 </body>
 </html>

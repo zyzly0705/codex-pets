@@ -1,6 +1,6 @@
 # Yoyo Asset Hatch Workflow
 
-Yoyo assets should be made through a repeatable hatch-style run instead of one-off drawing. The goal is to make every pose, prop, room, or effect carry a written visual contract, generated/imported source files, processing notes, and runtime screenshot proof.
+Yoyo assets should be made through a repeatable hatch-style run instead of one-off drawing. Yoyo is `妈妈的小伴侣`, not a pet: every pose, prop, room, or effect should support human-like companion life and carry a written visual contract, generated/imported source files, processing notes, and runtime screenshot proof.
 
 ## Single Asset Command
 
@@ -56,6 +56,35 @@ The command creates:
 - `processed/`: extracted and optimized runtime assets.
 - `qa/review-checklist.md`: visual, processing, and runtime gates.
 - `workflow-manifest.json`: motion spec, target path, and gate structure.
+
+## AI Design Tool Adapter
+
+The workflow now treats design tools as separate production roles instead of one magic generator.
+
+- Figma: layout contract. Use it for room maps, prop bounding boxes, scale checks, palette/style boards, accepted examples, and rejected examples. It is the place to prove furniture placement and floor contact before runtime wiring.
+- Character-consistency image tools: Yoyo identity lock. Use Scenario, Ideogram-style character consistency, or a similar reference-based generator for full-body Yoyo masters, poses, and action strips.
+- Video tools: motion reference only. Use Runway, Krea, Kling, Luma, or similar tools to explore timing for complex actions such as `digSand`, `clone`, `dharma`, sofa lying, swing, and bath movement. Do not treat video output as final runtime art until keyframes are selected, cleaned, and inspected.
+- Aseprite: final art surgery. Use it for edge cleanup, layer separation, palette control, frame timing, and export.
+- Codex scripts: deterministic production. Use them for manifests, prompt packs, chroma/import processing, spritesheets, screenshots, contact sheets, and tests.
+
+Every run now writes tool-specific briefs under `toolchain/`:
+
+- `toolchain/toolchain-brief.md`: which tools should be used and what each must output.
+- `toolchain/figma-brief.md`: the board that proves layout, scale, contact zones, and layer splits.
+- `toolchain/character-consistency-brief.md`: the prompt pack for Yoyo identity-safe pose generation.
+- `toolchain/motion-reference-brief.md`: the video reference brief for high-frame or complex movement.
+- `toolchain/aseprite-cleanup-brief.md`: cleanup and export checklist.
+
+This means a bad output is rejected at the right layer:
+
+- Furniture in the wrong place is a Figma/layout failure.
+- Yoyo looking like a different character is a character-consistency failure.
+- Pet-care semantics such as dog bowls, kibble, pet beds, paw motifs, or animal-mascot styling are a concept failure. Yoyo is a human-like companion.
+- Feeding assets must use human food and human tableware; sleep assets must read as bed/blanket/pillow furniture.
+- Floating or half-body Yoyo is a pose/source failure.
+- Jerky or unclear action is a video/motion-planning failure.
+- Jagged edges, stray pixels, or bad frame timing are Aseprite/export failures.
+- Looks fine as a source but bad in the app is a runtime QA failure.
 
 ## Gates
 

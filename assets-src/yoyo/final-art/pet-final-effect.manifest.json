@@ -1,0 +1,30 @@
+{
+  "id": "pet-final",
+  "version": 1,
+  "rigId": "yoyo-pet-final-art-v1",
+  "intent": "Final-art Yoyo petting action built from the generated pet-final-art-v1 visual master.",
+  "sourceArt": "assets-src/yoyo/final-art/pet-final-art-v1.png",
+  "outputDir": "output/yoyo-pet-final-art-v1",
+  "sourceRigDir": "assets-src/yoyo/final-art/pet-final-rig-v1",
+  "runtimeDir": "assets/yoyo/effects/pet-final",
+  "previewName": "pet-final-preview.png",
+  "stage": { "width": 512, "height": 384, "background": "#f6efe7" },
+  "motion": {
+    "id": "pet-final",
+    "fps": 8,
+    "loop": true,
+    "durationMs": 3600,
+    "keyframes": [
+      { "t": 0, "sparkleY": 0, "sparkleAlpha": 0.3, "sparkleScale": 1 },
+      { "t": 125, "sparkleY": -1, "sparkleAlpha": 0.42, "sparkleScale": 1.04 },
+      { "t": 250, "sparkleY": -2, "sparkleAlpha": 0.5, "sparkleScale": 1.08 },
+      { "t": 375, "sparkleY": -1, "sparkleAlpha": 0.42, "sparkleScale": 1.04 },
+      { "t": 500, "sparkleY": 0, "sparkleAlpha": 0.32, "sparkleScale": 1 },
+      { "t": 625, "sparkleY": 1, "sparkleAlpha": 0.38, "sparkleScale": 1.02 }
+    ]
+  },
+  "overlays": [
+    { "id": "scene.sparkle", "file": "scene-sparkle.png", "generator": "satisfaction-sparkle-v1", "z": 30 }
+  ],
+  "scene": { "mode": "pet-final-art" }
+}

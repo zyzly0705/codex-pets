@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "rigPackVersion": 5,
+  "modelName": "YoyoRigV5",
+  "parameters": [
+    {
+      "id": "ParamEyeLOpen",
+      "label": "Left Eye Open",
+      "default": 1,
+      "recommendedLayers": [
+        "eye_left_blink",
+        "eye_left_open"
+      ],
+      "notes": "Use opacity swapping first, then replace with deformer-based eyelid motion if needed."
+    },
+    {
+      "id": "ParamEyeROpen",
+      "label": "Right Eye Open",
+      "default": 1,
+      "recommendedLayers": [
+        "eye_right_blink",
+        "eye_right_open"
+      ],
+      "notes": "Mirror the left eye setup to keep timing and range consistent."
+    },
+    {
+      "id": "ParamEyeLSmile",
+      "label": "Left Eye Smile",
+      "default": 0,
+      "recommendedLayers": [
+        "eye_left_smile"
+      ],
+      "notes": "Blend in only after eye-open state is stable."
+    },
+    {
+      "id": "ParamEyeRSmile",
+      "label": "Right Eye Smile",
+      "default": 0,
+      "recommendedLayers": [
+        "eye_right_smile"
+      ],
+      "notes": "Keep synchronized with ParamEyeLSmile unless asymmetry is intentional."
+    },
+    {
+      "id": "ParamMouthOpenY",
+      "label": "Mouth Open Y",
+      "default": 0.35,
+      "recommendedLayers": [
+        "mouth_closed",
+        "mouth_flat",
+        "mouth_small",
+        "mouth_smile",
+        "mouth_open",
+        "mouth_o"
+      ],
+      "notes": "Treat this as the primary talk amplitude control."
+    },
+    {
+      "id": "ParamMouthForm",
+      "label": "Mouth Form",
+      "default": 0.65,
+      "recommendedLayers": [
+        "mouth_flat",
+        "mouth_small",
+        "mouth_open",
+        "mouth_smile",
+        "mouth_o"
+      ],
+      "notes": "Use this for smile-vs-round shape bias while ParamMouthOpenY handles vertical openness."
+    }
+  ]
+}

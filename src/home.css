@@ -62,6 +62,83 @@ button {
   box-shadow: none;
 }
 
+.room-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200%;
+  height: 100%;
+  overflow: hidden;
+  transform: translateX(var(--camera-x, 0px));
+  transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.room-world::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg,
+      rgba(221, 153, 74, 0.13) 0 25%,
+      rgba(68, 145, 177, 0.12) 25% 48%,
+      rgba(72, 150, 108, 0.13) 48% 74%,
+      rgba(151, 106, 184, 0.12) 74% 100%),
+    linear-gradient(90deg, rgba(88, 121, 113, 0.28) 0 2px, transparent 2px 25%,
+      rgba(88, 121, 113, 0.28) 25% calc(25% + 2px), transparent calc(25% + 2px) 48%,
+      rgba(88, 121, 113, 0.28) 48% calc(48% + 2px), transparent calc(48% + 2px) 74%,
+      rgba(88, 121, 113, 0.28) 74% calc(74% + 2px), transparent calc(74% + 2px)),
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(255,255,255,0.11) 118px 121px),
+    linear-gradient(180deg, #83aa9e 0 39%, #dfcfb5 39% 51%, transparent 51%);
+}
+
+.room-world::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50.5%;
+  z-index: 0;
+  height: 49.5%;
+  background:
+    linear-gradient(180deg, rgba(255, 231, 186, 0.12), rgba(84, 49, 29, 0.08) 100%),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 247, 218, 0.34) 0 18%, transparent 56%),
+    repeating-linear-gradient(178deg, rgba(113, 72, 42, 0.20) 0 2px, transparent 2px 38px),
+    repeating-linear-gradient(73deg, transparent 0 128px, rgba(112, 70, 40, 0.17) 128px 132px),
+    repeating-linear-gradient(107deg, transparent 0 128px, rgba(112, 70, 40, 0.15) 128px 132px),
+    linear-gradient(180deg, #bb8150, #a9693f);
+  pointer-events: none;
+}
+
+.room-world {
+  background:
+    linear-gradient(180deg, transparent 0 49.8%, rgba(118, 72, 40, 0.36) 49.8% 50.6%, transparent 50.6%),
+    radial-gradient(ellipse at 53% 53%, rgba(255, 239, 189, 0.18), transparent 43%);
+}
+
+.home-zone-label {
+  position: absolute;
+  top: 12px;
+  z-index: 2;
+  display: none;
+  place-items: center;
+  width: 132px;
+  height: 34px;
+  border-radius: 999px;
+  color: rgba(255,255,255,0.96);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0;
+  box-shadow: 0 8px 14px rgba(38, 48, 46, 0.12);
+  pointer-events: none;
+}
+
+.zone-kitchen { left: 1.5%; background: rgba(215, 154, 77, 0.92); }
+.zone-living { left: 27%; background: rgba(77, 149, 186, 0.92); }
+.zone-play { left: 50%; background: rgba(77, 155, 112, 0.92); }
+.zone-sleep { left: 76%; background: rgba(148, 107, 187, 0.92); }
+
 .room-art {
   position: absolute;
   inset: 0;
@@ -74,6 +151,26 @@ button {
   -webkit-user-drag: none;
 }
 
+.room-world .room-art {
+  display: none;
+}
+
+.room-stage[data-room-art-mode="saved-compact-room"] .room-world {
+  width: 100%;
+  transform: none;
+  background: transparent;
+}
+
+.room-stage[data-room-art-mode="saved-compact-room"] .room-world::before,
+.room-stage[data-room-art-mode="saved-compact-room"] .room-world::after {
+  opacity: 0;
+}
+
+.room-stage[data-room-art-mode="saved-compact-room"] .room-art {
+  display: block;
+  object-fit: cover;
+}
+
 .room-art.switching {
   opacity: 0.6;
   transform: scale(1.008);
@@ -84,6 +181,233 @@ button {
   inset: 0;
   z-index: 4;
   pointer-events: none;
+}
+
+.tv-screen-overlay {
+  position: absolute;
+  left: 32.95%;
+  top: 39.45%;
+  z-index: 5;
+  width: 5.95%;
+  aspect-ratio: 1.08;
+  overflow: hidden;
+  border-radius: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transform: perspective(260px) rotateX(1deg) rotateZ(-0.3deg);
+  transform-origin: center;
+  transition: opacity 180ms ease;
+}
+
+.tv-screen-overlay::before,
+.tv-screen-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.room-stage[data-scene="watchAnime"] .tv-screen-overlay,
+.room-stage[data-scene="playSwitch"] .tv-screen-overlay {
+  opacity: 0;
+}
+
+.tv-show {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+}
+
+.room-stage[data-scene="watchAnime"] .tv-show-anime,
+.room-stage[data-scene="playSwitch"] .tv-show-game {
+  display: block;
+}
+
+.room-stage[data-scene="watchAnime"] .tv-screen-overlay {
+  background:
+    linear-gradient(180deg, #8bdcff 0 56%, #8edc73 57% 100%);
+}
+
+.tv-cloud {
+  position: absolute;
+  top: 14%;
+  width: 34%;
+  height: 15%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 23% 50%, #fff9ef 0 32%, transparent 34%),
+    radial-gradient(circle at 52% 38%, #fff9ef 0 36%, transparent 38%),
+    radial-gradient(circle at 76% 55%, #fff9ef 0 28%, transparent 30%);
+  opacity: 0.88;
+  animation: tvCloudDrift 5.8s linear infinite;
+}
+
+.cloud-a {
+  left: -32%;
+}
+
+.cloud-b {
+  top: 28%;
+  left: 45%;
+  transform: scale(0.72);
+  animation-duration: 7.2s;
+}
+
+.tv-anime-sun {
+  position: absolute;
+  right: 11%;
+  top: 13%;
+  width: 17%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ffe27b;
+  box-shadow: 0 0 9px rgba(255, 221, 95, 0.75);
+  animation: tvSunPulse 1.8s ease-in-out infinite;
+}
+
+.tv-anime-character {
+  position: absolute;
+  left: 15%;
+  bottom: 24%;
+  width: 25%;
+  aspect-ratio: 0.78;
+  border-radius: 56% 56% 48% 48%;
+  background:
+    radial-gradient(circle at 33% 28%, #262b33 0 4%, transparent 5%),
+    radial-gradient(circle at 65% 28%, #262b33 0 4%, transparent 5%),
+    radial-gradient(ellipse at 49% 48%, #ff95b1 0 12%, transparent 13%),
+    radial-gradient(ellipse at 50% 62%, #e96386 0 38%, transparent 39%);
+  filter: drop-shadow(0 2px 1px rgba(68, 96, 72, 0.28));
+  animation: tvCharacterWalk 2.1s ease-in-out infinite;
+}
+
+.tv-anime-character::before,
+.tv-anime-character::after {
+  content: "";
+  position: absolute;
+  top: 13%;
+  width: 15%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ff9db8;
+}
+
+.tv-anime-character::before {
+  left: 2%;
+}
+
+.tv-anime-character::after {
+  right: 2%;
+}
+
+.tv-anime-flower {
+  position: absolute;
+  bottom: 13%;
+  width: 7%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 18%, #ffd36c 0 18%, transparent 19%),
+    radial-gradient(circle at 82% 50%, #ff8db0 0 17%, transparent 18%),
+    radial-gradient(circle at 50% 82%, #ff8db0 0 17%, transparent 18%),
+    radial-gradient(circle at 18% 50%, #ff8db0 0 17%, transparent 18%),
+    radial-gradient(circle at 50% 50%, #fff1a6 0 16%, transparent 17%);
+  animation: tvFlowerBob 1.6s ease-in-out infinite;
+}
+
+.flower-a {
+  left: 63%;
+}
+
+.flower-b {
+  left: 78%;
+  bottom: 20%;
+  transform: scale(0.75);
+  animation-delay: 0.35s;
+}
+
+.room-stage[data-scene="watchAnime"] .tv-screen-overlay::after,
+.room-stage[data-scene="playSwitch"] .tv-screen-overlay::after {
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.22), transparent 42%),
+    linear-gradient(120deg, rgba(255,255,255,0.18), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,0.12), transparent 54%);
+  mix-blend-mode: screen;
+}
+
+.room-stage[data-scene="playSwitch"] .tv-screen-overlay {
+  background:
+    linear-gradient(180deg, #74d9ff 0 44%, #64be5f 45% 100%);
+  animation: tvGamePulse 1.3s steps(2, end) infinite;
+}
+
+.tv-game-score {
+  position: absolute;
+  top: 5%;
+  right: 7%;
+  z-index: 2;
+  color: #fff7cb;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(27, 58, 65, 0.42);
+}
+
+.tv-game-lane {
+  position: absolute;
+  bottom: -12%;
+  width: 5%;
+  height: 72%;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.62);
+  transform: rotate(14deg);
+  animation: tvLaneMove 0.85s linear infinite;
+}
+
+.lane-a {
+  left: 37%;
+}
+
+.lane-b {
+  left: 61%;
+  animation-delay: -0.4s;
+}
+
+.tv-game-kart {
+  position: absolute;
+  left: 38%;
+  bottom: 15%;
+  width: 23%;
+  aspect-ratio: 1.35;
+  border-radius: 42% 42% 25% 25%;
+  background:
+    radial-gradient(circle at 26% 85%, #252c38 0 13%, transparent 14%),
+    radial-gradient(circle at 75% 85%, #252c38 0 13%, transparent 14%),
+    linear-gradient(180deg, #ff7685 0 54%, #c83c55 55% 100%);
+  box-shadow: 0 2px 0 rgba(45, 74, 55, 0.28);
+  animation: tvKartSteer 1.1s ease-in-out infinite;
+}
+
+.tv-game-coin {
+  position: absolute;
+  top: 28%;
+  width: 10%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ffd84e;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.38);
+  animation: tvCoinDrop 1.5s linear infinite;
+}
+
+.coin-a {
+  left: 22%;
+}
+
+.coin-b {
+  left: 72%;
+  animation-delay: -0.75s;
 }
 
 .home-decor-layer {
@@ -105,16 +429,416 @@ button {
   image-rendering: auto;
   user-select: none;
   -webkit-user-drag: none;
+  transform-origin: 50% 100%;
+}
+
+.home-fixture {
+  aspect-ratio: 1;
+  color: rgba(48, 66, 64, 0.78);
+  filter: drop-shadow(0 7px 8px rgba(49, 45, 38, 0.13));
+}
+
+.kitchen-wall-tiles {
+  aspect-ratio: 3;
+  border-radius: 0 0 16px 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(210, 190, 164, 0.48) 0 1px, transparent 1px 58px),
+    repeating-linear-gradient(180deg, rgba(210, 190, 164, 0.48) 0 1px, transparent 1px 36px),
+    rgba(255, 244, 220, 0.42);
+  box-shadow: inset -8px -8px 18px rgba(121, 86, 54, 0.06);
+}
+
+.kitchen-counter {
+  aspect-ratio: 2.25;
+  border: 2px solid rgba(114, 74, 43, 0.35);
+  border-radius: 10px 10px 8px 8px;
+  background:
+    radial-gradient(ellipse at 72% 24%, rgba(213, 234, 230, 0.95) 0 10%, transparent 11%),
+    radial-gradient(circle at 56% 22%, rgba(58, 66, 67, 0.65) 0 6%, transparent 7%),
+    linear-gradient(180deg, #e5b06e 0 34%, #c98248 35% 100%);
+  box-shadow: inset 0 -10px 0 rgba(116, 75, 40, 0.14), 0 18px 0 -8px rgba(68, 43, 27, 0.22), 0 16px 16px rgba(52, 36, 24, 0.16);
+}
+
+.kitchen-counter::before,
+.kitchen-counter::after {
+  content: "";
+  position: absolute;
+}
+
+.kitchen-counter::before {
+  left: 8%;
+  bottom: 15%;
+  width: 34%;
+  height: 42%;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.18) 0 2px, transparent 2px 50%),
+    rgba(122, 77, 46, 0.22);
+}
+
+.kitchen-counter::after {
+  right: 9%;
+  top: 11%;
+  width: 28%;
+  height: 16%;
+  border-radius: 999px;
+  background: rgba(86, 73, 62, 0.48);
+  box-shadow: 0 13px 0 rgba(255, 245, 222, 0.76);
+}
+
+.kitchen-range {
+  aspect-ratio: 1.02;
+  border: 2px solid rgba(91, 64, 45, 0.28);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 32% 20%, rgba(78, 76, 72, 0.64) 0 10%, transparent 11%),
+    radial-gradient(circle at 70% 20%, rgba(78, 76, 72, 0.64) 0 10%, transparent 11%),
+    linear-gradient(180deg, #fff2d4 0 28%, #d48b52 29% 100%);
+  box-shadow: inset 0 -7px 0 rgba(116, 73, 39, 0.12), 0 9px 11px rgba(52, 36, 24, 0.12);
+}
+
+.kitchen-range::before {
+  content: "";
+  position: absolute;
+  left: 21%;
+  right: 21%;
+  bottom: 18%;
+  height: 36%;
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.2) 0 2px, transparent 2px 50%),
+    rgba(108, 72, 50, 0.22);
+}
+
+.kitchen-fridge {
+  aspect-ratio: 0.54;
+  border: 2px solid rgba(115, 139, 135, 0.32);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, transparent 0 47%, rgba(111, 143, 139, 0.18) 48% 50%, transparent 51%),
+    linear-gradient(180deg, #fffaf0, #dbece5);
+  box-shadow: inset -8px 0 0 rgba(123, 156, 150, 0.1), 0 20px 0 -9px rgba(58, 52, 43, 0.22), 0 14px 16px rgba(52, 48, 40, 0.14);
+}
+
+.kitchen-fridge::before {
+  content: "";
+  position: absolute;
+  right: 14%;
+  top: 18%;
+  width: 7px;
+  height: 32%;
+  border-radius: 999px;
+  background: rgba(98, 125, 123, 0.42);
+}
+
+.kitchen-upper-cabinet {
+  aspect-ratio: 3.6;
+  border: 2px solid rgba(113, 75, 44, 0.28);
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 29%, rgba(102, 66, 38, 0.22) 29% 30%, transparent 30% 33%),
+    linear-gradient(180deg, #d59559, #b87543);
+  box-shadow: inset 0 -5px 0 rgba(99, 59, 34, 0.12), 0 8px 10px rgba(47, 35, 25, 0.10);
+}
+
+.living-window-fixture {
+  aspect-ratio: 1.52;
+  border: 8px solid rgba(125, 79, 45, 0.9);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 74% 28%, rgba(255, 218, 131, 0.9) 0 2px, transparent 3px),
+    radial-gradient(circle at 42% 36%, rgba(255, 237, 167, 0.75) 0 2px, transparent 3px),
+    linear-gradient(180deg, #264b70, #3d6d80 60%, #5a8068);
+  box-shadow: inset 0 0 0 4px rgba(95, 55, 29, 0.5), 0 13px 18px rgba(54, 35, 23, 0.17);
+}
+
+.living-window-fixture::before,
+.living-window-fixture::after {
+  content: "";
+  position: absolute;
+  background: rgba(125, 79, 45, 0.9);
+}
+
+.living-window-fixture::before {
+  left: 50%;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.living-window-fixture::after {
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 8px;
+  transform: translateY(-50%);
+}
+
+.living-sofa {
+  aspect-ratio: 2.75;
+  border-radius: 24px 24px 16px 16px;
+  background:
+    radial-gradient(ellipse at 20% 37%, rgba(255, 232, 231, 0.74) 0 18%, transparent 19%),
+    radial-gradient(ellipse at 82% 38%, rgba(255, 232, 231, 0.74) 0 18%, transparent 19%),
+    linear-gradient(180deg, transparent 0 22%, #e8919d 23% 64%, #c96a7c 65% 100%);
+  box-shadow:
+    inset 0 -9px 0 rgba(118, 54, 65, 0.13),
+    0 25px 0 -12px rgba(63, 41, 34, 0.26),
+    0 15px 16px rgba(57, 39, 35, 0.16);
+}
+
+.living-sofa::before,
+.living-sofa::after {
+  content: "";
+  position: absolute;
+  bottom: -10%;
+  width: 8%;
+  height: 22%;
+  border-radius: 999px;
+  background: #935a3f;
+}
+
+.living-sofa::before {
+  left: 13%;
+}
+
+.living-sofa::after {
+  right: 13%;
+}
+
+.living-coffee-table {
+  aspect-ratio: 2.2;
+  border-radius: 999px / 46%;
+  background:
+    radial-gradient(ellipse at 66% 34%, rgba(255, 246, 220, 0.95) 0 9%, transparent 10%),
+    linear-gradient(180deg, #e9b36c, #c77d43);
+  border: 2px solid rgba(103, 64, 39, 0.24);
+  box-shadow: inset 0 -5px 0 rgba(103, 64, 39, 0.12), 0 8px 9px rgba(50, 35, 26, 0.11);
+}
+
+.living-floor-lamp {
+  aspect-ratio: 0.42;
+  background:
+    radial-gradient(ellipse at 50% 9%, #ffe7a9 0 31%, transparent 32%),
+    linear-gradient(90deg, transparent 0 45%, #8c6444 46% 54%, transparent 55%),
+    radial-gradient(ellipse at 50% 94%, #a36e47 0 36%, transparent 37%);
+  filter: drop-shadow(0 7px 8px rgba(49, 45, 38, 0.10));
+}
+
+.play-floor-mat,
+.sleep-rug {
+  aspect-ratio: 3.2;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 247, 224, 0.72) 0 56%, transparent 57%),
+    repeating-radial-gradient(ellipse at center, rgba(214, 104, 125, 0.32) 0 6px, transparent 7px 16px);
+  opacity: 0.86;
+  filter: none;
+  transform: perspective(540px) rotateX(54deg);
+  transform-origin: 50% 50%;
+}
+
+.play-floor-mat {
+  background:
+    radial-gradient(ellipse at center, rgba(232, 255, 222, 0.72) 0 56%, transparent 57%),
+    repeating-radial-gradient(ellipse at center, rgba(77, 155, 112, 0.32) 0 6px, transparent 7px 16px);
+}
+
+.sleep-curtain {
+  aspect-ratio: 2.2;
+  border-radius: 0 0 24px 24px;
+  background:
+    linear-gradient(90deg, rgba(126, 77, 46, 0.95) 0 5%, transparent 5% 95%, rgba(126, 77, 46, 0.95) 95% 100%),
+    repeating-linear-gradient(90deg, rgba(255, 229, 226, 0.96) 0 24px, rgba(246, 196, 198, 0.96) 24px 31px);
+  box-shadow: inset 0 -7px 0 rgba(164, 97, 103, 0.12), 0 8px 12px rgba(55, 39, 35, 0.10);
+}
+
+.sleep-curtain::before {
+  content: "";
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  top: -8%;
+  height: 14%;
+  border-radius: 999px;
+  background: #9a633c;
+}
+
+.bedside-drawer {
+  aspect-ratio: 0.88;
+  border: 2px solid rgba(102, 63, 38, 0.25);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 52%, #ffe39b 0 5%, transparent 6%),
+    linear-gradient(180deg, #f3a3ad 0 47%, #d7798a 48% 100%);
+  box-shadow: inset 0 -6px 0 rgba(111, 55, 65, 0.12), 0 8px 9px rgba(50, 35, 28, 0.12);
+}
+
+.bedside-drawer::before {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: -18%;
+  height: 22%;
+  border-radius: 8px 8px 5px 5px;
+  background:
+    radial-gradient(circle at 78% 44%, #f5d872 0 8%, transparent 9%),
+    linear-gradient(180deg, #f5bf70, #cb844b);
+}
+
+.wall-air-conditioner {
+  aspect-ratio: 3.6;
+  border: 1px solid rgba(91, 126, 119, 0.2);
+  border-radius: 9px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 239, 0.96), rgba(222, 237, 230, 0.96));
+  box-shadow:
+    inset 0 -5px 0 rgba(95, 132, 124, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.92),
+    0 8px 14px rgba(45, 53, 48, 0.10);
+}
+
+.home-decor-item[data-decor-id="wallSoftFurnishing"],
+.home-decor-item[data-decor-id="tvGameToys"] {
+  filter: var(--home-yoyo-grade) drop-shadow(0 16px 0 rgba(67, 43, 28, 0.15)) drop-shadow(0 14px 14px rgba(53, 36, 26, 0.13));
+}
+
+.wall-air-conditioner::before,
+.wall-air-conditioner::after {
+  content: "";
+  position: absolute;
+}
+
+.wall-air-conditioner::before {
+  left: 12%;
+  right: 12%;
+  bottom: 22%;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(90, 120, 118, 0.34);
+  box-shadow: 0 6px 0 rgba(90, 120, 118, 0.18);
+}
+
+.wall-air-conditioner::after {
+  right: 9%;
+  top: 25%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(91, 157, 134, 0.58);
+}
+
+.wall-clock {
+  border: 5px solid rgba(151, 105, 67, 0.84);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(80, 62, 50, 0.82) 0 5%, transparent 6%),
+    linear-gradient(90deg, transparent 48%, rgba(80, 62, 50, 0.72) 49% 52%, transparent 53%),
+    linear-gradient(32deg, transparent 49%, rgba(80, 62, 50, 0.62) 50% 53%, transparent 54%),
+    rgba(255, 246, 218, 0.96);
+  box-shadow:
+    inset 0 0 0 3px rgba(255,255,255,0.55),
+    0 7px 10px rgba(60, 42, 31, 0.14);
+}
+
+.light-switch {
+  aspect-ratio: 0.72;
+  border: 1px solid rgba(64, 84, 84, 0.14);
+  border-radius: 5px;
+  background: rgba(255, 247, 226, 0.88);
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,0.4), 0 4px 6px rgba(51, 42, 34, 0.09);
+}
+
+.light-switch::before {
+  content: "";
+  position: absolute;
+  left: 35%;
+  top: 28%;
+  width: 30%;
+  height: 44%;
+  border-radius: 3px;
+  background: rgba(173, 142, 105, 0.42);
+}
+
+.floor-outlet {
+  aspect-ratio: 1.22;
+  border: 1px solid rgba(61, 74, 72, 0.13);
+  border-radius: 5px;
+  background: rgba(255, 244, 222, 0.58);
+  opacity: 0.72;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 2px 3px rgba(45, 34, 28, 0.06);
+}
+
+.floor-outlet::before,
+.floor-outlet::after {
+  content: "";
+  position: absolute;
+  top: 37%;
+  width: 4px;
+  height: 11px;
+  border-radius: 999px;
+  background: rgba(88, 84, 76, 0.48);
+}
+
+.floor-outlet::before {
+  left: 34%;
+}
+
+.floor-outlet::after {
+  right: 34%;
+}
+
+.house-slippers {
+  aspect-ratio: 2.4;
+}
+
+.house-slippers::before,
+.house-slippers::after {
+  content: "";
+  position: absolute;
+  bottom: 8%;
+  width: 45%;
+  height: 70%;
+  border-radius: 999px 999px 46% 46%;
+  background:
+    radial-gradient(ellipse at 50% 35%, rgba(255, 235, 206, 0.5) 0 30%, transparent 32%),
+    linear-gradient(180deg, #f3a2a8, #d96e83);
+  box-shadow: inset 0 -4px 0 rgba(137, 76, 84, 0.18), 0 5px 6px rgba(62, 42, 38, 0.12);
+}
+
+.house-slippers::before {
+  left: 1%;
+  transform: rotate(-8deg);
+}
+
+.house-slippers::after {
+  right: 1%;
+  transform: rotate(7deg);
+}
+
+.soft-storage-basket {
+  aspect-ratio: 1.16;
+  border-radius: 16% 16% 28% 28%;
+  background:
+    radial-gradient(circle at 28% 18%, #f6ca83 0 10%, transparent 11%),
+    radial-gradient(circle at 60% 17%, #e88792 0 10%, transparent 11%),
+    radial-gradient(ellipse at 50% 12%, transparent 0 42%, rgba(91, 58, 35, 0.38) 44% 51%, transparent 53%),
+    linear-gradient(90deg, rgba(120, 82, 54, 0.26) 0 1px, transparent 1px 10px),
+    linear-gradient(180deg, #d0a36d, #a66f44);
+  border: 1.5px solid rgba(119, 80, 50, 0.36);
+  box-shadow: inset 0 -4px 0 rgba(89, 57, 36, 0.13), 0 6px 7px rgba(50, 36, 26, 0.10);
 }
 
 .room-stage[data-has-composite="true"] .home-decor-item {
-  opacity: 0.55;
+  opacity: 1;
 }
 
 .room-stage[data-composite-object="bathTub"] .home-decor-item[data-decor-id="tvGameToys"],
 .room-stage[data-composite-object="toyBox"] .home-decor-item[data-decor-id="wallSoftFurnishing"],
 .room-stage[data-composite-object="foodBowl"] .home-decor-item[data-decor-id="wallSoftFurnishing"] {
-  opacity: 0;
+  opacity: 1;
 }
 
 .home-scene-objects {
@@ -141,17 +865,24 @@ button {
   height: var(--slot-height, auto);
   z-index: var(--slot-z-index, auto);
   image-rendering: auto;
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
   transition: opacity 180ms ease, transform 240ms var(--spring), filter 240ms ease;
 }
 
-.room-stage[data-scene=""] .scene-object[data-action="play"],
-.room-stage[data-scene=""] .scene-object[data-action="pet"],
-.room-stage[data-scene="feed"] .scene-object[data-action="feed"],
-.room-stage[data-scene="bath"] .scene-object[data-action="bath"],
-.room-stage[data-scene="play"] .scene-object[data-action="play"],
-.room-stage[data-scene="pet"] .scene-object[data-action="pet"] {
+.room-stage[data-room-art-mode="saved-compact-room"] .home-decor-item,
+.room-stage[data-room-art-mode="saved-compact-room"] .home-fixture,
+.room-stage[data-room-art-mode="saved-compact-room"]:not([data-task]) .scene-object,
+.room-stage[data-room-art-mode="saved-compact-room"][data-task] .scene-object {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.room-stage[data-room-art-mode="saved-compact-room"][data-scene="feed"] .scene-object[data-action="feed"],
+.room-stage[data-room-art-mode="saved-compact-room"][data-scene="watchAnime"] .scene-object[data-action="watchAnime"],
+.room-stage[data-room-art-mode="saved-compact-room"][data-scene="playSwitch"] .scene-object[data-action="playSwitch"],
+.room-stage[data-room-art-mode="saved-compact-room"][data-scene="buildBlocks"] .scene-object[data-action="buildBlocks"],
+.room-stage[data-room-art-mode="saved-compact-room"][data-scene="study"] .scene-object[data-action="study"] {
   opacity: 1;
 }
 
@@ -177,18 +908,21 @@ button {
   height: calc(var(--slot-width, 126px) * 0.75);
   transform-origin: 50% 78%;
   transition: transform 240ms var(--spring), filter 240ms ease;
+  filter: drop-shadow(0 18px 0 rgba(74, 47, 30, 0.18)) drop-shadow(0 14px 13px rgba(58, 39, 29, 0.13));
 }
 
 .bath-tub-object {
   height: calc(var(--slot-width, 205px) * 0.75);
   transform-origin: 50% 78%;
   transition: transform 240ms var(--spring), filter 240ms ease;
+  filter: drop-shadow(0 18px 0 rgba(55, 63, 66, 0.14)) drop-shadow(0 14px 13px rgba(41, 48, 51, 0.13));
 }
 
 .sleep-bed-object {
-  height: calc(var(--slot-width, 340px) * 0.66);
+  height: calc(var(--slot-width, 340px) * 1.02);
   transform-origin: 50% 80%;
   transition: transform 240ms var(--spring), filter 240ms ease;
+  filter: drop-shadow(0 26px 0 rgba(86, 45, 56, 0.18)) drop-shadow(0 18px 16px rgba(61, 39, 33, 0.15));
 }
 
 .toy-box-object {
@@ -204,6 +938,25 @@ button {
   transition: opacity 240ms ease, transform 240ms var(--spring), filter 240ms ease;
 }
 
+.media-corner-object,
+.switch-corner-object,
+.study-corner-object {
+  height: calc(var(--slot-width, 210px) * 0.72);
+  transform-origin: 50% 82%;
+}
+
+.blocks-corner-object {
+  height: var(--slot-width, 190px);
+  transform-origin: 50% 82%;
+}
+
+.media-corner-object,
+.switch-corner-object,
+.study-corner-object,
+.blocks-corner-object {
+  opacity: 0;
+}
+
 .food-bowl-object[data-state="full"] .food-bowl-meal-full {
   opacity: 1;
   transform: translateY(-4px);
@@ -214,6 +967,17 @@ button {
   transform: translateY(-2px);
 }
 
+.food-bowl-object[data-state="done"] .food-bowl-meal-low {
+  opacity: 0.62;
+  transform: translateY(1px);
+}
+
+.food-bowl-object[data-state="full"] .food-bowl-front,
+.food-bowl-object[data-state="eating"] .food-bowl-front,
+.food-bowl-object[data-state="done"] .food-bowl-front {
+  opacity: 1;
+}
+
 .food-bowl-object[data-state="done"] {
   filter: saturate(0.92) brightness(0.98);
 }
@@ -221,6 +985,10 @@ button {
 .room-stage[data-scene="feed"] .food-bowl-object {
   transform: translateY(-5px) scale(1.05);
   filter: drop-shadow(0 12px 14px rgba(72, 45, 34, 0.24));
+}
+
+.room-stage[data-scene="feed"][data-interaction-phase="active"] .food-bowl-object {
+  animation: feedTableTinyBounce 760ms ease-in-out infinite;
 }
 
 .bath-tub-object[data-state="ready"] .bath-tub-water,
@@ -352,6 +1120,11 @@ button {
   animation: sleepZ 1.8s ease-in-out infinite;
 }
 
+.room-stage[data-composite-object="sleepBed"] .room-effects::before {
+  opacity: 0;
+  animation: none;
+}
+
 .room-stage[data-effect="play"] .room-effects::before {
   inset: 70px 130px 120px 130px;
   background:
@@ -456,6 +1229,38 @@ button {
   transition: opacity 180ms ease;
 }
 
+.home-care-pose {
+  position: absolute;
+  left: var(--care-pose-left, 50%);
+  bottom: var(--care-pose-bottom, 18px);
+  display: block;
+  width: var(--care-pose-width, 240px);
+  height: auto;
+  image-rendering: auto;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 12px 12px rgba(40, 38, 34, 0.18));
+  transition: opacity 180ms ease, transform 240ms var(--spring);
+}
+
+.room-stage[data-scene="watchAnime"] .home-care-pose {
+  filter: drop-shadow(0 10px 9px rgba(40, 38, 34, 0.14));
+}
+
+.room-stage[data-scene="watchAnime"] .pet-zone::before,
+.room-stage[data-scene="playSwitch"] .pet-zone::before {
+  opacity: 0;
+}
+
+.room-stage[data-scene="watchAnime"] .home-care-pose,
+.room-stage[data-scene="playSwitch"] .home-care-pose {
+  transform: translateX(-50%) rotate(-3deg);
+  transform-origin: 62% 100%;
+  filter: drop-shadow(0 6px 7px rgba(40, 38, 34, 0.09));
+  animation: tvLeanBreath 2.8s ease-in-out infinite;
+}
+
 .room-stage[data-scene="sleep"] #home-pet {
   opacity: 0;
 }
@@ -463,6 +1268,35 @@ button {
 .room-stage[data-scene="sleep"] .home-sleep-pose {
   opacity: 0.98;
   animation: sleepBreath 1.8s ease-in-out infinite;
+}
+
+.room-stage[data-has-care-pose="true"] #home-pet,
+.room-stage[data-has-care-pose="true"] .home-sleep-pose {
+  opacity: 0;
+}
+
+.room-stage[data-has-care-pose="true"] .home-care-pose {
+  opacity: 0.98;
+}
+
+.room-stage[data-scene="sleep"][data-has-care-pose="true"] .home-care-pose {
+  animation: sleepBreath 1.8s ease-in-out infinite;
+}
+
+.room-stage[data-scene="feed"][data-interaction-phase="active"] .home-care-pose {
+  animation: feedNibble 760ms ease-in-out infinite;
+}
+
+.room-stage[data-scene="bath"][data-interaction-phase="active"] .home-care-pose {
+  animation: bathBob 1.1s ease-in-out infinite;
+}
+
+.room-stage[data-scene="play"][data-interaction-phase="active"] .home-care-pose {
+  animation: playBounce 820ms var(--spring) infinite;
+}
+
+.room-stage[data-scene="pet"][data-interaction-phase="active"] .home-care-pose {
+  animation: petHappy 920ms var(--spring) infinite;
 }
 
 .home-action-composite {
@@ -486,7 +1320,72 @@ button {
   opacity: 0.98;
 }
 
+.home-scene-rig-layer {
+  position: absolute;
+  left: var(--scene-rig-left, auto);
+  right: var(--scene-rig-right, auto);
+  bottom: var(--scene-rig-bottom, auto);
+  top: var(--scene-rig-top, auto);
+  z-index: var(--scene-rig-z-index, 8);
+  width: var(--scene-rig-width, 430px);
+  aspect-ratio: var(--scene-rig-aspect-ratio, 4 / 3);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  transform: translateX(var(--scene-rig-translate-x, 0));
+}
+
+.room-stage[data-has-scene-rig="true"] .home-scene-rig-layer {
+  opacity: 1;
+}
+
+.scene-rig-layer {
+  position: absolute;
+  display: block;
+  object-fit: contain;
+  image-rendering: auto;
+  pointer-events: none;
+  transform-origin: 50% 70%;
+}
+
+.scene-rig-layer[data-motion="float-fade"] {
+  animation: sleepRigFloatFade 2.2s ease-in-out infinite;
+}
+
+.scene-rig-layer[data-motion="sleep-zzz"] {
+  animation: sleepZzzFloat 2.4s ease-in-out infinite;
+}
+
+.room-stage[data-scene-rig-disable-pet-canvas="true"] .pet-zone,
+.scene-object[data-scene-rig-disabled="true"] {
+  opacity: 0;
+}
+
+.room-stage[data-scene-rig-disable-action-composite="true"] .home-action-composite {
+  opacity: 0;
+}
+
 .room-stage[data-scene="sleep"][data-has-composite="true"] .home-action-composite {
+  animation: sleepBreath 1.8s ease-in-out infinite;
+}
+
+.room-stage[data-scene="feed"][data-has-composite="true"][data-interaction-phase="active"] .home-action-composite {
+  animation: feedNibble 760ms ease-in-out infinite;
+}
+
+.room-stage[data-scene="bath"][data-has-composite="true"][data-interaction-phase="active"] .home-action-composite {
+  animation: bathBob 1.1s ease-in-out infinite;
+}
+
+.room-stage[data-scene="play"][data-has-composite="true"][data-interaction-phase="active"] .home-action-composite {
+  animation: playBounce 820ms var(--spring) infinite;
+}
+
+.room-stage[data-scene="pet"][data-has-composite="true"][data-interaction-phase="active"] .home-action-composite {
+  animation: petHappy 920ms var(--spring) infinite;
+}
+
+.room-stage[data-scene="sleep"][data-has-composite="true"][data-interaction-phase="active"] .home-action-composite {
   animation: sleepBreath 1.8s ease-in-out infinite;
 }
 
@@ -529,13 +1428,23 @@ button {
   animation: petHappy 920ms var(--spring) infinite;
 }
 
+.room-stage[data-scene="watchAnime"][data-interaction-phase="active"] #home-pet,
+.room-stage[data-scene="playSwitch"][data-interaction-phase="active"] #home-pet,
+.room-stage[data-scene="study"][data-interaction-phase="active"] #home-pet {
+  animation: tvLeanBreath 2.8s ease-in-out infinite;
+}
+
+.room-stage[data-scene="buildBlocks"][data-interaction-phase="active"] #home-pet {
+  animation: playBounce 980ms var(--spring) infinite;
+}
+
 .room-stage[data-interaction-phase="satisfied"] #home-pet {
   animation: feedSatisfied 820ms var(--spring) both;
 }
 
 .room-hotspot {
   position: absolute;
-  z-index: 5;
+  z-index: 7;
   display: grid;
   place-items: center;
   border: 0;
@@ -559,9 +1468,9 @@ button {
 
 .room-hotspot:hover {
   opacity: 1;
-  background: radial-gradient(circle at 50% 52%, rgba(255, 244, 172, 0.22), transparent 52%);
+  background: transparent;
   box-shadow: none;
-  transform: translateY(-4px) scale(1.07);
+  transform: translateY(-2px);
 }
 
 .room-hotspot:active {
@@ -569,11 +1478,37 @@ button {
   transition-duration: 80ms;
 }
 
-.room-hotspot::after,
 .scene-chip::after,
 .decor-chip::after,
 .refresh-button::after {
   content: none;
+}
+
+.room-hotspot::after {
+  content: none;
+  position: absolute;
+  inset: 8px;
+  border-radius: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.54);
+  background: radial-gradient(circle at 50% 58%, rgba(255, 239, 170, 0.18), transparent 62%);
+  box-shadow: 0 0 0 1px rgba(226, 154, 92, 0.18), 0 10px 22px rgba(72, 50, 35, 0.10);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.96);
+  transition: opacity 160ms ease, transform 180ms var(--spring);
+}
+
+.room-hotspot:hover::after,
+.room-hotspot:focus-visible::after,
+.room-hotspot.active::after,
+.room-hotspot.needs-attention::after,
+.room-hotspot.urgent-attention::after {
+  opacity: 0;
+  transform: scale(1);
+}
+
+.room-hotspot:focus-visible {
+  outline: none;
 }
 
 .room-hotspot.active {
@@ -583,50 +1518,78 @@ button {
 }
 
 .room-hotspot.needs-attention {
-  animation: pulseNeed 1.4s ease-in-out infinite;
+  animation: none;
   opacity: 1;
 }
 
 .room-hotspot.urgent-attention {
-  animation: pulseNeed 0.85s ease-in-out infinite;
-  filter: drop-shadow(0 0 8px rgba(214, 104, 125, 0.65));
+  animation: none;
+  filter: none;
   opacity: 1;
 }
 
 .hotspot-food {
-  left: 2%;
-  bottom: 21%;
-  width: 160px;
-  height: 120px;
+  left: 5.5%;
+  bottom: 7%;
+  width: 210px;
+  height: 150px;
+}
+
+.hotspot-tv {
+  left: 61%;
+  top: 40%;
+  width: 245px;
+  height: 135px;
+}
+
+.hotspot-switch {
+  left: 61%;
+  bottom: 22%;
+  width: 245px;
+  height: 126px;
+}
+
+.hotspot-blocks {
+  left: 51%;
+  bottom: 7%;
+  width: 220px;
+  height: 135px;
+}
+
+.hotspot-study {
+  left: 60%;
+  bottom: 14%;
+  width: 310px;
+  height: 150px;
 }
 
 .hotspot-bath {
-  right: 1.5%;
-  bottom: 10%;
-  width: 210px;
-  height: 170px;
+  left: 87%;
+  bottom: 7%;
+  width: 260px;
+  height: 205px;
 }
 
 .hotspot-bed {
-  right: 10%;
-  bottom: 30%;
-  width: 340px;
-  height: 155px;
+  left: 77%;
+  bottom: 25%;
+  width: 360px;
+  height: 220px;
 }
 
 .hotspot-toy {
-  left: 0.5%;
-  bottom: 0.5%;
-  width: 190px;
-  height: 170px;
+  left: 49%;
+  bottom: 27%;
+  width: 235px;
+  height: 205px;
 }
 
 .hotspot-heart {
-  left: calc(50% - 80px);
-  bottom: 45%;
-  width: 160px;
-  height: 140px;
-  opacity: 0.5;
+  left: 31%;
+  bottom: 19%;
+  width: 210px;
+  height: 190px;
+  opacity: 0.68;
 }
 
 .room-stage[data-scene="pet"] .hotspot-heart {
@@ -1030,6 +1993,48 @@ button {
   50%       { box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 8px rgba(214, 104, 125, 0.18); }
 }
 
+@keyframes tvGamePulse {
+  0%, 100% { filter: saturate(1.05); transform: scale(1); }
+  50% { filter: saturate(1.3) brightness(1.08); transform: scale(1.035); }
+}
+
+@keyframes tvCloudDrift {
+  from { transform: translateX(0); }
+  to { transform: translateX(360%); }
+}
+
+@keyframes tvSunPulse {
+  0%, 100% { transform: scale(0.96); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes tvCharacterWalk {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(-2deg); }
+  45% { transform: translateX(95%) translateY(-5%) rotate(3deg); }
+  70% { transform: translateX(62%) translateY(0) rotate(-1deg); }
+}
+
+@keyframes tvFlowerBob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10%) scale(1.08); }
+}
+
+@keyframes tvLaneMove {
+  from { transform: translateY(-45%) rotate(14deg); }
+  to { transform: translateY(38%) rotate(14deg); }
+}
+
+@keyframes tvKartSteer {
+  0%, 100% { transform: translateX(-7%) rotate(-2deg); }
+  50% { transform: translateX(9%) rotate(3deg); }
+}
+
+@keyframes tvCoinDrop {
+  from { transform: translateY(-90%) scale(0.85); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateY(260%) scale(1.08); opacity: 0; }
+}
+
 /* ===== room-controls 折叠面板 ===== */
 .room-controls {
   position: absolute;
@@ -1159,6 +2164,75 @@ button {
 .game-menu button:hover {
   background: rgba(255,255,255,0.92);
   transform: translateX(-3px);
+}
+
+.care-dock {
+  position: absolute;
+  left: calc(50% - 52px);
+  bottom: 12px;
+  z-index: 9;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: min(650px, calc(100% - 270px));
+  gap: 6px;
+  padding: 8px;
+  overflow: visible;
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  background: rgba(255, 253, 246, 0.70);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(16px);
+  transform: translateX(-50%);
+}
+
+.care-dock[hidden] {
+  display: none !important;
+}
+
+.companion-action {
+  display: grid;
+  grid-template-columns: 29px max-content;
+  align-items: center;
+  gap: 5px;
+  min-width: max-content;
+  height: 36px;
+  padding: 3px 7px 3px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  border-radius: 13px;
+  color: #273a42;
+  background: rgba(255, 255, 255, 0.56);
+  box-shadow: 0 5px 12px rgba(31, 52, 58, 0.08);
+  cursor: pointer;
+  transition: transform 180ms var(--spring), background 160ms ease, box-shadow 160ms ease;
+}
+
+.companion-action:hover,
+.companion-action:focus-visible {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-3px);
+  outline: none;
+}
+
+.companion-action.recommended {
+  box-shadow: 0 0 0 2px rgba(214, 104, 125, 0.22), var(--shadow-sm);
+}
+
+.companion-action .action-visual {
+  width: 29px;
+  height: 29px;
+  border-radius: 10px;
+  background-color: rgba(255, 248, 230, 0.72);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.companion-action .action-label {
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
 }
 
 /* ===== 游戏覆盖层 ===== */
@@ -1299,6 +2373,15 @@ button {
   }
 }
 
+@keyframes feedTableTinyBounce {
+  0%, 100% {
+    transform: translateY(-5px) scale(1.05);
+  }
+  45% {
+    transform: translateY(-8px) scale(1.055);
+  }
+}
+
 @keyframes feedSatisfied {
   0% {
     transform: translateY(0) scale(1);
@@ -1409,6 +2492,28 @@ button {
   100% {
     opacity: 0;
     transform: translateY(-18px) scale(1.1);
+  }
+}
+
+@keyframes sleepRigFloatFade {
+  0%, 100% {
+    opacity: 0.18;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.42;
+    transform: translateY(-3px) scale(1.02);
+  }
+}
+
+@keyframes sleepZzzFloat {
+  0%, 100% {
+    opacity: 0.62;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-5px) scale(1.04);
   }
 }
 

@@ -1,35 +1,60 @@
 // render-engine.js - Canvas 渲染主循环（drawFrame, 动画帧计算）
-import { state, canvas, ctx, bubble, feedBtn, bubbleAvatar, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, BREATH_PERIOD, BREATH_AMPLITUDE, GLANCE_DURATION, GLANCE_MAX_OFFSET, GLANCE_INTERVAL_MIN, GLANCE_INTERVAL_MAX, playSound, reactionState, getPetCell, getPetStateSpec, registerSpeechStartHook } from './core-state.js';
+import { state, canvas, ctx, bubble, feedBtn, bubbleAvatar, CELL_W, CELL_H, FEED_SCALE_DURATION, FEED_SCALE_MAX, BREATH_PERIOD, BREATH_AMPLITUDE, GLANCE_DURATION, GLANCE_MAX_OFFSET, GLANCE_INTERVAL_MIN, GLANCE_INTERVAL_MAX, reactionState, getPetCell, getPetStateSpec } from './core-state.js';
+import { playSound } from './audio.js';
+import { registerSpeechStartHook } from './speech-queue.js';
 import { getEmotionExpression, yoyoEmotion } from './emotion-system.js';
 import { updateSeasonalParticles, drawSeasonalParticles } from './weather-seasonal.js';
 import { startupAnim, updateStartupAnimation, drawStartupParticles } from './startup-animation.js';
+
+const expressionControls = globalThis.YOYO_EXPRESSION_CONTROLS || {};
+const normalizeExpressionPreset = expressionControls.normalizeExpressionPreset || ((expr, fallback = 'neutral') => expr || fallback);
+const runtimeExpressionForPreset = expressionControls.runtimeExpressionForPreset || ((expr, fallback = 'neutral') => expr || fallback);
+const expressionForBehavior = expressionControls.expressionForBehavior || ((behavior) => {
+  const fallbackMap = {
+    pet: 'happy',
+    feed: 'happy',
+    bath: 'happy',
+    sleep: 'sleepy',
+    play: 'happy',
+    whip: 'sad',
+    talk: 'talk_small',
+  };
+  return fallbackMap[behavior] || 'neutral';
+});
 
 // ── 微表情 override ──────────────────────────────────────────────────────────
 // 台词开始时由 setSpeechExpression() 设置，自发微表情由 triggerMicroExpr() 设置
 // resolveAutoExpression() 最高优先级读取
 let _microExprOverride = null;
+let _microExprRuntimeOverride = null;
 let _microExprEndMs = 0;
 
+function applyBubbleAvatarExpression(expr, durationMs) {
+  if (!bubbleAvatar) return;
+  const preset = normalizeExpressionPreset(expr);
+  const runtimeExpr = runtimeExpressionForPreset(expr || preset);
+  bubbleAvatar.setAttribute('data-preset', preset);
+  bubbleAvatar.setAttribute('data-expr', runtimeExpr);
+  setTimeout(() => {
+    if (Date.now() >= _microExprEndMs) {
+      bubbleAvatar.removeAttribute('data-preset');
+      bubbleAvatar.removeAttribute('data-expr');
+    }
+  }, durationMs);
+}
+
 export function setSpeechExpression(expr, durationMs) {
-  _microExprOverride = expr;
+  _microExprOverride = normalizeExpressionPreset(expr);
+  _microExprRuntimeOverride = runtimeExpressionForPreset(expr || _microExprOverride);
   _microExprEndMs = Date.now() + durationMs;
-  if (bubbleAvatar) {
-    bubbleAvatar.setAttribute('data-expr', expr);
-    setTimeout(() => {
-      if (Date.now() >= _microExprEndMs) bubbleAvatar.removeAttribute('data-expr');
-    }, durationMs);
-  }
+  applyBubbleAvatarExpression(expr, durationMs);
 }
 
 export function triggerMicroExpr(expr, durationMs = 1500) {
-  _microExprOverride = expr;
+  _microExprOverride = normalizeExpressionPreset(expr);
+  _microExprRuntimeOverride = runtimeExpressionForPreset(expr || _microExprOverride);
   _microExprEndMs = Date.now() + durationMs;
-  if (bubbleAvatar) {
-    bubbleAvatar.setAttribute('data-expr', expr);
-    setTimeout(() => {
-      if (Date.now() >= _microExprEndMs) bubbleAvatar.removeAttribute('data-expr');
-    }, durationMs);
-  }
+  applyBubbleAvatarExpression(expr, durationMs);
 }
 
 // 根据台词文字内容推断最匹配的表情
@@ -447,6 +472,18 @@ function getClimbVisualPose(now) {
   return { x: side * 2, y: bob * 1.4, rotation: side * 0.04 + bob * 0.015, scaleX: 1.0, scaleY: 1.0 };
 }
 
+function getRunningPose(now, direction) {
+  const step = Math.sin((now / 1000) * 22);
+  const lift = Math.abs(step);
+  return {
+    x: direction * (1.8 + lift * 1.2),
+    y: -lift * 5.5,
+    rotation: direction * (0.055 + lift * 0.035),
+    scaleX: 1.045 + lift * 0.025,
+    scaleY: 0.985 - lift * 0.035,
+  };
+}
+
 function drawClimbBackdrop(ctx, logW, logH, edgeType, phase, now) {
   const t = now / 1000;
   ctx.save();
@@ -841,60 +878,65 @@ const FACE_ANCHOR = { x: 64, y: 43, width: 64, height: 44 };
 function resolveAutoExpression() {
   // 微表情 override 优先级最高（台词驱动 or 自发）
   if (_microExprOverride && Date.now() < _microExprEndMs) {
-    return _microExprOverride;
+    return _microExprRuntimeOverride || _microExprOverride;
   }
   _microExprOverride = null;
+  _microExprRuntimeOverride = null;
 
   if (reactionState.whip) {
     if (reactionState.whip.phase === 'hit') return 'crying';
-    if (reactionState.whip.phase === 'rub') return 'sad';
-    return yoyoEmotion.dominance > 58 ? 'angry' : 'sad';
+    if (reactionState.whip.phase === 'rub') return expressionForBehavior('whip');
+    return yoyoEmotion.dominance > 58 ? expressionForBehavior('whip', { preferFallback: true }) : expressionForBehavior('whip');
   }
   if (reactionState.feed) {
-    if (reactionState.feed.phase === 'excited') return 'sparkle';
+    if (reactionState.feed.phase === 'excited') return expressionForBehavior('play', { preferFallback: true });
     if (reactionState.feed.phase === 'satisfied') return 'heart';
-    return 'happy';
+    return expressionForBehavior('feed');
   }
   if (reactionState.pat) {
     if (reactionState.pat.phase === 'purring') return 'heart';
-    return reactionState.pat.count >= 2 ? 'shy' : 'happy';
+    return reactionState.pat.count >= 2
+      ? expressionForBehavior('pet', { preferFallback: true })
+      : expressionForBehavior('pet');
   }
   switch (state.stateName) {
     case 'dancing':
     case 'clapping':
-      return 'sparkle';
+      return expressionForBehavior('play', { preferFallback: true });
     case 'typingCompanion':
-      return 'happy';
+      return expressionForBehavior('talk');
     case 'swing': {
       const swingPose = getSwingPose(Date.now());
-      if (swingPose.ramp > 0.85 && Math.abs(swingPose.angle) > SWING_MAX_ANGLE * 0.78) return 'sparkle';
-      return 'happy';
+      if (swingPose.ramp > 0.85 && Math.abs(swingPose.angle) > SWING_MAX_ANGLE * 0.78) {
+        return expressionForBehavior('play', { preferFallback: true });
+      }
+      return expressionForBehavior('play');
     }
     case 'swimming':
-      return 'sparkle';
+      return expressionForBehavior('play', { preferFallback: true });
     case 'fanCooling':
     case 'airConditioning':
-      return 'happy';
+      return expressionForBehavior('bath');
     case 'sofaLying':
-      return 'sleepy';
+      return expressionForBehavior('sleep');
     case 'whip':
-      return 'sad';
+      return expressionForBehavior('whip');
     case 'waiting':
-      if (state.hungerPromptStartedAt && feedBtn.classList.contains('show')) return 'sad';
-      return 'happy';
+      if (state.hungerPromptStartedAt && feedBtn.classList.contains('show')) return expressionForBehavior('whip');
+      return expressionForBehavior('pet');
     case 'bashful':
-      return 'shy';
+      return expressionForBehavior('pet', { preferFallback: true });
     case 'yawning':
     case 'sleeping':
-      return 'sleepy';
+      return expressionForBehavior('sleep');
     case 'crying':
     case 'failed':
-      return 'sad';
+      return expressionForBehavior('whip');
     case 'dizzy':
       return 'dizzy';
     case 'gifting':
     case 'petting':
-      return 'happy';
+      return expressionForBehavior('pet');
     default:
       return getEmotionExpression();
   }
@@ -990,7 +1032,7 @@ function drawBlush(drawCtx, r, intensity = 1) {
 function drawExpressionFace(drawCtx, row, offsetX, offsetY, drawW, drawH, now) {
   if (!ENABLE_DYNAMIC_FACE) return;
   if (!FACE_ROWS.has(row)) return;
-  const expr = resolveAutoExpression();
+  const expr = runtimeExpressionForPreset(resolveAutoExpression());
   const r = faceRect(offsetX, offsetY, drawW, drawH);
   const t = now / 1000;
   const beat = 0.5 + Math.sin(t * 6) * 0.5;
@@ -1025,7 +1067,7 @@ function drawExpressionFace(drawCtx, row, offsetX, offsetY, drawW, drawH, now) {
     drawCtx.arc(mouthX, mouthY + r.h * 0.03, r.w * 0.035, 0, Math.PI * 2);
     drawCtx.stroke();
     drawBlush(drawCtx, r, 1.9);
-  } else if (expr === 'sparkle') {
+  } else if (expr === 'sparkle' || expr === 'surprised') {
     drawStarShape(drawCtx, leftX, eyeY, r.w * (0.085 + beat * 0.012), '#ffd43b');
     drawStarShape(drawCtx, rightX, eyeY, r.w * (0.085 + beat * 0.012), '#ffd43b');
     strokeFace(drawCtx, '#d99400', Math.max(0.8, r.s * 1.2));
@@ -1341,6 +1383,11 @@ function draw(now) {
   const usesIntegratedScene = INTEGRATED_SCENE_STATES.has(state.stateName);
   const isHungryPromptActive = Boolean(state.hungerPromptStartedAt && feedBtn.classList.contains('show'));
   const isClimbingVisual = state.climbPhase && state.climbPhase !== 'idle';
+  const runningPose = state.stateName === 'runningRight'
+    ? getRunningPose(now, 1)
+    : state.stateName === 'runningLeft'
+      ? getRunningPose(now, -1)
+      : null;
   const dancePose = isDancing && !danceSequence ? getDancePose(now) : null;
   const swingPose = isSwinging && !usesIntegratedScene ? getSwingPose(now) : null;
   const fanPose = isFanCooling && !usesIntegratedScene ? getFanPose(now) : null;
@@ -1393,6 +1440,14 @@ function draw(now) {
     ctx.rotate(dancePose.rotation);
     ctx.scale(dancePose.scaleX, dancePose.scaleY);
     ctx.translate(-dancePivotX, -dancePivotY);
+  }
+  if (runningPose) {
+    const runPivotX = offsetX + drawW * 0.5;
+    const runPivotY = offsetY + drawH * 0.82;
+    ctx.translate(runPivotX + runningPose.x, runPivotY + runningPose.y);
+    ctx.rotate(runningPose.rotation);
+    ctx.scale(runningPose.scaleX, runningPose.scaleY);
+    ctx.translate(-runPivotX, -runPivotY);
   }
   if (swingPose) {
     ctx.translate(swingPivotX, swingPivotY);
@@ -1463,8 +1518,8 @@ function draw(now) {
   ctx.restore();
 
   // 绘制特效锚点
-  const petCX = offsetX + drawW / 2 + (dancePose?.x || 0) + (swingPose?.x || 0) + (fanPose?.x || 0) + (swimmingPose?.x || 0) + (climbPose?.x || 0) + (hungryPose?.x || 0) + (whipPose?.x || 0);
-  const petCY = offsetY + drawH / 2 + (dancePose?.y || 0) + (swingPose?.y || 0) + (fanPose?.y || 0) + (swimmingPose?.y || 0) + (climbPose?.y || 0) + (hungryPose?.y || 0) + (whipPose?.y || 0);
+  const petCX = offsetX + drawW / 2 + (dancePose?.x || 0) + (runningPose?.x || 0) + (swingPose?.x || 0) + (fanPose?.x || 0) + (swimmingPose?.x || 0) + (climbPose?.x || 0) + (hungryPose?.x || 0) + (whipPose?.x || 0);
+  const petCY = offsetY + drawH / 2 + (dancePose?.y || 0) + (runningPose?.y || 0) + (swingPose?.y || 0) + (fanPose?.y || 0) + (swimmingPose?.y || 0) + (climbPose?.y || 0) + (hungryPose?.y || 0) + (whipPose?.y || 0);
 
   if (isDancing && !danceSequence) {
     drawDanceForeground(ctx, petCX, petCY, now);

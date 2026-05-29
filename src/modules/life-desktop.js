@@ -1,4 +1,5 @@
-import { state, setState, say, speechQueue, SPEECH_PRIORITY, globalTimers, isStartupQuiet, careCue, feedBtn } from './core-state.js';
+import { state, setState, globalTimers, isStartupQuiet, careCue, feedBtn } from './core-state.js';
+import { say, speechQueue, SPEECH_PRIORITY } from './speech-queue.js';
 
 const LIFE_POLL_INTERVAL = 5 * 60 * 1000;
 const NEED_PROMPT_COOLDOWN = 22 * 60 * 1000;
@@ -10,6 +11,10 @@ const ACTION_CUE = {
   sleep: { icon: '☾', label: '休息一下', stateName: 'sleeping' },
   play: { icon: '☆', label: '陪她玩', stateName: 'dancing' },
   pet: { icon: '♡', label: '摸摸她', stateName: 'petting' },
+  watchAnime: { icon: '▣', label: '看动画', stateName: 'watchTV' },
+  playSwitch: { icon: '◇', label: '玩 Switch', stateName: 'dancing' },
+  buildBlocks: { icon: '▦', label: '叠积木', stateName: 'review' },
+  study: { icon: '◎', label: '学习一下', stateName: 'review' },
 };
 
 let lastPromptAt = 0;

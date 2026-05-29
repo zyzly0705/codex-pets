@@ -1,0 +1,58 @@
+{
+  "id": "yoyo-v3",
+  "date": "2026-05-29",
+  "character": {
+    "identity": "human-like little-girl desktop companion",
+    "runtimeDriver": "pixi-spritesheet-compat",
+    "description": "Yoyo is a cute 3-5 year old chibi human companion with a large round head, short childlike limbs, straight black bangs, a small top bun, navy-and-red outfit language, soft friendly face, and clean 2D proportions."
+  },
+  "style": {
+    "name": "compact lively clean-2d chibi room",
+    "rendering": "polished clean 2D illustration with soft painterly pixel-like detail, readable at desktop-pet scale",
+    "camera": "front-facing 2.5D room stage, fixed 1080x720 composition",
+    "lighting": "warm, cozy, bright, high-energy, no cinematic darkness",
+    "palette": [
+      "mint teal wall",
+      "warm honey wood",
+      "soft pink accents",
+      "cream rug",
+      "small golden lights"
+    ]
+  },
+  "rooms": {
+    "size": {
+      "width": 1080,
+      "height": 720
+    },
+    "safeZone": {
+      "centerRug": "clear floor/rug space for Yoyo between x=380..680 and y=430..650",
+      "rightControls": "avoid critical detail in the lower-right 170x210 UI zone",
+      "leftButtons": "avoid critical detail in the upper-left 110x110 and lower-left 110x110 UI zones"
+    }
+  },
+  "props": {
+    "background": "transparent PNG/WebP after chroma-key removal",
+    "maxWidth": 360,
+    "maxHeight": 260,
+    "shadow": "soft painted contact shadow only when embedded in composite, no shadow in transparent prop source"
+  },
+  "mustPreserve": [
+    "compact lively room-stage-v2 mood",
+    "cozy shelves and plants",
+    "large usable center rug",
+    "desktop-pet stage readability",
+    "Yoyo as a human companion"
+  ],
+  "avoid": [
+    "dog bowl",
+    "kibble",
+    "paw motif",
+    "animal bed",
+    "animal ears",
+    "tail",
+    "pet kennel",
+    "large realistic full-room interior",
+    "empty quiet hotel room",
+    "dark blurred stock-art atmosphere"
+  ]
+}

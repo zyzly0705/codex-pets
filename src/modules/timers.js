@@ -1,5 +1,8 @@
 // timers.js - 所有定时器统一管理（dailyReminders, weather refresh 等）
-import { state, STATES, globalTimers, say, setState, playSound, randomFrom, hasDailyFlag, setDailyFlag } from './core-state.js';
+import { state, STATES, globalTimers, setState, hasDailyFlag, setDailyFlag } from './core-state.js';
+import { say } from './speech-queue.js';
+import { playSound } from './audio.js';
+import { randomFrom } from './utils.js';
 import { stateMachine } from './state-machine.js';
 import { yoyoMemory, saveMemory, addXP, incrementAchievementStat, trackGrowthStat } from './growth-system.js';
 import { updateEmotion, yoyoEmotion, getEmotionLabel } from './emotion-system.js';

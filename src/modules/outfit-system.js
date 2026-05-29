@@ -1,5 +1,8 @@
 // outfit-system.js - 完整 look 套装切换
-import { state, say, playSound, localFileUrl } from './core-state.js';
+import { state } from './core-state.js';
+import { say } from './speech-queue.js';
+import { playSound } from './audio.js';
+import { localFileUrl } from './utils.js';
 import { set } from './store-client.js';
 import { logOutfitLayers } from './debug-log.js';
 

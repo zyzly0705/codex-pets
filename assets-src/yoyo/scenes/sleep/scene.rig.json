@@ -1,0 +1,111 @@
+{
+  "id": "sleep",
+  "version": 4,
+  "mode": "layeredRig",
+  "stage": {
+    "width": 512,
+    "height": 384
+  },
+  "runtime": {
+    "disablePetCanvas": true,
+    "disableLegacyObjects": [
+      "sleepBed"
+    ],
+    "disableActionComposite": true,
+    "containsCharacter": true,
+    "containsProps": [
+      "bed",
+      "blanket"
+    ],
+    "nativeBleedSplit": true
+  },
+  "layers": [
+    {
+      "id": "soft-shadow",
+      "role": "shadow",
+      "src": "soft-shadow.webp",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 384,
+      "z": 5
+    },
+    {
+      "id": "bed-back-bleed",
+      "role": "propBack",
+      "src": "bed-back-bleed.webp",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 384,
+      "z": 10
+    },
+    {
+      "id": "yoyo-visible-bleed",
+      "role": "characterVisible",
+      "src": "yoyo-visible-bleed.webp",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 384,
+      "z": 20
+    },
+    {
+      "id": "blanket-front-bleed",
+      "role": "propFront",
+      "src": "blanket-front-bleed.webp",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 384,
+      "z": 30
+    },
+    {
+      "id": "bed-front-bleed",
+      "role": "propFront",
+      "src": "bed-front-bleed.webp",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 384,
+      "z": 35
+    },
+    {
+      "id": "sleep-micro-expression",
+      "role": "microExpression",
+      "src": "sleep-micro-expression.webp",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 384,
+      "z": 40,
+      "motion": "sleep-zzz"
+    }
+  ],
+  "motion": {
+    "breathing": {
+      "targets": [
+        "yoyo-visible",
+        "blanket-front"
+      ],
+      "periodMs": 1800,
+      "translateY": 1.5,
+      "scaleY": 1.006
+    },
+    "microExpression": {
+      "targets": [
+        "sleep-micro-expression"
+      ],
+      "periodMs": 2400,
+      "translateY": -5,
+      "alpha": [
+        0.62,
+        0.9
+      ]
+    }
+  },
+  "source": {
+    "baseline": "assets-src/yoyo/scenes/sleep/sources/sleep-under-blanket-v2.png",
+    "note": "Runtime uses a bleed-overlap native split derived from the corrected under-blanket baseline. Neighboring layers intentionally overlap a few pixels to avoid scale seams in Home; do not animate body/blanket separately until hand-authored native layers replace the bleed split."
+  }
+}

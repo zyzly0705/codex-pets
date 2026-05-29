@@ -1,6 +1,8 @@
 // renderer.js - 主入口：import 所有模块，初始化，启动
 import { initStore, get, set, batch } from './modules/store-client.js';
-import { state, globalTimers, say, setState, randomFrom, initCoreState, isStartupQuiet } from './modules/core-state.js';
+import { state, globalTimers, setState, initCoreState, isStartupQuiet } from './modules/core-state.js';
+import { say } from './modules/speech-queue.js';
+import { randomFrom } from './modules/utils.js';
 import { stateMachine } from './modules/state-machine.js';
 import { updateEmotion } from './modules/emotion-system.js';
 import { memoryOnStartup, memoryDrivenGreeting, initCheckinSystem, yoyoGrowth, addXP, trackFeatureUsed, initMemory, initGrowth } from './modules/growth-system.js';
@@ -18,6 +20,9 @@ import { initCompanionPlanner } from './modules/companion-planner.js';
 import { initDailyMemory, getStartupMemoryLine } from './modules/daily-memory.js';
 import { adoptManualEffect } from './modules/performance-script.js';
 import { initLifeDesktop } from './modules/life-desktop.js';
+import { startDesktopRoaming } from './modules/desktop-roaming.js';
+import { startDesktopPixiRunner } from './modules/desktop-pixi-runner.js';
+import { playDesktopAction } from './modules/desktop-toys.js';
 
 // ===== 一次性 localStorage → Store 数据迁移 =====
 function migrateFromLocalStorage() {
@@ -135,12 +140,19 @@ if (window.petApi && window.petApi.onManualEffect) {
 if (window.petApi && window.petApi.onLifeCareFeedback) {
   window.petApi.onLifeCareFeedback((data = {}) => {
     const duration = 5200;
-    if (data.stateName) {
+    const played = !data.blocked && data.action && playDesktopAction(data.action, {
+      ...(data.desktopAction || {}),
+      stateName: data.stateName,
+      line: data.message,
+      source: 'life-care-feedback',
+      durationMs: data.desktopAction?.durationMs || duration,
+    });
+    if (!played && data.stateName) {
       setState(data.stateName);
       state.manualEffectUntil = Date.now() + duration;
     }
     state.lastInteractionTime = Date.now();
-    say(data.message || 'Yoyo收到照顾啦～', duration);
+    if (!played) say(data.message || 'Yoyo收到照顾啦～', duration);
     trackFeatureUsed(`life:${data.action || 'care'}`);
   });
 }
@@ -165,7 +177,19 @@ async function init() {
   // 4. 用 store 中的设置覆盖运行时状态
   const settings = get('settings');
   if (settings) state.yoyoSettings = settings;
-  state.startupQuietUntil = Date.now() + 90000;
+  const desktopRunTestEnabled = window.petApi?.desktopRunTestEnabled
+    ? await window.petApi.desktopRunTestEnabled()
+    : false;
+  const live2dDemoEnabled = window.petApi?.live2dDemoEnabled
+    ? await window.petApi.live2dDemoEnabled()
+    : false;
+  state.startupQuietUntil = desktopRunTestEnabled ? 0 : Date.now() + 90000;
+  const appRoot = document.getElementById('app');
+  const live2dDemoFrame = document.getElementById('live2d-demo-frame');
+  if (appRoot) appRoot.dataset.live2dDemo = live2dDemoEnabled ? 'true' : 'false';
+  if (live2dDemoEnabled && live2dDemoFrame) {
+    live2dDemoFrame.src = 'http://127.0.0.1:5177/playground/index.html';
+  }
 
   // 5. 首次启动引导（改用 store 而非 localStorage）
   if (!get('hasSeenGuide')) {
@@ -229,6 +253,8 @@ async function init() {
 
   // 启动行为决策引擎
   startBehaviorEngine();
+  if (!live2dDemoEnabled) startDesktopPixiRunner();
+  if (!live2dDemoEnabled) startDesktopRoaming();
 
   // 开发调试面板（YOYO_BEHAVIOR_DEBUG=1 时启用）
   await initBehaviorDebugPanel();

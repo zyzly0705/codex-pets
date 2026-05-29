@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "document": {
+    "width": 1254,
+    "height": 1254
+  },
+  "source": "assets-src/yoyo/rig/live2d-yoyo-v4",
+  "layers": [
+    {
+      "name": "hair_back",
+      "file": "head-hair_back.png",
+      "left": 420,
+      "top": 120,
+      "width": 408,
+      "height": 438,
+      "group": "Head"
+    },
+    {
+      "name": "bun",
+      "file": "head-bun.png",
+      "left": 520,
+      "top": 120,
+      "width": 205,
+      "height": 168,
+      "group": "Head"
+    },
+    {
+      "name": "hair_front",
+      "file": "head-hair_front.png",
+      "left": 448,
+      "top": 182,
+      "width": 350,
+      "height": 335,
+      "group": "Head"
+    },
+    {
+      "name": "bangs_center",
+      "file": "head-bangs_center.png",
+      "left": 506,
+      "top": 245,
+      "width": 226,
+      "height": 122,
+      "group": "Head"
+    },
+    {
+      "name": "side_hair_left",
+      "file": "head-side_hair_left.png",
+      "left": 450,
+      "top": 352,
+      "width": 98,
+      "height": 214,
+      "group": "Head"
+    },
+    {
+      "name": "side_hair_right",
+      "file": "head-side_hair_right.png",
+      "left": 701,
+      "top": 352,
+      "width": 98,
+      "height": 214,
+      "group": "Head"
+    },
+    {
+      "name": "face_base",
+      "file": "face-face_base.png",
+      "left": 467,
+      "top": 242,
+      "width": 314,
+      "height": 352,
+      "group": "Face"
+    },
+    {
+      "name": "eye_left_open",
+      "file": "face-eye_left_open.png",
+      "left": 476,
+      "top": 398,
+      "width": 118,
+      "height": 102,
+      "group": "Face"
+    },
+    {
+      "name": "eye_right_open",
+      "file": "face-eye_right_open.png",
+      "left": 644,
+      "top": 398,
+      "width": 118,
+      "height": 102,
+      "group": "Face"
+    },
+    {
+      "name": "brow_left",
+      "file": "face-brow_left.png",
+      "left": 519,
+      "top": 305,
+      "width": 92,
+      "height": 42,
+      "group": "Face"
+    },
+    {
+      "name": "brow_right",
+      "file": "face-brow_right.png",
+      "left": 639,
+      "top": 305,
+      "width": 92,
+      "height": 42,
+      "group": "Face"
+    },
+    {
+      "name": "blush_left",
+      "file": "face-blush_left.png",
+      "left": 509,
+      "top": 414,
+      "width": 74,
+      "height": 58,
+      "group": "Face"
+    },
+    {
+      "name": "blush_right",
+      "file": "face-blush_right.png",
+      "left": 665,
+      "top": 414,
+      "width": 74,
+      "height": 58,
+      "group": "Face"
+    },
+    {
+      "name": "mouth_smile",
+      "file": "face-mouth_smile.png",
+      "left": 584,
+      "top": 487,
+      "width": 110,
+      "height": 92,
+      "group": "Face"
+    },
+    {
+      "name": "collar",
+      "file": "body-collar.png",
+      "left": 530,
+      "top": 519,
+      "width": 190,
+      "height": 112,
+      "group": "Body"
+    },
+    {
+      "name": "bow_left",
+      "file": "body-bow_left.png",
+      "left": 541,
+      "top": 552,
+      "width": 72,
+      "height": 75,
+      "group": "Body"
+    },
+    {
+      "name": "bow_center",
+      "file": "body-bow_center.png",
+      "left": 595,
+      "top": 552,
+      "width": 63,
+      "height": 82,
+      "group": "Body"
+    },
+    {
+      "name": "bow_right",
+      "file": "body-bow_right.png",
+      "left": 640,
+      "top": 552,
+      "width": 72,
+      "height": 75,
+      "group": "Body"
+    },
+    {
+      "name": "torso_top",
+      "file": "body-torso_top.png",
+      "left": 469,
+      "top": 523,
+      "width": 318,
+      "height": 232,
+      "group": "Body"
+    },
+    {
+      "name": "skirt",
+      "file": "body-skirt.png",
+      "left": 474,
+      "top": 673,
+      "width": 307,
+      "height": 215,
+      "group": "Body"
+    },
+    {
+      "name": "button_left",
+      "file": "body-button_left.png",
+      "left": 543,
+      "top": 622,
+      "width": 42,
+      "height": 42,
+      "group": "Body"
+    },
+    {
+      "name": "button_right",
+      "file": "body-button_right.png",
+      "left": 672,
+      "top": 622,
+      "width": 42,
+      "height": 42,
+      "group": "Body"
+    },
+    {
+      "name": "arm_left",
+      "file": "arms-arm_left.png",
+      "left": 419,
+      "top": 515,
+      "width": 154,
+      "height": 351,
+      "group": "Arms"
+    },
+    {
+      "name": "hand_left",
+      "file": "arms-hand_left.png",
+      "left": 423,
+      "top": 735,
+      "width": 122,
+      "height": 120,
+      "group": "Arms"
+    },
+    {
+      "name": "arm_right",
+      "file": "arms-arm_right.png",
+      "left": 677,
+      "top": 515,
+      "width": 154,
+      "height": 351,
+      "group": "Arms"
+    },
+    {
+      "name": "hand_right",
+      "file": "arms-hand_right.png",
+      "left": 707,
+      "top": 735,
+      "width": 122,
+      "height": 120,
+      "group": "Arms"
+    },
+    {
+      "name": "leg_left",
+      "file": "legs-leg_left.png",
+      "left": 505,
+      "top": 838,
+      "width": 149,
+      "height": 188,
+      "group": "Legs"
+    },
+    {
+      "name": "shoe_left",
+      "file": "legs-shoe_left.png",
+      "left": 503,
+      "top": 957,
+      "width": 125,
+      "height": 72,
+      "group": "Legs"
+    },
+    {
+      "name": "leg_right",
+      "file": "legs-leg_right.png",
+      "left": 606,
+      "top": 838,
+      "width": 149,
+      "height": 188,
+      "group": "Legs"
+    },
+    {
+      "name": "shoe_right",
+      "file": "legs-shoe_right.png",
+      "left": 627,
+      "top": 957,
+      "width": 125,
+      "height": 72,
+      "group": "Legs"
+    }
+  ]
+}

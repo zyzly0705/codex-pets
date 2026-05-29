@@ -1,4 +1,5 @@
-import { state, setState, say, speechQueue, SPEECH_PRIORITY, hasDailyFlag, setDailyFlag, petCapabilityEnabled, petBehaviorAllowed } from './core-state.js';
+import { state, setState, hasDailyFlag, setDailyFlag, petCapabilityEnabled, petBehaviorAllowed } from './core-state.js';
+import { say, speechQueue, SPEECH_PRIORITY } from './speech-queue.js';
 import { stateMachine } from './state-machine.js';
 import { debugLog } from './debug-log.js';
 import { maybeEnhanceLine } from './ai-dialogue.js';

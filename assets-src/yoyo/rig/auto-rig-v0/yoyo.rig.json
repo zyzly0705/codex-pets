@@ -1,0 +1,145 @@
+{
+  "id": "yoyo-auto-rig-v0",
+  "version": 0,
+  "format": "codex-pet-auto-rig",
+  "intent": "Deterministic Yoyo scene rig generated from existing spritesheet and layered bath props.",
+  "stage": {
+    "width": 512,
+    "height": 384,
+    "background": "#f6efe7"
+  },
+  "sources": {
+    "character": "assets/yoyo/spritesheet.webp#idle[0]",
+    "bathBack": "assets-src/yoyo/home/prop-bath-back.svg#polished",
+    "bathWater": "assets-src/yoyo/home/prop-bath-water.svg#polished",
+    "bathBubbles": "assets-src/yoyo/home/prop-bath-bubbles.svg#normalized",
+    "bathFront": "assets-src/yoyo/home/prop-bath-front.svg#polished"
+  },
+  "parts": [
+    {
+      "id": "bath.back",
+      "file": "assets-src/yoyo/rig/auto-rig-v0/parts/bath-back.png",
+      "z": 10
+    },
+    {
+      "id": "yoyo.body",
+      "file": "assets-src/yoyo/rig/auto-rig-v0/parts/yoyo-idle-0.png",
+      "z": 20
+    },
+    {
+      "id": "bath.water",
+      "file": "assets-src/yoyo/rig/auto-rig-v0/parts/bath-water.png",
+      "z": 30
+    },
+    {
+      "id": "bath.bubbles",
+      "file": "assets-src/yoyo/rig/auto-rig-v0/parts/bath-bubbles.png",
+      "z": 35
+    },
+    {
+      "id": "bath.frontMask",
+      "file": "assets-src/yoyo/rig/auto-rig-v0/parts/bath-front.png",
+      "z": 40
+    }
+  ],
+  "placements": {
+    "bath": {
+      "x": 96,
+      "y": 118,
+      "width": 320,
+      "height": 240
+    },
+    "bubbles": {
+      "x": 96,
+      "y": 183,
+      "width": 320,
+      "height": 240
+    },
+    "character": {
+      "x": 160,
+      "y": 76,
+      "width": 192,
+      "height": 208,
+      "clip": {
+        "id": "bath-inner-opening",
+        "height": 156,
+        "reason": "Hide the lower body behind the bath rim before front-mask compositing."
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "targetAnchor": "bath.innerFloor"
+    }
+  },
+  "anchors": {
+    "bath.innerFloor": {
+      "x": 256,
+      "y": 286
+    },
+    "bath.lip": {
+      "x": 256,
+      "y": 230
+    },
+    "bath.frontMaskTop": {
+      "x": 256,
+      "y": 212
+    },
+    "yoyo.bodyBottom": {
+      "x": 256,
+      "y": 284
+    }
+  },
+  "masks": [
+    {
+      "id": "bath-front-occlusion",
+      "frontPart": "bath.frontMask",
+      "hidesPart": "yoyo.body",
+      "clip": "bath-inner-opening",
+      "baselineY": 230,
+      "maxUncoveredLowerRatio": 0.08
+    }
+  ],
+  "motions": {
+    "bath": {
+      "fps": 8,
+      "loop": true,
+      "keyframes": [
+        {
+          "t": 0,
+          "bobY": 0,
+          "foamY": 0
+        },
+        {
+          "t": 125,
+          "bobY": -2,
+          "foamY": -1
+        },
+        {
+          "t": 250,
+          "bobY": -3,
+          "foamY": -2
+        },
+        {
+          "t": 375,
+          "bobY": -2,
+          "foamY": -1
+        },
+        {
+          "t": 500,
+          "bobY": 0,
+          "foamY": 0
+        },
+        {
+          "t": 625,
+          "bobY": 1,
+          "foamY": 1
+        }
+      ]
+    }
+  },
+  "qa": {
+    "debugOverlay": true,
+    "occlusionBaselineY": 230
+  }
+}

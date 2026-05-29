@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "rigPackVersion": 4,
+  "modelName": "YoyoRigV4",
+  "states": [
+    {
+      "id": "neutral",
+      "visibleLayers": [
+        "eye_left_open",
+        "eye_right_open",
+        "mouth_small"
+      ],
+      "hiddenLayers": [
+        "eye_left_blink",
+        "eye_right_blink",
+        "eye_left_smile",
+        "eye_right_smile",
+        "mouth_closed",
+        "mouth_flat",
+        "mouth_open",
+        "mouth_smile",
+        "mouth_o"
+      ]
+    },
+    {
+      "id": "blink",
+      "visibleLayers": [
+        "eye_left_blink",
+        "eye_right_blink",
+        "mouth_closed"
+      ],
+      "hiddenLayers": [
+        "eye_left_open",
+        "eye_right_open",
+        "eye_left_smile",
+        "eye_right_smile",
+        "mouth_flat",
+        "mouth_small",
+        "mouth_open",
+        "mouth_smile",
+        "mouth_o"
+      ]
+    },
+    {
+      "id": "happy",
+      "visibleLayers": [
+        "eye_left_smile",
+        "eye_right_smile",
+        "mouth_smile"
+      ],
+      "hiddenLayers": [
+        "eye_left_open",
+        "eye_right_open",
+        "eye_left_blink",
+        "eye_right_blink",
+        "mouth_closed",
+        "mouth_flat",
+        "mouth_small",
+        "mouth_open",
+        "mouth_o"
+      ]
+    },
+    {
+      "id": "talk_small",
+      "visibleLayers": [
+        "eye_left_open",
+        "eye_right_open",
+        "mouth_small"
+      ],
+      "hiddenLayers": [
+        "eye_left_blink",
+        "eye_right_blink",
+        "eye_left_smile",
+        "eye_right_smile",
+        "mouth_closed",
+        "mouth_flat",
+        "mouth_open",
+        "mouth_smile",
+        "mouth_o"
+      ]
+    },
+    {
+      "id": "talk_round",
+      "visibleLayers": [
+        "eye_left_open",
+        "eye_right_open",
+        "mouth_o"
+      ],
+      "hiddenLayers": [
+        "eye_left_blink",
+        "eye_right_blink",
+        "eye_left_smile",
+        "eye_right_smile",
+        "mouth_closed",
+        "mouth_flat",
+        "mouth_small",
+        "mouth_open",
+        "mouth_smile"
+      ]
+    },
+    {
+      "id": "talk_flat",
+      "visibleLayers": [
+        "eye_left_open",
+        "eye_right_open",
+        "mouth_flat"
+      ],
+      "hiddenLayers": [
+        "eye_left_blink",
+        "eye_right_blink",
+        "eye_left_smile",
+        "eye_right_smile",
+        "mouth_closed",
+        "mouth_small",
+        "mouth_open",
+        "mouth_smile",
+        "mouth_o"
+      ]
+    }
+  ]
+}

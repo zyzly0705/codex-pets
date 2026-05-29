@@ -1,0 +1,162 @@
+{
+  "generatedAt": "2026-05-29T18:49:02.833Z",
+  "workflow": "yoyo-final-art-effect",
+  "actionCount": 9,
+  "contactSheet": "assets/yoyo/qa/final-art/contact-sheet.png",
+  "actions": [
+    {
+      "actionId": "bath",
+      "effectId": "bath-final",
+      "partCount": 3,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 194116
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 194116
+      }
+    },
+    {
+      "actionId": "feed",
+      "effectId": "eat-final",
+      "partCount": 3,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193055
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193055
+      }
+    },
+    {
+      "actionId": "sleep",
+      "effectId": "sleep-final",
+      "partCount": 2,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193024
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193024
+      }
+    },
+    {
+      "actionId": "play",
+      "effectId": "play-final",
+      "partCount": 2,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 192104
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 192104
+      }
+    },
+    {
+      "actionId": "pet",
+      "effectId": "pet-final",
+      "partCount": 2,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193171
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193171
+      }
+    },
+    {
+      "actionId": "watchAnime",
+      "effectId": "watch-anime-final",
+      "partCount": 2,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 191475
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 191475
+      }
+    },
+    {
+      "actionId": "playSwitch",
+      "effectId": "play-switch-final",
+      "partCount": 2,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 192073
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 192073
+      }
+    },
+    {
+      "actionId": "buildBlocks",
+      "effectId": "build-blocks-final",
+      "partCount": 2,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193063
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 193063
+      }
+    },
+    {
+      "actionId": "study",
+      "effectId": "study-final",
+      "partCount": 2,
+      "preview": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 190421
+      },
+      "runtimeCapture": {
+        "width": 512,
+        "height": 384,
+        "alphaPixels": 196608,
+        "coloredPixels": 190421
+      }
+    }
+  ],
+  "pass": true
+}

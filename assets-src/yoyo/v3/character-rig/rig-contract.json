@@ -1,0 +1,182 @@
+{
+  "id": "yoyo-v3-character-rig-contract",
+  "currentRuntime": "pixi-spritesheet",
+  "nextRuntime": "pixi-layered-rig",
+  "source": "assets-src/yoyo/v3/character-rig/yoyo-v3-reference-lock.png",
+  "requiredParts": [
+    "head",
+    "bangs",
+    "bun",
+    "face",
+    "eyes",
+    "mouth",
+    "torso",
+    "bow",
+    "leftArm",
+    "rightArm",
+    "leftLeg",
+    "rightLeg"
+  ],
+  "acceptance": [
+    "Yoyo identity matches the user-approved V3 chroma-key master",
+    "cute 3-5 year old little-girl proportions with large round head and short childlike limbs",
+    "full body visible",
+    "arms separated enough for future layer extraction",
+    "no props in the source image",
+    "no animal ears or tail"
+  ],
+  "expression": {
+    "layers": [
+      "face/base",
+      "face/eyes",
+      "face/mouth",
+      "face/brows",
+      "face/blush",
+      "face/effects"
+    ],
+    "defaultPreset": "neutral",
+    "presets": [
+      {
+        "id": "neutral",
+        "label": "Neutral",
+        "parts": {
+          "eyes": "open",
+          "mouth": "small_smile",
+          "brows": "soft",
+          "blush": "light"
+        }
+      },
+      {
+        "id": "happy",
+        "label": "Happy",
+        "parts": {
+          "eyes": "happy_arc",
+          "mouth": "open_smile",
+          "brows": "soft_up",
+          "blush": "light"
+        }
+      },
+      {
+        "id": "shy",
+        "label": "Shy",
+        "parts": {
+          "eyes": "soft_smile",
+          "mouth": "small_smile",
+          "brows": "soft_down",
+          "blush": "warm"
+        }
+      },
+      {
+        "id": "sleepy",
+        "label": "Sleepy",
+        "parts": {
+          "eyes": "half_closed",
+          "mouth": "tiny_relaxed",
+          "brows": "relaxed",
+          "blush": "none"
+        }
+      },
+      {
+        "id": "angry",
+        "label": "Angry",
+        "parts": {
+          "eyes": "open",
+          "mouth": "pout",
+          "brows": "furrowed",
+          "blush": "light"
+        }
+      },
+      {
+        "id": "sad",
+        "label": "Sad",
+        "parts": {
+          "eyes": "teary",
+          "mouth": "downturned",
+          "brows": "worried",
+          "blush": "none"
+        }
+      },
+      {
+        "id": "surprised",
+        "label": "Surprised",
+        "parts": {
+          "eyes": "wide",
+          "mouth": "round_o",
+          "brows": "raised",
+          "blush": "light"
+        }
+      },
+      {
+        "id": "blink",
+        "label": "Blink",
+        "parts": {
+          "eyes": "closed",
+          "mouth": "small_smile",
+          "brows": "soft",
+          "blush": "light"
+        }
+      },
+      {
+        "id": "talk_small",
+        "label": "Talk Small",
+        "parts": {
+          "eyes": "open",
+          "mouth": "talk_small",
+          "brows": "soft",
+          "blush": "light"
+        }
+      },
+      {
+        "id": "talk_round",
+        "label": "Talk Round",
+        "parts": {
+          "eyes": "open",
+          "mouth": "round_o",
+          "brows": "soft",
+          "blush": "light"
+        }
+      },
+      {
+        "id": "talk_flat",
+        "label": "Talk Flat",
+        "parts": {
+          "eyes": "open",
+          "mouth": "flat",
+          "brows": "soft",
+          "blush": "light"
+        }
+      }
+    ],
+    "behaviorMap": {
+      "idle": { "primary": "neutral", "fallback": "blink" },
+      "pet": { "primary": "happy", "fallback": "shy" },
+      "feed": { "primary": "happy", "fallback": "neutral" },
+      "bath": { "primary": "happy", "fallback": "shy" },
+      "sleep": { "primary": "sleepy", "fallback": "blink" },
+      "play": { "primary": "happy", "fallback": "surprised" },
+      "whip": { "primary": "sad", "fallback": "angry" },
+      "talk": { "primary": "talk_small", "fallback": "neutral" }
+    },
+    "talkCycle": ["talk_small", "talk_round", "talk_flat"],
+    "runtime": {
+      "controlModule": "src/shared/yoyo-expression-controls.js",
+      "sourceRig": "assets-src/yoyo/rig/live2d-yoyo-v5",
+      "previewDir": "assets-src/yoyo/v3/character-rig/expressions",
+      "qaContactSheet": "assets/yoyo/qa/v3/expression-presets-contact-sheet.png",
+      "qaGallery": "assets/yoyo/qa/v3/expression-presets-gallery.html",
+      "currentSurfaces": ["speech-bubble-avatar"],
+      "mainCanvasDynamicFace": false,
+      "legacyAliases": {
+        "sparkle": "surprised",
+        "heart": "happy",
+        "crying": "sad",
+        "dizzy": "surprised"
+      }
+    },
+    "runtimeNotes": [
+      "The current runtime still uses spritesheet and canvas micro-expressions.",
+      "Layered expression presets are the contract for the future pixi-layered-rig and Live2D paths.",
+      "Outfit, hair, and head accessories must not replace the expression layer names."
+    ]
+  }
+}

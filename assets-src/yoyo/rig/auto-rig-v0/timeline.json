@@ -1,0 +1,21 @@
+{
+  "id": "bath-auto",
+  "version": 0,
+  "engine": "codex-pet-auto-rig",
+  "effectType": "auto-rig-action",
+  "runtimeMode": "pixi-auto-rig",
+  "strictAssets": true,
+  "durationMs": 3000,
+  "rig": "rig/yoyo.rig.json",
+  "motion": "bath",
+  "scene": {
+    "mode": "bath",
+    "characterSource": "spritesheet",
+    "spriteState": "idle",
+    "spriteFrame": 0
+  },
+  "qa": {
+    "requireOcclusionPass": true,
+    "maxUncoveredLowerRatio": 0.08
+  }
+}

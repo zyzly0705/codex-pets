@@ -1,0 +1,44 @@
+{
+  "id": "bath",
+  "engine": "spine-pixi-v8",
+  "version": 1,
+  "effectType": "spine-action",
+  "runtimeMode": "spine-action",
+  "strictAssets": true,
+  "durationMs": 5600,
+  "spine": {
+    "skeleton": "../watch-tv/spine/yoyo.skel.json",
+    "atlas": "../watch-tv/spine/yoyo.atlas",
+    "skin": "default",
+    "animation": "idle_sit",
+    "idleAnimation": "idle_sit",
+    "boundsAnimation": "idle_sit",
+    "scale": 0.9
+  },
+  "scene": {
+    "mode": "bath",
+    "characterSource": "spritesheet",
+    "spriteRow": 0,
+    "spriteFrame": 0,
+    "debugAnchors": false,
+    "clearSlots": ["remote", "snack"]
+  },
+  "layers": [
+    "bath-back",
+    "spine-skeleton",
+    "slot-bubbles",
+    "bath-front-mask",
+    "debug-anchors"
+  ],
+  "placement": {
+    "characterAnchor": "bounds.body",
+    "targetAnchor": "bath.innerFloor",
+    "occlusion": "bath.frontMask"
+  },
+  "palette": {
+    "tubBack": "#bad7df",
+    "tubFront": "#9fc8d4",
+    "water": "#8fcfe3",
+    "foam": "#ffffff"
+  }
+}

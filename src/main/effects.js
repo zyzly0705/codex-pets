@@ -14,6 +14,77 @@ function loadEffectTimeline(spritePath, effectId) {
   }
 }
 
+function resolveSpineTimelineAssets(spritePath, effectId, timeline) {
+  if (!timeline?.spine || !spritePath) return timeline;
+  const effectDir = path.join(path.dirname(spritePath), 'effects', effectId);
+  timeline.spine = { ...timeline.spine };
+  if (timeline.spine.skeleton) {
+    timeline.spine.skeletonUrl = toFileUrl(path.join(effectDir, timeline.spine.skeleton));
+  }
+  if (timeline.spine.atlas) {
+    timeline.spine.atlasUrl = toFileUrl(path.join(effectDir, timeline.spine.atlas));
+  }
+  return timeline;
+}
+
+function resolveAutoRigPartPath({ spritePath, effectId, effectDir, partFile }) {
+  if (!partFile) return '';
+  if (path.isAbsolute(partFile)) return partFile;
+
+  const packagePrefix = `assets/yoyo/effects/${effectId}/`;
+  if (partFile.startsWith(packagePrefix)) {
+    return path.join(effectDir, partFile.slice(packagePrefix.length));
+  }
+
+  const repoRoot = path.resolve(path.dirname(spritePath), '..', '..');
+  const repoRelativePath = path.resolve(repoRoot, partFile);
+  if (fs.existsSync(repoRelativePath)) return repoRelativePath;
+
+  const effectRelativePath = path.resolve(effectDir, partFile);
+  if (fs.existsSync(effectRelativePath)) return effectRelativePath;
+
+  return path.resolve(path.dirname(effectDir), partFile);
+}
+
+function resolveAutoRigTimelineAssets(spritePath, effectId, timeline) {
+  if (!timeline?.rig || !spritePath) return timeline;
+  const effectDir = path.join(path.dirname(spritePath), 'effects', effectId);
+  const rigPath = path.join(effectDir, timeline.rig);
+  if (!fs.existsSync(rigPath)) {
+    return {
+      ...timeline,
+      rigError: `Missing rig: ${rigPath}`,
+    };
+  }
+  try {
+    const rig = JSON.parse(fs.readFileSync(rigPath, 'utf8'));
+    return {
+      ...timeline,
+      rigUrl: toFileUrl(rigPath),
+      rigData: {
+        ...rig,
+        parts: (rig.parts || []).map((part) => {
+          const partPath = resolveAutoRigPartPath({
+            spritePath,
+            effectId,
+            effectDir,
+            partFile: part.file,
+          });
+          return {
+            ...part,
+            url: toFileUrl(partPath),
+          };
+        }),
+      },
+    };
+  } catch (error) {
+    return {
+      ...timeline,
+      rigError: error.message,
+    };
+  }
+}
+
 function notifyManualEffect(getMainWindow, type, duration) {
   const mainWindow = getMainWindow();
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -124,7 +195,9 @@ function runPixiEffect({
   const spritePath = getActiveSpritesheetPath();
   const spriteUrl = toFileUrl(spritePath);
   const outfitLayerSources = getActiveEffectLayers(getData);
-  const effectTimeline = loadEffectTimeline(spritePath, effectId);
+  let effectTimeline = loadEffectTimeline(spritePath, effectId);
+  effectTimeline = resolveSpineTimelineAssets(spritePath, effectId, effectTimeline);
+  effectTimeline = resolveAutoRigTimelineAssets(spritePath, effectId, effectTimeline);
   const centers = getCenters({ mainBounds, overlayBounds });
   appendDebugLog(`${logPrefix}_assets`, {
     spritePath,
@@ -149,6 +222,28 @@ function runPixiEffect({
       .catch((error) => {
         appendDebugLog(`${logPrefix}_start_failed`, { message: error.message, stack: error.stack });
       });
+  });
+}
+
+function triggerFinalArtEffect(deps, effectId, manualType = effectId) {
+  runPixiEffect({
+    ...deps,
+    effectType: 'auto-rig-action',
+    effectId,
+    logPrefix: `${String(effectId).replace(/-/g, '_')}_effect`,
+    manualType,
+    manualDuration: 3600,
+    closeAfter: 4400,
+    getCenters: ({ mainBounds, overlayBounds }) => ({
+      sourceCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.72 - overlayBounds.y,
+      },
+      arenaCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.70 - overlayBounds.y,
+      },
+    }),
   });
 }
 
@@ -192,6 +287,72 @@ function triggerGiantEffect(deps) {
   });
 }
 
+function triggerCookEffect(deps) {
+  runPixiEffect({
+    ...deps,
+    effectType: 'cook-pot',
+    effectId: 'cook-pot',
+    logPrefix: 'cook_effect',
+    manualType: 'cook',
+    manualDuration: 5400,
+    closeAfter: 6200,
+    getCenters: ({ mainBounds, overlayBounds }) => ({
+      sourceCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.70 - overlayBounds.y,
+      },
+      arenaCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.76 - overlayBounds.y,
+      },
+    }),
+  });
+}
+
+function triggerWatchTvEffect(deps) {
+  runPixiEffect({
+    ...deps,
+    effectType: 'spine-action',
+    effectId: 'watch-tv',
+    logPrefix: 'watch_tv_effect',
+    manualType: 'watchTv',
+    manualDuration: 5600,
+    closeAfter: 6400,
+    getCenters: ({ mainBounds, overlayBounds }) => ({
+      sourceCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.72 - overlayBounds.y,
+      },
+      arenaCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.70 - overlayBounds.y,
+      },
+    }),
+  });
+}
+
+function triggerPlaySwitchEffect(deps) {
+  runPixiEffect({
+    ...deps,
+    effectType: 'spine-action',
+    effectId: 'play-switch',
+    logPrefix: 'play_switch_effect',
+    manualType: 'playSwitch',
+    manualDuration: 5600,
+    closeAfter: 6400,
+    getCenters: ({ mainBounds, overlayBounds }) => ({
+      sourceCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.72 - overlayBounds.y,
+      },
+      arenaCenter: {
+        x: mainBounds.x + mainBounds.width / 2 - overlayBounds.x,
+        y: mainBounds.y + mainBounds.height * 0.70 - overlayBounds.y,
+      },
+    }),
+  });
+}
+
 function registerEffectsIpc(deps) {
   deps.ipcMain.handle('effect:fullscreen', async (_event, type) => {
     triggerFullscreenEffect(type);
@@ -202,11 +363,29 @@ function registerEffectsIpc(deps) {
   deps.ipcMain.handle('effect:giant', () => {
     triggerGiantEffect(deps);
   });
+  deps.ipcMain.handle('effect:cook', () => {
+    triggerCookEffect(deps);
+  });
+  deps.ipcMain.handle('effect:watch-tv', () => {
+    triggerWatchTvEffect(deps);
+  });
+  deps.ipcMain.handle('effect:play-switch', () => {
+    triggerPlaySwitchEffect(deps);
+  });
+  deps.ipcMain.handle('effect:final-art', (_event, effectId) => {
+    triggerFinalArtEffect(deps, effectId);
+  });
 }
 
 module.exports = {
   registerEffectsIpc,
+  resolveAutoRigPartPath,
+  resolveAutoRigTimelineAssets,
+  triggerCookEffect,
   triggerCloneEffect,
+  triggerFinalArtEffect,
   triggerFullscreenEffect,
   triggerGiantEffect,
+  triggerPlaySwitchEffect,
+  triggerWatchTvEffect,
 };

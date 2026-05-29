@@ -1,0 +1,100 @@
+{
+  "id": "yoyo-eat-final-art-v1",
+  "version": 1,
+  "format": "codex-pet-auto-rig",
+  "intent": "Final-art Yoyo eating action built from the generated eat-final-art-v1 visual master.",
+  "stage": {
+    "width": 512,
+    "height": 384,
+    "background": "#f6efe7"
+  },
+  "sources": {
+    "finalArt": "assets-src/yoyo/final-art/eat-final-art-v1.png",
+    "manifest": "assets-src/yoyo/final-art/eat-final-effect.manifest.json",
+    "note": "The visual master is used as the composed scene layer; manifest overlays provide deterministic animation layers."
+  },
+  "parts": [
+    {
+      "id": "scene.full",
+      "file": "assets/yoyo/effects/eat-final/rig/parts/scene-full.png",
+      "z": 10
+    },
+    {
+      "id": "scene.steam",
+      "file": "assets/yoyo/effects/eat-final/rig/parts/scene-steam.png",
+      "z": 20
+    },
+    {
+      "id": "scene.sparkle",
+      "file": "assets/yoyo/effects/eat-final/rig/parts/scene-sparkle.png",
+      "z": 30
+    }
+  ],
+  "placements": {
+    "scene": {
+      "x": 0,
+      "y": 0,
+      "width": 512,
+      "height": 384
+    }
+  },
+  "motions": {
+    "eat-final": {
+      "fps": 8,
+      "loop": true,
+      "keyframes": [
+        {
+          "t": 0,
+          "steamY": 0,
+          "steamAlpha": 0.18,
+          "sparkleY": 0,
+          "sparkleAlpha": 0.34,
+          "sparkleScale": 1
+        },
+        {
+          "t": 125,
+          "steamY": -1,
+          "steamAlpha": 0.26,
+          "sparkleY": -1,
+          "sparkleAlpha": 0.42,
+          "sparkleScale": 1.03
+        },
+        {
+          "t": 250,
+          "steamY": -3,
+          "steamAlpha": 0.32,
+          "sparkleY": -2,
+          "sparkleAlpha": 0.5,
+          "sparkleScale": 1.06
+        },
+        {
+          "t": 375,
+          "steamY": -4,
+          "steamAlpha": 0.28,
+          "sparkleY": -1,
+          "sparkleAlpha": 0.42,
+          "sparkleScale": 1.03
+        },
+        {
+          "t": 500,
+          "steamY": -2,
+          "steamAlpha": 0.22,
+          "sparkleY": 0,
+          "sparkleAlpha": 0.3,
+          "sparkleScale": 1
+        },
+        {
+          "t": 625,
+          "steamY": -1,
+          "steamAlpha": 0.24,
+          "sparkleY": 1,
+          "sparkleAlpha": 0.38,
+          "sparkleScale": 1.02
+        }
+      ]
+    }
+  },
+  "qa": {
+    "finalArtPreview": true
+  }
+}

@@ -1,5 +1,6 @@
 // weather-seasonal.js - 天气获取/提醒 + 季节粒子 + 天气代码映射
-import { state, WEATHER_CODES, say, setState, speechQueue, SPEECH_PRIORITY, petCapabilityEnabled, petBehaviorAllowed, isStartupQuiet } from './core-state.js';
+import { state, WEATHER_CODES, setState, petCapabilityEnabled, petBehaviorAllowed, isStartupQuiet } from './core-state.js';
+import { say, speechQueue, SPEECH_PRIORITY } from './speech-queue.js';
 import { incrementAchievementStat, trackFeatureUsed } from './growth-system.js';
 import { stateMachine } from './state-machine.js';
 import { sayWithAi } from './ai-dialogue.js';

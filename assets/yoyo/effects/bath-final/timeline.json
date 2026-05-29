@@ -1,0 +1,18 @@
+{
+  "id": "bath-final",
+  "version": 1,
+  "engine": "codex-pet-auto-rig",
+  "effectType": "auto-rig-action",
+  "runtimeMode": "pixi-auto-rig",
+  "strictAssets": true,
+  "durationMs": 3600,
+  "rig": "rig/yoyo.rig.json",
+  "motion": "bath-final",
+  "scene": {
+    "mode": "bath-final-art",
+    "artSource": "assets-src/yoyo/final-art/bath-final-art-v1.png"
+  },
+  "qa": {
+    "requireNonBlankPreview": true
+  }
+}

@@ -1,6 +1,6 @@
 # Yoyo Effect Video Workflow
 
-This document defines the rebuild path for Yoyo's `clone-heart` and `dharma-manifest` effects. It intentionally excludes `digSand`; that action belongs to a separate agent.
+This document defines the rebuild path for Yoyo's special effects and action-engine performances: Pixi effects (`clone-heart`, `dharma-manifest`, `cook-pot`) and Spine actions such as `watch-tv`. It intentionally excludes `digSand`; that action belongs to a separate main-atlas workflow.
 
 ## Current Entrypoints
 
@@ -8,8 +8,11 @@ This document defines the rebuild path for Yoyo's `clone-heart` and `dharma-mani
 | --- | --- | --- | --- | --- |
 | 分身 / `clone-heart` | `src/main/effects.js` -> `triggerCloneEffect()` -> IPC `effect:clone` | `src/pixi-effect-stage.js` -> `makeCloneStage()` | `assets/yoyo/effects/clone-heart/timeline.json` | `assets-src/yoyo/effects/clone-heart/timeline.json` |
 | 法相 / `dharma-manifest` | `src/main/effects.js` -> `triggerGiantEffect()` -> IPC `effect:giant` | `src/pixi-effect-stage.js` -> `makeDharmaStage()` | `assets/yoyo/effects/dharma-manifest/timeline.json` | `assets-src/yoyo/effects/dharma-manifest/timeline.json` |
+| 入锅温泉 / `cook-pot` | `src/main/effects.js` -> `triggerCookEffect()` -> IPC `effect:cook` | `src/pixi-effect-stage.js` -> `makeCookPotStage()` | `assets/yoyo/effects/cook-pot/timeline.json` | `assets-src/yoyo/effects/cook-pot/timeline.json` |
+| 看电视 / `watch-tv` | `src/main/effects.js` -> `triggerWatchTvEffect()` -> IPC `effect:watch-tv` | `src/pixi-effect-stage.js` -> `makeSpineActionStage()` | `assets/yoyo/effects/watch-tv/timeline.json` | `assets-src/yoyo/effects/watch-tv/timeline.json` |
+| 打游戏 / `play-switch` | `src/main/effects.js` -> `triggerPlaySwitchEffect()` -> IPC `effect:play-switch` | `src/pixi-effect-stage.js` -> `makeSpineActionStage()` | `assets/yoyo/effects/play-switch/timeline.json` | `assets-src/yoyo/effects/play-switch/timeline.json` |
 
-The product-level performance scripts are in `src/modules/performance-script.js` as `cloneHeart` and `dharmaManifest`. The action taxonomy marks `clone` and `giant` as `fullscreen-performance` in `src/modules/action-taxonomy.js`. Existing spritesheet rows for法相 sources live in `assets-src/yoyo/manifest.json` as `dharmaCharge`, `dharmaSpirit`, `dharmaManifest`, and `dharmaStable`.
+The product-level performance scripts are in `src/modules/performance-script.js` as `cloneHeart`, `dharmaManifest`, `cookPotScene`, `watchTvScene`, and `playSwitchScene`. The action taxonomy marks `clone` and `giant` as `fullscreen-performance` in `src/modules/action-taxonomy.js`; `cook-pot` is a Pixi sequence performance with authored foreground occlusion; `watch-tv` and `play-switch` are Spine action-engine contracts. Existing spritesheet rows for法相 sources live in `assets-src/yoyo/manifest.json` as `dharmaCharge`, `dharmaSpirit`, `dharmaManifest`, and `dharmaStable`.
 
 ## Character Lock
 
@@ -73,6 +76,40 @@ Acceptance:
 - The法相 is a separate back effect layer, not a pasted enlarged Yoyo sitting on top of her.
 - The spirit is recognizably human Yoyo.
 - Foreground effects never hide her face for too long.
+
+## 入锅温泉 Pixi Plan
+
+`cook-pot` is the first upgraded "sequence performance" example for prop-heavy actions. It uses PixiJS runtime layers instead of a static pose:
+
+- `pot-back`: back half of the pot and broth.
+- `character-sprite-sequence`: Yoyo jumps in, settles, bobs, and pops up using atlas animation frames.
+- `pot-front-mask`: front rim and pot body occlude Yoyo's lower body.
+- `steam-particles`: warm steam and spark particles from the broth.
+
+This action should read as a playful soup-pot hot spring, not harm or cooking Yoyo. If future AI/video frames are generated, keep Yoyo human-like, full-body in the source, and only hidden by the authored pot rim in runtime.
+
+Capture a review frame with:
+
+```bash
+npm run capture:effect -- --effect-type cook-pot --effect-id cook-pot --out output/yoyo-asset-runs/yoyo-redesign-v2/assets/13-cook-pot-pixi/qa/cook-pot-pixi.png
+```
+
+## 看电视 And 打游戏 Spine Plan
+
+`watch-tv` should be authored as a Spine animation named `watch_tv`, followed by an `idle_sit` loop. `play-switch` should use `play_switch`, also followed by `idle_sit`. Pixi loads the skeleton through `@esotericsoftware/spine-pixi-v8`; it should not hand-position limbs, props, or body parts.
+
+Expected runtime files:
+
+```text
+assets/yoyo/effects/watch-tv/spine/yoyo.skel.json
+assets/yoyo/effects/watch-tv/spine/yoyo.atlas
+assets/yoyo/effects/watch-tv/spine/yoyo.png
+assets/yoyo/effects/play-switch/spine/yoyo.skel.json
+assets/yoyo/effects/play-switch/spine/yoyo.atlas
+assets/yoyo/effects/play-switch/spine/yoyo.png
+```
+
+The current generated seed assets come from `scripts/generate-watch-tv-spine-assets.js`. They are intentionally replaceable source scaffolding: the runtime contract is now real Spine skeleton + atlas + PNG, and the TV/game screen is drawn dynamically by Pixi instead of being a static pasted image. If a future action is missing required Spine files, the stage shows a strict missing-asset panel and does not render an atlas proxy. Details are in `docs/Yoyo-Spine-Action-Runtime.md`.
 
 ## Ingest And QA
 

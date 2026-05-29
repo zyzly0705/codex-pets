@@ -1,0 +1,178 @@
+{
+  "id": "yoyo-v3-full-asset-kit",
+  "date": "2026-05-29",
+  "runtimeCompatibility": {
+    "avatarDriver": "pixi-spritesheet",
+    "keepCurrentSpritesheet": true,
+    "nextCharacterDriver": "pixi-layered-rig"
+  },
+  "rooms": [
+    {
+      "id": "room-v3-day",
+      "source": "assets-src/yoyo/v3/rooms/room-v3-day.png",
+      "runtime": "assets/yoyo/home/room-v3-day.webp",
+      "qaPreview": "assets/yoyo/qa/v3/room-v3-day-runtime.png",
+      "width": 1080,
+      "height": 720
+    },
+    {
+      "id": "room-v3-night",
+      "source": "assets-src/yoyo/v3/rooms/room-v3-night.png",
+      "runtime": "assets/yoyo/home/room-v3-night.webp",
+      "qaPreview": "assets/yoyo/qa/v3/room-v3-night-runtime.png",
+      "width": 1080,
+      "height": 720
+    },
+    {
+      "id": "room-v3-rainy",
+      "source": "assets-src/yoyo/v3/rooms/room-v3-rainy.png",
+      "runtime": "assets/yoyo/home/room-v3-rainy.webp",
+      "qaPreview": "assets/yoyo/qa/v3/room-v3-rainy-runtime.png",
+      "width": 1080,
+      "height": 720
+    },
+    {
+      "id": "room-v3-party",
+      "source": "assets-src/yoyo/v3/rooms/room-v3-party.png",
+      "runtime": "assets/yoyo/home/room-v3-party.webp",
+      "qaPreview": "assets/yoyo/qa/v3/room-v3-party-runtime.png",
+      "width": 1080,
+      "height": 720
+    }
+  ],
+  "props": [
+    {
+      "id": "prop-v3-meal-table",
+      "source": "assets-src/yoyo/v3/props/prop-v3-meal-table.png",
+      "runtime": "assets/yoyo/home/prop-v3-meal-table.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-meal-table.png",
+      "width": 210,
+      "height": 150,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-bed",
+      "source": "assets-src/yoyo/v3/props/prop-v3-bed.png",
+      "runtime": "assets/yoyo/home/prop-v3-bed.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-bed.png",
+      "width": 360,
+      "height": 260,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-wash-stand",
+      "source": "assets-src/yoyo/v3/props/prop-v3-wash-stand.png",
+      "runtime": "assets/yoyo/home/prop-v3-wash-stand.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-wash-stand.png",
+      "width": 260,
+      "height": 220,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-toy-shelf",
+      "source": "assets-src/yoyo/v3/props/prop-v3-toy-shelf.png",
+      "runtime": "assets/yoyo/home/prop-v3-toy-shelf.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-toy-shelf.png",
+      "width": 260,
+      "height": 220,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-comfort-cushion",
+      "source": "assets-src/yoyo/v3/props/prop-v3-comfort-cushion.png",
+      "runtime": "assets/yoyo/home/prop-v3-comfort-cushion.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-comfort-cushion.png",
+      "width": 260,
+      "height": 180,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-media-screen",
+      "source": "assets-src/yoyo/v3/props/prop-v3-media-screen.png",
+      "runtime": "assets/yoyo/home/prop-v3-media-screen.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-media-screen.png",
+      "width": 300,
+      "height": 220,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-game-console",
+      "source": "assets-src/yoyo/v3/props/prop-v3-game-console.png",
+      "runtime": "assets/yoyo/home/prop-v3-game-console.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-game-console.png",
+      "width": 220,
+      "height": 160,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-blocks",
+      "source": "assets-src/yoyo/v3/props/prop-v3-blocks.png",
+      "runtime": "assets/yoyo/home/prop-v3-blocks.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-blocks.png",
+      "width": 220,
+      "height": 170,
+      "transparent": true
+    },
+    {
+      "id": "prop-v3-study-desk",
+      "source": "assets-src/yoyo/v3/props/prop-v3-study-desk.png",
+      "runtime": "assets/yoyo/home/prop-v3-study-desk.webp",
+      "qaPreview": "assets/yoyo/qa/v3/prop-v3-study-desk.png",
+      "width": 300,
+      "height": 230,
+      "transparent": true
+    }
+  ],
+  "composites": [
+    {
+      "id": "composite-v3-feed",
+      "source": "assets-src/yoyo/v3/composites/composite-v3-feed-yoyo.png",
+      "runtime": "assets/yoyo/home/composite-v3-feed-yoyo.webp",
+      "qaPreview": "assets/yoyo/qa/v3/composite-v3-feed-yoyo.png",
+      "width": 360,
+      "height": 260,
+      "transparent": true
+    },
+    {
+      "id": "composite-v3-sleep",
+      "source": "assets-src/yoyo/v3/composites/composite-v3-sleep-yoyo.png",
+      "runtime": "assets/yoyo/home/composite-v3-sleep-yoyo.webp",
+      "qaPreview": "assets/yoyo/qa/v3/composite-v3-sleep-yoyo.png",
+      "width": 440,
+      "height": 344,
+      "transparent": true
+    },
+    {
+      "id": "composite-v3-bath",
+      "source": "assets-src/yoyo/v3/composites/composite-v3-bath-yoyo.png",
+      "runtime": "assets/yoyo/home/composite-v3-bath-yoyo.webp",
+      "qaPreview": "assets/yoyo/qa/v3/composite-v3-bath-yoyo.png",
+      "width": 390,
+      "height": 300,
+      "transparent": true
+    },
+    {
+      "id": "composite-v3-play",
+      "source": "assets-src/yoyo/v3/composites/composite-v3-play-yoyo.png",
+      "runtime": "assets/yoyo/home/composite-v3-play-yoyo.webp",
+      "qaPreview": "assets/yoyo/qa/v3/composite-v3-play-yoyo.png",
+      "width": 390,
+      "height": 300,
+      "transparent": true
+    },
+    {
+      "id": "composite-v3-comfort",
+      "source": "assets-src/yoyo/v3/composites/composite-v3-comfort-yoyo.png",
+      "runtime": "assets/yoyo/home/composite-v3-comfort-yoyo.webp",
+      "qaPreview": "assets/yoyo/qa/v3/composite-v3-comfort-yoyo.png",
+      "width": 360,
+      "height": 260,
+      "transparent": true
+    }
+  ],
+  "characterRig": {
+    "contract": "assets-src/yoyo/v3/character-rig/rig-contract.json",
+    "source": "assets-src/yoyo/v3/character-rig/yoyo-v3-reference-lock.png",
+    "runtimeStatus": "experimental"
+  }
+}
