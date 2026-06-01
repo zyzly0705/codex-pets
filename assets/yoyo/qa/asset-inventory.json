@@ -1,6 +1,6 @@
 {
   "pack": "yoyo",
-  "generatedAt": "2026-05-29T20:31:34.759Z",
+  "generatedAt": "2026-06-01T09:36:01.211Z",
   "assets": [
     {
       "path": "desktop-rig/v1/arms-arm_left.png",
@@ -400,6 +400,34 @@
       "status": "experimental",
       "sourceStatusPath": "effects/eat-final/",
       "reason": "Special-action timeline path should stay available while the action driver contract stabilizes."
+    },
+    {
+      "path": "effects/feed/spine/yoyo.atlas",
+      "bytes": 168,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/feed/spine/yoyo.png",
+      "bytes": 124401,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/feed/spine/yoyo.skel.json",
+      "bytes": 2557,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/feed/timeline.json",
+      "bytes": 578,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
     },
     {
       "path": "effects/pet-final/rig/parts/scene-full.png",
@@ -983,8 +1011,22 @@
       "reason": "Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task."
     },
     {
+      "path": "home/room-v3-day-safe.webp",
+      "bytes": 284070,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
       "path": "home/room-v3-day.webp",
       "bytes": 193334,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-v3-night-safe.webp",
+      "bytes": 256688,
       "status": "keep",
       "sourceStatusPath": "home/",
       "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
@@ -997,8 +1039,22 @@
       "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
     },
     {
+      "path": "home/room-v3-party-safe.webp",
+      "bytes": 304656,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
       "path": "home/room-v3-party.webp",
       "bytes": 234036,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+    },
+    {
+      "path": "home/room-v3-rainy-safe.webp",
+      "bytes": 311604,
       "status": "keep",
       "sourceStatusPath": "home/",
       "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
@@ -1016,6 +1072,13 @@
       "status": "keep",
       "sourceStatusPath": "home/yoyo-home-sheet.webp",
       "reason": "Current home-scene runtime sheet and must remain available."
+    },
+    {
+      "path": "home/yoyo-home-v7-room-palette.webp",
+      "bytes": 30186,
+      "status": "keep",
+      "sourceStatusPath": "home/",
+      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
     },
     {
       "path": "pet.json",

@@ -4,6 +4,7 @@ import { randomFrom } from './utils.js';
 import { say } from './speech-queue.js';
 import { stateMachine, ACTION_STATES } from './state-machine.js';
 import { incrementAchievementStat, trackFeatureUsed } from './growth-system.js';
+import { debugLog } from './debug-log.js';
 
 // 攀爬常量
 const CLIMB_MOVE_SPEED = 3;
@@ -99,14 +100,14 @@ async function smoothMoveTo(targetX, targetY, speed) {
       if (Math.abs(dx) > Math.abs(dy)) {
         setState(dx > 0 ? 'runningRight' : 'runningLeft');
       } else {
-        // 垂直移动时播放攀爬动画
-        setState('climbing');
+        // 垂直移动也保持直立跑动，避免横向爬墙素材让脚朝边缘。
+        setState(dy < 0 ? 'runningLeft' : 'runningRight');
       }
     }, CLIMB_MOVE_INTERVAL);
   });
 }
 
-export async function startClimbing() {
+export async function startClimbing(options = {}) {
   if (stateMachine.isClimbing) return;
   if (!stateMachine.canTransition(ACTION_STATES.CLIMBING)) return;
   if (stateMachine.isDancing || stateMachine.isFollowing || stateMachine.isWhipping) return;
@@ -115,6 +116,12 @@ export async function startClimbing() {
 
   const { workArea } = await window.petApi.getBounds();
   const currentPos = await window.petApi.getPosition();
+  debugLog('climb_start', {
+    options,
+    currentPos,
+    workArea,
+    canScanWindows: state.canScanWindows,
+  });
 
   state.climbOriginPos = { x: currentPos.x, y: currentPos.y };
   stateMachine.transition(ACTION_STATES.CLIMBING);
@@ -123,27 +130,50 @@ export async function startClimbing() {
 
   let targetType = 'screen-edge';
   let targetBounds = null;
+  let scanUnavailableReason = null;
 
   if (state.canScanWindows) {
     try {
       const scanResult = await window.petApi.scanWindows();
+      debugLog('climb_scan_windows', {
+        ok: scanResult.ok,
+        count: scanResult.windows?.length || 0,
+        hasAccessibility: scanResult.hasAccessibility,
+        screenRecordingStatus: scanResult.screenRecordingStatus || null,
+        processPath: scanResult.processPath || null,
+        windowScanSource: scanResult.windowScanSource || null,
+        systemEventsStatus: scanResult.systemEventsStatus || null,
+        scanUnavailableReason: scanResult.windowScanUnavailableReason || null,
+      });
+      scanUnavailableReason = scanResult.windowScanUnavailableReason || null;
       if (scanResult.ok && scanResult.windows.length > 0) {
-        if (Math.random() < 0.5) {
+        if (options.preferWindow || Math.random() < 0.5) {
           const targetWindow = randomFrom(scanResult.windows);
           targetType = 'window';
           targetBounds = targetWindow.bounds;
         }
       }
-    } catch {
+    } catch (error) {
+      scanUnavailableReason = 'renderer-scan-exception';
+      debugLog('climb_scan_windows_error', {
+        message: error?.message || String(error),
+        scanUnavailableReason: 'renderer-scan-exception',
+      });
       // 扫描失败，降级到屏幕边缘
     }
   }
 
   if (targetType === 'window' && targetBounds) {
     state.climbTarget = targetBounds;
+    debugLog('climb_target', { targetType, targetBounds });
     await climbToWindow(targetBounds, workArea);
   } else {
     state.climbTarget = null;
+    debugLog('climb_target', {
+      targetType: 'screen-edge',
+      targetBounds: null,
+      scanUnavailableReason: scanUnavailableReason || 'no-window-target',
+    });
     await climbToScreenEdge(workArea);
   }
 }
@@ -168,25 +198,20 @@ async function climbToScreenEdge(workArea) {
     targetX = workArea.x + workArea.width - 150;
     targetY = workArea.y + 40 + Math.random() * Math.max(0, workArea.height - 340);
   }
+  debugLog('climb_screen_edge_target', { edgeType, targetX, targetY, workArea });
 
   state.climbPhase = 'climbing';
-  setState('climbing');
+  setState(edgeType === 1 ? 'runningLeft' : 'runningRight');
 
-  // 侧边攀爬：旋转 canvas 使角色侧身贴墙（顶边无需旋转）
-  if (edgeType === 1) {
-    canvas.style.transform = 'translateX(-50%) rotate(90deg)';
-  } else if (edgeType === 2) {
-    canvas.style.transform = 'translateX(-50%) rotate(-90deg)';
-  } else {
-    canvas.style.transform = 'translateX(-50%)';
-  }
+  // 边缘停靠只移动窗口位置，不再旋转整张角色贴图。
+  canvas.style.transform = 'translateX(-50%)';
 
   await smoothMoveTo(targetX, targetY, CLIMB_MOVE_SPEED);
 
   if (!stateMachine.isClimbing) return;
 
   state.climbPhase = 'perching';
-  setState('perching');
+  setState('waving');
   say(randomFrom(CLIMB_PERCH_MESSAGES));
 
   const perchDuration = CLIMB_PERCH_MIN + Math.random() * (CLIMB_PERCH_MAX - CLIMB_PERCH_MIN);
@@ -229,16 +254,17 @@ async function climbToWindow(windowBounds, workArea) {
 
   const clampedX = Math.max(workArea.x - 80, Math.min(workArea.x + workArea.width - 120, targetX));
   const clampedY = Math.max(workArea.y - 130, targetY);
+  debugLog('climb_window_target', { windowBounds, targetX, targetY, clampedX, clampedY });
 
   state.climbPhase = 'climbing';
-  setState('climbing');
+  setState('runningRight');
 
   await smoothMoveTo(clampedX, clampedY, CLIMB_MOVE_SPEED);
 
   if (!stateMachine.isClimbing) return;
 
   state.climbPhase = 'perching';
-  setState('perching');
+  setState('waving');
   say(randomFrom(CLIMB_PERCH_MESSAGES));
 
   const perchDuration = CLIMB_PERCH_MIN + Math.random() * (CLIMB_PERCH_MAX - CLIMB_PERCH_MIN);
@@ -287,8 +313,19 @@ export async function initClimbSystem() {
   try {
     const result = await window.petApi.scanWindows();
     state.canScanWindows = result.ok;
-    if (!result.hasAccessibility && result.ok === false) {
-      console.log('[攀爬系统] 无辅助功能权限，仅支持屏幕边缘攀爬');
+    if (result.windowScanUnavailableReason) {
+      debugLog('climb_window_scan_unavailable', {
+        ok: result.ok,
+        hasAccessibility: result.hasAccessibility,
+        screenRecordingStatus: result.screenRecordingStatus || null,
+        processPath: result.processPath || null,
+        windowScanSource: result.windowScanSource || null,
+        systemEventsStatus: result.systemEventsStatus || null,
+        scanUnavailableReason: result.windowScanUnavailableReason,
+      });
+      if (!result.hasAccessibility) {
+        console.log('[攀爬系统] 缺少窗口扫描权限，仅支持屏幕边缘攀爬');
+      }
     }
   } catch {
     state.canScanWindows = false;

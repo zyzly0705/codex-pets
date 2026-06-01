@@ -126,6 +126,15 @@ export async function initBehaviorDebugPanel() {
   const panel = document.getElementById('behavior-debug-panel');
   if (!app || !panel) return;
 
+  const desktopRunTestEnabled = window.petApi?.desktopRunTestEnabled
+    ? await window.petApi.desktopRunTestEnabled()
+    : false;
+  if (desktopRunTestEnabled) {
+    app.dataset.debugLogOnly = 'true';
+    panel.setAttribute('aria-hidden', 'true');
+    return;
+  }
+
   app.classList.add('debug-mode');
   panel.setAttribute('aria-hidden', 'false');
   panel.innerHTML = EMPTY_TEXT;

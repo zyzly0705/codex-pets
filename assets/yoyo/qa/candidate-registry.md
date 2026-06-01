@@ -1,6 +1,6 @@
 # Yoyo Candidate Registry
 
-Generated: 2026-05-29T20:31:34.965Z
+Generated: 2026-06-01T09:36:01.413Z
 
 - Pack: `yoyo`
 - Redraw targets: 5

@@ -12,25 +12,25 @@
     {
       "id": "room-v3-day",
       "type": "room",
-      "runtime": "assets/yoyo/home/room-v3-day.webp",
+      "runtime": "assets/yoyo/home/room-v3-day-safe.webp",
       "prompt": "Create a 1080x720 compact lively clean-2D chibi desktop companion room for Yoyo. Preserve the warm busy energy of the existing room-stage-v2 reference: mint teal wall, honey wood floor, pink curtains, cozy shelves, plants, small golden lights, large cream center rug, and a tight desktop-pet stage feeling. Make it a human little-girl companion room, not an animal pet room. Include a small human meal table area, child bed/sofa area, study shelf, toy area, and warm lamp details. Keep the center rug clear for Yoyo. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
     },
     {
       "id": "room-v3-night",
       "type": "room",
-      "runtime": "assets/yoyo/home/room-v3-night.webp",
+      "runtime": "assets/yoyo/home/room-v3-night-safe.webp",
       "prompt": "Create a 1080x720 night variant of the Yoyo V3 compact lively clean-2D chibi room. Same layout, same object positions, same scale, with moonlit window, warm bedside lamp, soft shelf glow, and cozy sleep mood. Preserve the lively compact desktop-pet stage, not a large room. Human companion room only. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
     },
     {
       "id": "room-v3-rainy",
       "type": "room",
-      "runtime": "assets/yoyo/home/room-v3-rainy.webp",
+      "runtime": "assets/yoyo/home/room-v3-rainy-safe.webp",
       "prompt": "Create a 1080x720 rainy-day variant of the Yoyo V3 compact lively clean-2D chibi room. Same layout, same object positions, same scale, with rain visible outside the window, cozy indoor warm lights, plants, shelves, and a clear center rug. Human little-girl companion room only. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
     },
     {
       "id": "room-v3-party",
       "type": "room",
-      "runtime": "assets/yoyo/home/room-v3-party.webp",
+      "runtime": "assets/yoyo/home/room-v3-party-safe.webp",
       "prompt": "Create a 1080x720 cheerful party variant of the Yoyo V3 compact lively clean-2D chibi room. Same layout, same object positions, same scale, with balloons, bunting, tiny wrapped gifts, soft confetti, and a festive but readable desktop-pet stage. Human companion birthday-room feeling, not animal pet party props. No dog bowl, kibble, paw motif, animal bed, animal ears, tail, kennel, text, or watermark."
     },
     {

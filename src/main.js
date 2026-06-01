@@ -60,8 +60,9 @@ const { setupAutoUpdater } = require('./main/updater');
 const { startNotificationScheduler } = require('./main/notifications');
 logSessionStart();
 
-const APP_WIDTH = BEHAVIOR_DEBUG_ENABLED ? 560 : 200;
-const APP_HEIGHT = BEHAVIOR_DEBUG_ENABLED ? 360 : 260;
+const DESKTOP_RUN_TEST_ENABLED = process.env.YOYO_TEST_DESKTOP_RUN === '1';
+const APP_WIDTH = BEHAVIOR_DEBUG_ENABLED && !DESKTOP_RUN_TEST_ENABLED ? 560 : 200;
+const APP_HEIGHT = BEHAVIOR_DEBUG_ENABLED && !DESKTOP_RUN_TEST_ENABLED ? 360 : 260;
 
 function registerIpc() {
   const deps = {

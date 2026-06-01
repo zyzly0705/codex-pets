@@ -10,33 +10,33 @@
     {
       "id": "room-v3-day",
       "source": "assets-src/yoyo/v3/rooms/room-v3-day.png",
-      "runtime": "assets/yoyo/home/room-v3-day.webp",
+      "runtime": "assets/yoyo/home/room-v3-day-safe.webp",
       "qaPreview": "assets/yoyo/qa/v3/room-v3-day-runtime.png",
-      "width": 1080,
+      "width": 1272,
       "height": 720
     },
     {
       "id": "room-v3-night",
       "source": "assets-src/yoyo/v3/rooms/room-v3-night.png",
-      "runtime": "assets/yoyo/home/room-v3-night.webp",
+      "runtime": "assets/yoyo/home/room-v3-night-safe.webp",
       "qaPreview": "assets/yoyo/qa/v3/room-v3-night-runtime.png",
-      "width": 1080,
+      "width": 1272,
       "height": 720
     },
     {
       "id": "room-v3-rainy",
       "source": "assets-src/yoyo/v3/rooms/room-v3-rainy.png",
-      "runtime": "assets/yoyo/home/room-v3-rainy.webp",
+      "runtime": "assets/yoyo/home/room-v3-rainy-safe.webp",
       "qaPreview": "assets/yoyo/qa/v3/room-v3-rainy-runtime.png",
-      "width": 1080,
+      "width": 1272,
       "height": 720
     },
     {
       "id": "room-v3-party",
       "source": "assets-src/yoyo/v3/rooms/room-v3-party.png",
-      "runtime": "assets/yoyo/home/room-v3-party.webp",
+      "runtime": "assets/yoyo/home/room-v3-party-safe.webp",
       "qaPreview": "assets/yoyo/qa/v3/room-v3-party-runtime.png",
-      "width": 1080,
+      "width": 1272,
       "height": 720
     }
   ],

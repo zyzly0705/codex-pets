@@ -48,8 +48,12 @@ function flattenManifestPaths(manifest) {
   paths.push(manifest.runtimeCompatibility?.currentPetJson);
   paths.push(manifest.avatar?.sheet);
   paths.push(manifest.home?.runtimeSheet);
+  paths.push(manifest.home?.runtimeCharacter);
   paths.push(...Object.values(manifest.home?.rooms || {}));
-  paths.push(...Object.values(manifest.careScenes || {}).map((scene) => scene.composite));
+  for (const scene of Object.values(manifest.careScenes || {})) {
+    paths.push(scene.composite);
+    paths.push(scene.prop);
+  }
   paths.push(...Object.values(manifest.specialActions || {}).map((action) => action.timeline));
   paths.push(...(manifest.imageChecks || []).map((check) => check.path));
 

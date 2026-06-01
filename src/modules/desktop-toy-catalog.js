@@ -74,11 +74,11 @@ export const DESKTOP_TOY_PROPS = {
 
 export const DESKTOP_TOY_EVENTS = [
   {
-    id: 'bottom-walk',
+    id: 'edge-patrol',
     trigger: 'ambient',
-    states: ['runningRight', 'runningLeft'],
+    states: ['runningRight', 'runningLeft', 'climbing', 'jumping'],
     props: [],
-    note: 'Use screen edge direction to select the walking state.',
+    note: 'ArkPets-style patrol around all four screen edges with gravity recovery.',
   },
   {
     id: 'random-pause',

@@ -4,7 +4,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: transparent;
+  background: transparent !important;
   font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
   user-select: none;
 }
@@ -13,6 +13,7 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
+  background: transparent !important;
 }
 
 .live2d-demo-frame {
@@ -43,12 +44,35 @@ body {
 #petCanvas {
   position: absolute;
   left: 50%;
-  bottom: 10px;
+  bottom: 0;
   transform: translateX(-50%);
-  width: 120px;
-  height: 130px;
-  image-rendering: pixelated;
+  transform-origin: 50% 92%;
+  width: 132px;
+  height: 148px;
+  image-rendering: auto;
   cursor: pointer;
+  filter:
+    drop-shadow(0 7px 8px rgba(38, 22, 32, 0.18))
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.72));
+}
+
+#app[data-edge-patrol-edge="top"] #petCanvas {
+  top: 0;
+  bottom: auto;
+  transform: translateX(-50%);
+}
+
+#app[data-edge-patrol-edge="left"] #petCanvas {
+  left: 0;
+  bottom: 50%;
+  transform: translateY(50%);
+}
+
+#app[data-edge-patrol-edge="right"] #petCanvas {
+  left: auto;
+  right: 0;
+  bottom: 50%;
+  transform: translateY(50%);
 }
 
 .desktop-rig-host {
@@ -57,6 +81,7 @@ body {
   z-index: 1;
   opacity: 0;
   pointer-events: none;
+  transform-origin: 50% 50%;
   transition: opacity 120ms ease;
 }
 
@@ -106,35 +131,34 @@ body {
   bottom: 16px;
 }
 
-/* ===== 漫画式对话气泡 ===== */
+/* ===== Q pet short speech bubble ===== */
 .bubble {
   position: absolute;
-  left: 50%;
-  bottom: var(--bubble-bottom, 115px);
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 0;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #fff5f9 0%, #ffffff 40%, #fff0f5 100%);
-  color: #4a3548;
+  left: calc(50% - 4px);
+  bottom: var(--bubble-bottom, 122px);
+  display: block;
+  padding: 7px 10px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #4f3347;
   font-size: 11.5px;
-  line-height: 1.5;
+  font-weight: 600;
+  line-height: 1.42;
   box-shadow:
-    0 3px 16px rgba(180, 120, 150, 0.18),
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1.5px solid rgba(255, 180, 200, 0.5);
+    0 7px 18px rgba(96, 54, 78, 0.14),
+    0 1px 2px rgba(45, 20, 32, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(246, 160, 187, 0.54);
   opacity: 0;
-  transform: translateX(-50%) translateY(6px) scale(0.92);
-  transition: opacity 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-              transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-              bottom 0.3s ease-out;
+  transform: translateX(-50%) translateY(5px) scale(0.94);
+  transition: opacity 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              bottom 0.24s ease-out;
   pointer-events: none;
   word-break: break-word;
-  min-height: 40px;
-  max-width: calc(100% - 16px);
-  min-width: 140px;
+  min-height: 0;
+  max-width: 154px;
+  min-width: 0;
   white-space: normal;
 }
 
@@ -145,15 +169,7 @@ body {
 
 /* 头像区域 */
 .bubble-avatar {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  margin: 7px 0 0 8px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ffb6c1 0%, #ff9ab5 100%);
-  box-shadow: 0 1px 4px rgba(200, 120, 150, 0.3);
-  position: relative;
-  overflow: hidden;
+  display: none;
 }
 
 /* 头像上的小表情 */
@@ -189,7 +205,7 @@ body {
   background: none;
   top: 3px; left: 4px;
   width: auto; height: auto;
-  font-size: 14px;
+  font-size: 11px;
   line-height: 1;
 }
 .bubble-avatar[data-expr="heart"]::after {
@@ -276,14 +292,13 @@ body {
 
 /* 气泡主体 */
 .bubble-body {
-  flex: 1;
-  padding: 8px 10px 8px 4px;
+  padding: 0;
   min-width: 0;
 }
 
 .bubble-text {
   display: inline;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 /* 打字机光标 */
@@ -304,15 +319,15 @@ body {
 /* 气泡尾巴 - 指向下方角色 */
 .bubble-tail {
   position: absolute;
-  bottom: -7px;
-  left: 50%;
+  bottom: -6px;
+  left: 58%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 8px solid #fff5f9;
-  filter: drop-shadow(0 1px 1px rgba(180, 120, 150, 0.15));
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 1px 1px rgba(120, 70, 92, 0.12));
 }
 
 /* 消失动画 */
@@ -352,23 +367,24 @@ body {
 /* 桌面照顾提示：只在需求下降时露出一个轻量入口 */
 .care-cue {
   position: absolute;
-  right: 20px;
-  bottom: 80px;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(255, 180, 200, 0.54);
+  left: calc(50% + 34px);
+  right: auto;
+  bottom: 74px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(255, 176, 198, 0.32);
   border-radius: 999px;
   background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.96), rgba(255, 245, 249, 0.9) 62%, rgba(255, 222, 232, 0.9));
-  color: #9f3157;
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.96), rgba(255, 244, 249, 0.88) 58%, rgba(255, 218, 230, 0.86));
+  color: #a84268;
   cursor: pointer;
   box-shadow:
-    0 5px 16px rgba(196, 92, 130, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    0 3px 8px rgba(196, 92, 130, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
   z-index: 11;
   opacity: 0;
   pointer-events: none;
-  transform: scale(0.84) translateY(5px);
+  transform: scale(0.76) translateY(4px);
   transition:
     opacity 0.24s ease,
     transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -377,7 +393,7 @@ body {
 }
 
 .care-cue.show {
-  opacity: 1;
+  opacity: 0.42;
   pointer-events: auto;
   transform: scale(1) translateY(0);
 }
@@ -398,15 +414,17 @@ body {
 
 .care-cue-icon {
   display: block;
-  font-size: 17px;
-  line-height: 30px;
+  font-size: 14px;
+  line-height: 18px;
   text-align: center;
 }
 
 .care-cue::after {
+  display: none;
   content: attr(data-tooltip);
   position: absolute;
-  right: 38px;
+  left: 32px;
+  right: auto;
   top: 50%;
   max-width: 92px;
   padding: 5px 8px;
@@ -472,11 +490,13 @@ body {
 
 #app.debug-mode #petCanvas {
   left: 100px;
+  width: 132px;
+  height: 148px;
 }
 
 #app.debug-mode .bubble {
   left: 100px;
-  max-width: 180px;
+  max-width: 154px;
 }
 
 #app.debug-mode .feed-btn {
@@ -554,4 +574,9 @@ body {
 
 .debug-breakdown.selected {
   color: #9c1a4f;
+}
+
+#app[data-care-cue-muted="true"] .care-cue {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

@@ -1,0 +1,12 @@
+yoyo.png
+size: 162,420
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+body
+  rotate: false
+  xy: 0, 0
+  size: 162, 420
+  orig: 162, 420
+  offset: 0, 0
+  index: -1

@@ -21,6 +21,7 @@ let lastPromptAt = 0;
 let lastPromptKey = '';
 let currentCueAction = '';
 let careCueReady = false;
+let desktopRunTestEnabled = false;
 
 function canPrompt(life) {
   if (!life?.prompt) return false;
@@ -63,6 +64,11 @@ function hideCareCue() {
 
 function renderCareCue(life) {
   if (!careCue) return;
+  if (desktopRunTestEnabled) {
+    hideCareCue();
+    careCue.dataset.muted = 'true';
+    return;
+  }
   const actionId = getCueAction(life);
   if (!actionId) {
     hideCareCue();
@@ -117,7 +123,16 @@ async function refreshLife() {
   }
 }
 
-export function initLifeDesktop() {
+export async function initLifeDesktop() {
+  desktopRunTestEnabled = window.petApi?.desktopRunTestEnabled
+    ? await window.petApi.desktopRunTestEnabled()
+    : false;
+  const app = document.getElementById('app');
+  if (app) app.dataset.careCueMuted = desktopRunTestEnabled ? 'true' : 'false';
+  if (careCue && desktopRunTestEnabled) {
+    careCue.dataset.muted = 'true';
+    hideCareCue();
+  }
   if (!window.petApi?.getLife) return;
   if (careCue && !careCueReady) {
     careCueReady = true;

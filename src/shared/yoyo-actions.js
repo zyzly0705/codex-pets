@@ -118,22 +118,22 @@
   const ROOM_SCENES = {
     default: {
       label: '日常小屋',
-      asset: '../assets/yoyo/home/room-v3-day.webp',
+      asset: '../assets/yoyo/home/room-v3-day-safe.webp',
       artMode: 'saved-compact-room',
     },
     night: {
       label: '夜晚小屋',
-      asset: '../assets/yoyo/home/room-v3-night.webp',
+      asset: '../assets/yoyo/home/room-v3-night-safe.webp',
       artMode: 'saved-compact-room',
     },
     rainy: {
       label: '雨天小屋',
-      asset: '../assets/yoyo/home/room-v3-rainy.webp',
+      asset: '../assets/yoyo/home/room-v3-rainy-safe.webp',
       artMode: 'saved-compact-room',
     },
     party: {
       label: '派对小屋',
-      asset: '../assets/yoyo/home/room-v3-party.webp',
+      asset: '../assets/yoyo/home/room-v3-party-safe.webp',
       artMode: 'saved-compact-room',
     },
   };

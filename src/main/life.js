@@ -271,15 +271,16 @@ function broadcastLifeChanged(snapshot) {
 }
 
 function normalizeCareRequest(request) {
+  const suppressForDesktopRunTest = process.env.YOYO_TEST_DESKTOP_RUN === '1';
   if (typeof request === 'string') {
-    return { actionId: request, suppressFinalEffect: false };
+    return { actionId: request, suppressFinalEffect: suppressForDesktopRunTest };
   }
   if (!request || typeof request !== 'object') {
-    return { actionId: '', suppressFinalEffect: false };
+    return { actionId: '', suppressFinalEffect: suppressForDesktopRunTest };
   }
   return {
     actionId: request.actionId || request.action || '',
-    suppressFinalEffect: Boolean(request.suppressFinalEffect || request.source === 'home'),
+    suppressFinalEffect: Boolean(suppressForDesktopRunTest || request.suppressFinalEffect || request.source === 'home'),
   };
 }
 

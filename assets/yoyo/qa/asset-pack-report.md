@@ -1,6 +1,6 @@
 # Yoyo Asset Pack QA Report
 
-Generated: 2026-05-29T20:31:35.008Z
+Generated: 2026-06-01T09:36:01.542Z
 
 ## Pack
 
@@ -26,10 +26,10 @@ Generated: 2026-05-29T20:31:35.008Z
 
 | Status | Count |
 | --- | ---: |
-| `keep` | 53 |
+| `keep` | 58 |
 | `redraw` | 5 |
 | `remove` | 0 |
-| `experimental` | 104 |
+| `experimental` | 108 |
 | `archive` | 1 |
 
 ## Redraw Queue
@@ -91,31 +91,38 @@ Generated: 2026-05-29T20:31:35.008Z
 - `pet.json`
 - `spritesheet.webp`
 - `home/yoyo-home-sheet.webp`
-- `home/room-v3-day.webp`
-- `home/room-v3-night.webp`
-- `home/room-v3-rainy.webp`
-- `home/room-v3-party.webp`
-- `home/composite-v3-feed-yoyo.webp`
-- `home/composite-v3-sleep-yoyo.webp`
-- `home/composite-v3-bath-yoyo.webp`
-- `home/composite-v3-play-yoyo.webp`
-- `home/composite-v3-comfort-yoyo.webp`
+- `home/yoyo-home-v7-room-palette.webp`
+- `home/room-v3-day-safe.webp`
+- `home/room-v3-night-safe.webp`
+- `home/room-v3-rainy-safe.webp`
+- `home/room-v3-party-safe.webp`
+- `home/prop-v3-meal-table.webp`
+- `home/prop-v3-bed.webp`
+- `home/prop-v3-wash-stand.webp`
+- `home/prop-v3-toy-shelf.webp`
+- `home/prop-v3-comfort-cushion.webp`
 - `effects/study-final/timeline.json`
 - `effects/watch-anime-final/timeline.json`
 - `effects/watch-tv/timeline.json`
 - `effects/cook-pot/timeline.json`
 - `effects/play-switch-final/timeline.json`
-- `home/room-stage-v2.webp`
-- `home/composite-sleep-bed-yoyo.webp`
 
 ## Image Dimension Checks
 
 | Asset | Actual | Expected |
 | --- | ---: | ---: |
 | `spritesheet.webp` | 1536x8736 | 1536x8736 |
-| `home/room-stage-v2.webp` | 1080x720 | 1080x720 |
+| `home/room-v3-day-safe.webp` | 1272x720 | 1272x720 |
+| `home/room-v3-night-safe.webp` | 1272x720 | 1272x720 |
+| `home/room-v3-rainy-safe.webp` | 1272x720 | 1272x720 |
+| `home/room-v3-party-safe.webp` | 1272x720 | 1272x720 |
 | `home/yoyo-home-sheet.webp` | 1536x8736 | 1536x8736 |
-| `home/composite-sleep-bed-yoyo.webp` | 440x344 | 440x344 |
+| `home/yoyo-home-v7-room-palette.webp` | 162x420 | 162x420 |
+| `home/prop-v3-meal-table.webp` | 210x150 | 210x150 |
+| `home/prop-v3-wash-stand.webp` | 260x220 | 260x220 |
+| `home/prop-v3-bed.webp` | 360x260 | 360x260 |
+| `home/prop-v3-toy-shelf.webp` | 260x220 | 260x220 |
+| `home/prop-v3-comfort-cushion.webp` | 260x180 | 260x180 |
 
 ## Warnings
 

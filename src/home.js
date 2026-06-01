@@ -17,10 +17,10 @@ const CARE_ACTIONS = SHARED.CARE_ACTIONS || {
 };
 
 const ROOM_SCENES = SHARED.ROOM_SCENES || {
-  default: { label: '日常小屋', asset: '../assets/yoyo/home/room-v3-day.webp', artMode: 'saved-compact-room' },
-  night: { label: '夜晚小屋', asset: '../assets/yoyo/home/room-v3-night.webp', artMode: 'saved-compact-room' },
-  rainy: { label: '雨天小屋', asset: '../assets/yoyo/home/room-v3-rainy.webp', artMode: 'saved-compact-room' },
-  party: { label: '派对小屋', asset: '../assets/yoyo/home/room-v3-party.webp', artMode: 'saved-compact-room' },
+  default: { label: '日常小屋', asset: '../assets/yoyo/home/room-v3-day-safe.webp', artMode: 'saved-compact-room' },
+  night: { label: '夜晚小屋', asset: '../assets/yoyo/home/room-v3-night-safe.webp', artMode: 'saved-compact-room' },
+  rainy: { label: '雨天小屋', asset: '../assets/yoyo/home/room-v3-rainy-safe.webp', artMode: 'saved-compact-room' },
+  party: { label: '派对小屋', asset: '../assets/yoyo/home/room-v3-party-safe.webp', artMode: 'saved-compact-room' },
 };
 
 const ACTION_HINTS = SHARED.ACTION_HINTS || {
@@ -79,6 +79,18 @@ const CARE_FOLLOWUP_LINES = {
   study: ['Yoyo学会一个新东西啦！', '妈妈陪着，Yoyo就很专心。', '这一页好有意思～'],
 };
 
+const HOME_INTENT_COPY = {
+  feed: { title: '要吃一点吗？', detail: 'Yoyo 会去现有的小餐桌旁吃饭，不会凭空变出第二套餐。', confirm: '吃一点' },
+  bath: { title: '要洗香香吗？', detail: '先看看清洁状态，再去房间里的洗漱区。', confirm: '去洗手' },
+  sleep: { title: '要休息一下吗？', detail: '这是一个持续休息活动，不是点一下床就结束。', confirm: '去休息' },
+  play: { title: '想玩什么呢？', detail: '先回应 Yoyo 的心情，再选择玩具或小游戏。', confirm: '陪她玩' },
+  pet: { title: '摸摸 Yoyo？', detail: '点击 Yoyo 应该是安抚和亲密互动。', confirm: '摸摸她' },
+  watchAnime: { title: '看一会儿动画？', detail: '这是持续活动，Yoyo 会坐到电视区。', confirm: '看一会儿' },
+  playSwitch: { title: '玩一局游戏？', detail: '先进入游戏状态，再根据结果反馈心情。', confirm: '玩一局' },
+  buildBlocks: { title: '搭积木吗？', detail: 'Yoyo 会去玩具区，不额外生成重复家具。', confirm: '搭高高' },
+  study: { title: '学习一下？', detail: '学习应该消耗精力并增加成长反馈。', confirm: '开始学' },
+};
+
 const STATUS_BUBBLES = {
   urgent: '妈妈快看看我',
   'needs-care': '想你陪陪我',
@@ -111,9 +123,15 @@ const els = {
   sceneRigLayer: document.getElementById('home-scene-rig-layer'),
   actionComposite: document.getElementById('home-action-composite'),
   canvas: document.getElementById('home-pet'),
+  petCutout: document.getElementById('home-pet-cutout'),
   carePose: document.getElementById('home-care-pose'),
   bubble: document.getElementById('life-bubble-text'),
   tip: document.getElementById('home-tip'),
+  intentPopover: document.getElementById('home-intent-popover'),
+  intentTitle: document.getElementById('home-intent-title'),
+  intentDetail: document.getElementById('home-intent-detail'),
+  intentConfirm: document.getElementById('home-intent-confirm'),
+  intentCancel: document.getElementById('home-intent-cancel'),
   needsList: document.getElementById('needs-list'),
   refresh: document.getElementById('refresh-life'),
   ctrlToggle: document.getElementById('ctrl-toggle'),
@@ -139,6 +157,10 @@ let sceneObjectTimers = [];
 let actionRoomFrameTimer = 0;
 let careInProgress = false;
 let suppressHotspotTipUntil = 0;
+let pendingHomeIntent = '';
+let pendingPetTravelAction = '';
+let petTravelFrame = 0;
+let petTravelFinishTimer = 0;
 
 function pct(value) {
   return Math.round(Math.max(0, Math.min(100, Number(value) || 0)));
@@ -451,6 +473,10 @@ function resetSceneObjectStates() {
     setSceneObjectState(object.id, object.initialState || 'idle');
   }
   delete els.roomStage.dataset.interactionPhase;
+  delete els.roomStage.dataset.motionPhase;
+  delete els.roomStage.dataset.actionPhase;
+  delete els.roomStage.dataset.actionPose;
+  delete els.roomStage.dataset.actionAnimation;
 }
 
 function stopSceneObjectInteraction() {
@@ -467,10 +493,18 @@ function startSceneObjectInteraction(action, duration = 0) {
   }
 
   resetSceneObjectStates();
-  for (const phase of interaction.phases || []) {
+  const timeline = Array.isArray(interaction.timeline) && interaction.timeline.length
+    ? interaction.timeline
+    : interaction.phases || [];
+  for (const phase of timeline) {
     const timer = setTimeout(() => {
-      setSceneObjectState(interaction.objectId, phase.state);
-      if (phase.stagePhase) els.roomStage.dataset.interactionPhase = phase.stagePhase;
+      if (phase.state) setSceneObjectState(interaction.objectId, phase.state);
+      const visualPhase = phase.stagePhase || phase.phase;
+      if (visualPhase) els.roomStage.dataset.interactionPhase = visualPhase;
+      if (visualPhase || phase.phase) els.roomStage.dataset.motionPhase = visualPhase || phase.phase;
+      if (phase.phase) els.roomStage.dataset.actionPhase = phase.phase;
+      if (phase.pose) els.roomStage.dataset.actionPose = phase.pose;
+      if (phase.animation) els.roomStage.dataset.actionAnimation = phase.animation;
     }, Math.max(0, Number(phase.at) || 0));
     sceneObjectTimers.push(timer);
   }
@@ -483,15 +517,92 @@ function startSceneObjectInteraction(action, duration = 0) {
   }
 }
 
-function applyPetPlacement(scene) {
+function petPlacementForScene(scene) {
   const task = interactionTask(scene);
   const zone = task ? HOME_SCENE.interactionSystem?.zones?.[task.zone] : null;
   const placementKey = zone?.placement || task?.zone || scene;
-  const placement = HOME_SCENE.petPlacements?.[placementKey] || HOME_SCENE.petPlacements?.default;
+  return HOME_SCENE.petPlacements?.[placementKey] || HOME_SCENE.petPlacements?.default;
+}
+
+function setPetPlacementVars(placement) {
   if (!placement) return;
   els.roomStage.style.setProperty('--pet-left', placement.left);
   els.roomStage.style.setProperty('--pet-bottom', placement.bottom);
   els.roomStage.style.setProperty('--pet-scale', String(placement.scale));
+}
+
+function clearPetTravelTimers() {
+  if (petTravelFrame) {
+    cancelAnimationFrame(petTravelFrame);
+    petTravelFrame = 0;
+  }
+  if (petTravelFinishTimer) {
+    clearTimeout(petTravelFinishTimer);
+    petTravelFinishTimer = 0;
+  }
+}
+
+function resetPetTravelState() {
+  pendingPetTravelAction = '';
+  clearPetTravelTimers();
+  delete els.roomStage.dataset.petTravel;
+  delete els.roomStage.dataset.petTravelAction;
+  els.roomStage.style.removeProperty('--pet-travel-duration');
+  els.roomStage.style.removeProperty('--pet-travel-easing');
+}
+
+function petTravelForAction(action, fallbackPlacement) {
+  const travel = HOME_SCENE.actionMotion?.[action]?.petTravel;
+  if (!travel) return null;
+  const from = HOME_SCENE.petPlacements?.[travel.from] || HOME_SCENE.petPlacements?.default;
+  const to = HOME_SCENE.petPlacements?.[travel.to] || fallbackPlacement;
+  if (!from || !to) return null;
+  return {
+    from,
+    to,
+    duration: Math.max(260, Number(travel.durationMs) || 960),
+    easing: travel.easing || 'var(--spring)',
+  };
+}
+
+function startPetTravel(action, placement) {
+  const travel = petTravelForAction(action, placement);
+  if (!travel) return false;
+
+  clearPetTravelTimers();
+  setPetPlacementVars(travel.from);
+  els.roomStage.dataset.petTravel = `${action}-run`;
+  els.roomStage.dataset.petTravelAction = action;
+  els.roomStage.style.setProperty('--pet-travel-duration', `${travel.duration}ms`);
+  els.roomStage.style.setProperty('--pet-travel-easing', travel.easing);
+
+  petTravelFrame = requestAnimationFrame(() => {
+    petTravelFrame = requestAnimationFrame(() => {
+      setPetPlacementVars(travel.to);
+      els.roomStage.dataset.petTravel = `${action}-run-active`;
+      petTravelFrame = 0;
+      petTravelFinishTimer = setTimeout(() => {
+        petTravelFinishTimer = 0;
+        if (homeAnimation.action === action && els.roomStage.dataset.petTravelAction === action) {
+          els.roomStage.dataset.petTravel = `${action}-arrived`;
+        }
+      }, travel.duration + 80);
+    });
+  });
+  return true;
+}
+
+function applyPetPlacement(scene) {
+  const placement = petPlacementForScene(scene);
+  if (!placement) return;
+  if (pendingPetTravelAction === scene && startPetTravel(scene, placement)) {
+    pendingPetTravelAction = '';
+    return;
+  }
+  if (els.roomStage.dataset.petTravelAction && els.roomStage.dataset.petTravelAction !== scene) {
+    resetPetTravelState();
+  }
+  setPetPlacementVars(placement);
 }
 
 function cameraZoneForScene(scene) {
@@ -561,9 +672,21 @@ function applyActionComposite(scene, rig = activeSceneRig(scene)) {
   }
 }
 
+function resetRoomScroll() {
+  if (els.roomStage) {
+    els.roomStage.scrollLeft = 0;
+    els.roomStage.scrollTop = 0;
+  }
+  if (els.roomWorld) {
+    els.roomWorld.scrollLeft = 0;
+    els.roomWorld.scrollTop = 0;
+  }
+}
+
 function renderScene(life = lastLife) {
   const scene = currentScene(life);
   const task = interactionTask(scene);
+  resetRoomScroll();
   els.roomStage.dataset.scene = scene;
   els.roomStage.dataset.task = task ? scene : '';
   els.roomStage.dataset.zone = task?.zone || '';
@@ -578,6 +701,16 @@ function renderScene(life = lastLife) {
   }
 }
 
+function applyHomeCharacterMode() {
+  const character = HOME_SCENE.homeCharacter || {};
+  const mode = character.mode || 'sprite-canvas';
+  els.roomStage.dataset.homeCharacterMode = mode;
+  if (els.petCutout && character.cutout) {
+    const nextSrc = new URL(character.cutout, window.location.href).href;
+    if (els.petCutout.src !== nextSrc) els.petCutout.src = nextSrc;
+  }
+}
+
 function drawPet(now = performance.now()) {
   const ctx = els.canvas.getContext('2d');
   ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
@@ -587,6 +720,7 @@ function drawPet(now = performance.now()) {
     homeAnimation = { stateName: 'idle', action: '', until: 0, startedAt: now };
     setRoomEffect('');
     stopSceneObjectInteraction();
+    resetPetTravelState();
     renderScene();
   }
   const stateName = HOME_STATES[homeAnimation.stateName] ? homeAnimation.stateName : 'idle';
@@ -601,14 +735,17 @@ function stopHomeAnimation() {
   suppressHotspotTipUntil = 0;
   setRoomEffect('');
   stopSceneObjectInteraction();
+  resetPetTravelState();
   renderScene();
 }
 
 function startHomeAnimation(stateName = 'idle', action = '', duration = 5200) {
   hideTip();
+  resetRoomScroll();
   suppressHotspotTipUntil = action && duration > 0 ? Date.now() + duration : 0;
   // 先清理旧的交互定时器，防止叠加
   stopSceneObjectInteraction();
+  resetPetTravelState();
   clearActionRoomFrameTimer();
   homeAnimation = {
     stateName: HOME_STATES[stateName] ? stateName : 'idle',
@@ -616,6 +753,7 @@ function startHomeAnimation(stateName = 'idle', action = '', duration = 5200) {
     until: duration > 0 ? Date.now() + duration : 0,
     startedAt: performance.now(),
   };
+  pendingPetTravelAction = petTravelForAction(action) ? action : '';
   setRoomEffect(action, duration);
   startSceneObjectInteraction(action, duration);
   renderScene();
@@ -799,6 +937,51 @@ function bindTip(element) {
   element.addEventListener('blur', hideTip);
 }
 
+function hideHomeIntent() {
+  pendingHomeIntent = '';
+  if (!els.intentPopover) return;
+  els.intentPopover.hidden = true;
+  els.intentPopover.setAttribute('aria-hidden', 'true');
+}
+
+function positionHomeIntent(anchor) {
+  if (!els.intentPopover || !anchor) return;
+  const stageRect = els.roomStage.getBoundingClientRect();
+  const rect = anchor.getBoundingClientRect();
+  const left = Math.max(138, Math.min(stageRect.width - 160, rect.left - stageRect.left + rect.width / 2));
+  const top = Math.max(88, Math.min(stageRect.height - 170, rect.top - stageRect.top - 18));
+  els.intentPopover.style.left = `${left}px`;
+  els.intentPopover.style.top = `${top}px`;
+}
+
+function resolveHomeIntent(action, anchor) {
+  if (!action || careInProgress) return;
+  resetRoomScroll();
+  wakeUi();
+  hideTip();
+  pendingHomeIntent = action;
+  const copy = HOME_INTENT_COPY[action] || {
+    title: CARE_ACTIONS[action]?.label || '看看这里',
+    detail: '先看看 Yoyo 的状态，再决定要不要行动。',
+    confirm: '开始',
+  };
+  if (els.intentTitle) els.intentTitle.textContent = copy.title;
+  if (els.intentDetail) els.intentDetail.textContent = copy.detail;
+  if (els.intentConfirm) els.intentConfirm.textContent = copy.confirm;
+  if (els.intentPopover) {
+    els.intentPopover.hidden = false;
+    els.intentPopover.setAttribute('aria-hidden', 'false');
+    positionHomeIntent(anchor || ACTION_HOTSPOT[action]);
+  }
+  typewriteBubble(copy.title);
+}
+
+function confirmHomeIntent() {
+  const action = pendingHomeIntent;
+  hideHomeIntent();
+  if (action) care(action);
+}
+
 function renderCompanionActions() {
   const dock = document.getElementById('care-actions');
   if (!dock || dock.hidden) return;
@@ -830,6 +1013,7 @@ function renderCompanionActions() {
 async function care(action) {
   if (!action || careInProgress) return;
   careInProgress = true;
+  hideHomeIntent();
   hideTip();
   document.activeElement?.blur?.();
   // 先禁用热区，防止重复点击
@@ -889,6 +1073,7 @@ sprite.onload = () => drawPet();
 sprite.src = new URL('../assets/yoyo/spritesheet.webp', window.location.href).href;
 
 renderHomeSceneObjects();
+applyHomeCharacterMode();
 renderScene();
 renderCompanionActions();
 
@@ -898,7 +1083,7 @@ for (const scene of Object.values(ROOM_SCENES)) {
 }
 
 for (const hotspot of els.hotspots) {
-  hotspot.addEventListener('click', () => care(hotspot.dataset.action));
+  hotspot.addEventListener('click', () => resolveHomeIntent(hotspot.dataset.action, hotspot));
   bindTip(hotspot);
 }
 for (const button of els.sceneButtons) {
@@ -926,6 +1111,22 @@ if (els.ctrlToggle && els.ctrlPanel) {
     }
   });
 }
+
+els.intentConfirm?.addEventListener('click', confirmHomeIntent);
+els.intentCancel?.addEventListener('click', hideHomeIntent);
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') hideHomeIntent();
+});
+document.addEventListener('click', (event) => {
+  if (
+    els.intentPopover
+    && !els.intentPopover.hidden
+    && !event.target.closest('#home-intent-popover')
+    && !event.target.closest('.room-hotspot')
+  ) {
+    hideHomeIntent();
+  }
+});
 
 for (const eventName of ['mousemove', 'pointerdown', 'keydown', 'focusin']) {
   window.addEventListener(eventName, wakeUi, { passive: true });

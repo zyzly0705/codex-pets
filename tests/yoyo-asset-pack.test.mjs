@@ -43,13 +43,19 @@ describe('Yoyo asset pack contract', () => {
       'dancing',
     ]);
 
-    assert.equal(manifest.home.rooms.day, 'home/room-v3-day.webp');
-    assert.equal(manifest.home.rooms.night, 'home/room-v3-night.webp');
-    assert.equal(manifest.careScenes.feed.composite, 'home/composite-v3-feed-yoyo.webp');
-    assert.equal(manifest.careScenes.sleep.composite, 'home/composite-v3-sleep-yoyo.webp');
-    assert.equal(manifest.careScenes.bath.composite, 'home/composite-v3-bath-yoyo.webp');
-    assert.equal(manifest.careScenes.play.composite, 'home/composite-v3-play-yoyo.webp');
-    assert.equal(manifest.careScenes.comfort.composite, 'home/composite-v3-comfort-yoyo.webp');
+    assert.equal(manifest.home.rooms.day, 'home/room-v3-day-safe.webp');
+    assert.equal(manifest.home.rooms.night, 'home/room-v3-night-safe.webp');
+    assert.equal(manifest.home.rooms.rainy, 'home/room-v3-rainy-safe.webp');
+    assert.equal(manifest.home.rooms.party, 'home/room-v3-party-safe.webp');
+    assert.equal(manifest.careScenes.feed.prop, 'home/prop-v3-meal-table.webp');
+    assert.equal(manifest.careScenes.sleep.prop, 'home/prop-v3-bed.webp');
+    assert.equal(manifest.careScenes.bath.prop, 'home/prop-v3-wash-stand.webp');
+    assert.equal(manifest.careScenes.play.prop, 'home/prop-v3-toy-shelf.webp');
+    assert.equal(manifest.careScenes.comfort.prop, 'home/prop-v3-comfort-cushion.webp');
+    assert.equal(manifest.home.runtimeCharacter, 'home/yoyo-home-v7-room-palette.webp');
+    for (const scene of ['feed', 'sleep', 'bath', 'play', 'comfort']) {
+      assert.equal(manifest.careScenes[scene].status, 'native-room-zone');
+    }
     assert.equal(manifest.specialActions.watchAnime.timeline, 'effects/watch-anime-final/timeline.json');
   });
 

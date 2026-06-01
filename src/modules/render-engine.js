@@ -77,6 +77,34 @@ const STATIC_STATES = new Set([
   'readBook', 'watchTV', 'swimming', 'eating'
 ]);
 
+const PERSONA_DRAW_SCALE_DEFAULT = 0.82;
+const PERSONA_FOOT_BASELINE_Y = 0.965;
+const PERSONA_HEAD_SPLIT_Y = 0.54;
+const PERSONA_TORSO_SPLIT_Y = 0.76;
+
+function getPersonaIdlePose(now, stateName) {
+  const phase = ((now % BREATH_PERIOD) / BREATH_PERIOD) * Math.PI * 2;
+  const wave = Math.sin(phase);
+  const settle = Math.cos(phase);
+  const quiet = stateName === 'sleeping' || stateName === 'readBook' || stateName === 'watchTV';
+  const amplitude = BREATH_AMPLITUDE * (quiet ? 0.52 : 1.08);
+  const blinkWindow = (now % 4300) > 4140;
+  return {
+    x: Math.sin(phase * 0.5) * (quiet ? 0.35 : 0.74),
+    y: -1.2 + wave * (quiet ? 0.42 : 1.15),
+    rotation: Math.sin(phase * 0.5) * (quiet ? 0.006 : 0.016),
+    scaleX: 1 - amplitude * settle * 0.36,
+    scaleY: 1 + amplitude * settle,
+    torsoX: Math.sin(phase * 0.5 + 0.35) * (quiet ? 0.22 : 0.55),
+    torsoY: wave * (quiet ? 0.22 : 0.55),
+    torsoRotation: Math.sin(phase * 0.5 + 0.25) * (quiet ? 0.004 : 0.010),
+    headX: Math.sin(phase * 0.5 + 0.9) * (quiet ? 0.42 : 1.15),
+    headY: -1.0 + Math.sin(phase + 0.55) * (quiet ? 0.45 : 1.12),
+    headRotation: Math.sin(phase * 0.5 + 0.8) * (quiet ? 0.007 : 0.022),
+    blinkWindow,
+  };
+}
+
 // ===== 视线追踪：定期采样鼠标方向（避免每帧 IPC） =====
 let _lastMouseDir = { x: 0, y: 0 };
 let _lastMouseSampleAt = 0;
@@ -221,6 +249,66 @@ let _logW = 120;
 let _logH = 130;
 let _currentDpr = window.devicePixelRatio || 1;
 
+function drawPersonaGroundShadow(ctx, cx, baseY, width, alpha = 0.22) {
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  const gradient = ctx.createRadialGradient(cx, baseY, 2, cx, baseY, width * 0.55);
+  gradient.addColorStop(0, `rgba(63, 35, 48, ${alpha})`);
+  gradient.addColorStop(0.72, `rgba(63, 35, 48, ${alpha * 0.28})`);
+  gradient.addColorStop(1, 'rgba(63, 35, 48, 0)');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY, width * 0.52, 7.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawPersonaSpriteBand(ctx, drawSprite, sourceFrame, cell, offsetX, offsetY, drawW, drawH, top, bottom) {
+  const srcX = sourceFrame.frame * cell.width;
+  const srcY = sourceFrame.row * cell.height + cell.height * top;
+  const srcH = cell.height * (bottom - top);
+  ctx.drawImage(
+    drawSprite,
+    srcX,
+    srcY,
+    cell.width,
+    srcH,
+    offsetX,
+    offsetY + drawH * top,
+    drawW,
+    drawH * (bottom - top)
+  );
+}
+
+function drawPersonaSpriteWithLayerMotion(ctx, drawSprite, sourceFrame, cell, offsetX, offsetY, drawW, drawH, personaIdlePose) {
+  if (!personaIdlePose) {
+    ctx.drawImage(drawSprite, sourceFrame.frame * cell.width, sourceFrame.row * cell.height, cell.width, cell.height, offsetX, offsetY, drawW, drawH);
+    return;
+  }
+
+  drawPersonaSpriteBand(ctx, drawSprite, sourceFrame, cell, offsetX, offsetY, drawW, drawH, PERSONA_TORSO_SPLIT_Y, 1);
+
+  const torsoPivotX = offsetX + drawW * 0.5;
+  const torsoPivotY = offsetY + drawH * 0.78;
+  ctx.save();
+  ctx.translate(torsoPivotX + personaIdlePose.torsoX, torsoPivotY + personaIdlePose.torsoY);
+  ctx.rotate(personaIdlePose.torsoRotation);
+  ctx.scale(personaIdlePose.scaleX, personaIdlePose.scaleY);
+  ctx.translate(-torsoPivotX, -torsoPivotY);
+  drawPersonaSpriteBand(ctx, drawSprite, sourceFrame, cell, offsetX, offsetY, drawW, drawH, PERSONA_HEAD_SPLIT_Y - 0.015, PERSONA_TORSO_SPLIT_Y + 0.015);
+  ctx.restore();
+
+  const headPivotX = offsetX + drawW * 0.5;
+  const headPivotY = offsetY + drawH * 0.56;
+  ctx.save();
+  ctx.translate(headPivotX + personaIdlePose.headX, headPivotY + personaIdlePose.headY);
+  ctx.rotate(personaIdlePose.headRotation);
+  ctx.scale(1 + BREATH_AMPLITUDE * 0.5, 1 - BREATH_AMPLITUDE * 0.35);
+  ctx.translate(-headPivotX, -headPivotY);
+  drawPersonaSpriteBand(ctx, drawSprite, sourceFrame, cell, offsetX, offsetY, drawW, drawH, 0, PERSONA_HEAD_SPLIT_Y + 0.018);
+  ctx.restore();
+}
+
 // ===== 绘制小星星 =====
 function drawSmallStar(ctx, x, y, r) {
   ctx.beginPath();
@@ -232,6 +320,33 @@ function drawSmallStar(ctx, x, y, r) {
   }
   ctx.closePath();
   ctx.fill();
+}
+
+function drawPersonaIdleAccent(ctx, offsetX, offsetY, drawW, drawH, now, personaIdlePose) {
+  if (!personaIdlePose) return;
+  const phase = now / 1000;
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  ctx.globalAlpha = 0.42 + Math.sin(phase * 2.6) * 0.08;
+  ctx.fillStyle = '#ff6f9f';
+  drawHeart(ctx, offsetX + drawW * 0.78 + Math.sin(phase * 2.1) * 2, offsetY + drawH * 0.26 + Math.cos(phase * 2.4) * 2, 5, '#ff6f9f');
+  ctx.globalAlpha = 0.50 + Math.sin(phase * 3.2) * 0.12;
+  ctx.fillStyle = '#fff4bc';
+  drawSmallStar(ctx, offsetX + drawW * 0.23, offsetY + drawH * 0.36 + Math.sin(phase * 2.8) * 2, 2.4);
+  if (personaIdlePose.blinkWindow) {
+    ctx.globalAlpha = 0.38;
+    ctx.strokeStyle = '#2b1b24';
+    ctx.lineWidth = 1.4;
+    ctx.lineCap = 'round';
+    const eyeY = offsetY + drawH * 0.365;
+    ctx.beginPath();
+    ctx.moveTo(offsetX + drawW * 0.40, eyeY);
+    ctx.lineTo(offsetX + drawW * 0.46, eyeY + 0.5);
+    ctx.moveTo(offsetX + drawW * 0.56, eyeY + 0.5);
+    ctx.lineTo(offsetX + drawW * 0.62, eyeY);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 // ===== 跳舞专用演出效果 =====
@@ -460,27 +575,29 @@ function getClimbVisualPose(now) {
   const bob = Math.sin(t * 5.2);
   const side = edgeType === 1 ? -1 : edgeType === 2 ? 1 : 0;
 
+  const sideGrip = Math.abs(side) * 5;
+
   if (phase === 'perching') {
-    return { x: side * 3, y: -2 + bob * 1.5, rotation: side * 0.05 + bob * 0.01, scaleX: 1.01, scaleY: 0.99 };
+    return { x: side * (6 + sideGrip), y: -4 + bob * 1.7, rotation: side * 0.12 + bob * 0.012, scaleX: 1.03, scaleY: 0.97 };
   }
   if (phase === 'peeking') {
-    return { x: side * 7, y: -6 + bob * 1.8, rotation: side * 0.08, scaleX: 1.03, scaleY: 0.98 };
+    return { x: side * (12 + sideGrip), y: -8 + bob * 2.1, rotation: side * 0.16, scaleX: 1.05, scaleY: 0.96 };
   }
   if (phase === 'descending') {
-    return { x: side * 2, y: 2 + Math.abs(bob) * 1.5, rotation: side * 0.03, scaleX: 0.99, scaleY: 1.01 };
+    return { x: side * (4 + sideGrip), y: 2 + Math.abs(bob) * 1.6, rotation: side * 0.07, scaleX: 0.99, scaleY: 1.01 };
   }
-  return { x: side * 2, y: bob * 1.4, rotation: side * 0.04 + bob * 0.015, scaleX: 1.0, scaleY: 1.0 };
+  return { x: side * (5 + sideGrip), y: -1 + bob * 1.6, rotation: side * 0.10 + bob * 0.015, scaleX: 1.02, scaleY: 0.98 };
 }
 
 function getRunningPose(now, direction) {
-  const step = Math.sin((now / 1000) * 22);
+  const step = Math.sin((now / 1000) * 24);
   const lift = Math.abs(step);
   return {
-    x: direction * (1.8 + lift * 1.2),
-    y: -lift * 5.5,
-    rotation: direction * (0.055 + lift * 0.035),
-    scaleX: 1.045 + lift * 0.025,
-    scaleY: 0.985 - lift * 0.035,
+    x: direction * (2.2 + lift * 1.8),
+    y: -lift * 7.2,
+    rotation: direction * (0.075 + lift * 0.05),
+    scaleX: 1.055 + lift * 0.045,
+    scaleY: 0.975 - lift * 0.052,
   };
 }
 
@@ -1283,12 +1400,7 @@ function draw(now) {
     }
   }
 
-  // 呼吸感微动画：仅在静态状态且无喂食动画时生效
-  if (state.feedScaleStart <= 0 && STATIC_STATES.has(state.stateName)) {
-    const breathProgress = (now % BREATH_PERIOD) / BREATH_PERIOD;
-    const breathScale = 1 + BREATH_AMPLITUDE * Math.sin(breathProgress * 2 * Math.PI);
-    scale = breathScale;
-  }
+  // 呼吸感微动画改由脚底锚点姿态处理，避免整只角色围绕画布中心漂浮。
 
   // === 视线追踪：偶尔一瞥 ===
   let glanceOffsetX = 0;
@@ -1367,7 +1479,7 @@ function draw(now) {
   const feedOffset = (scale - 1) * 15;
   if (bubble) bubble.style.setProperty('--bubble-bottom', `${bubbleBottom + feedOffset}px`);
 
-  const DRAW_SCALE = Number(state.currentPet?.asset?.scale) || 0.75;
+  const DRAW_SCALE = Number(state.currentPet?.asset?.scale) || PERSONA_DRAW_SCALE_DEFAULT;
   const drawW = _logW * DRAW_SCALE;
   const drawH = _logH * DRAW_SCALE;
   const centerX = _logW / 2;
@@ -1394,12 +1506,21 @@ function draw(now) {
   const swimmingPose = isSwimming && !usesIntegratedScene ? getSwimmingPose(now) : null;
   const hungryPose = isHungryPromptActive ? getHungryPromptPose(now) : null;
   const climbPose = isClimbingVisual ? getClimbVisualPose(now) : null;
+  const personaIdlePose = state.feedScaleStart <= 0 && STATIC_STATES.has(state.stateName) && !usesIntegratedScene
+    ? getPersonaIdlePose(now, state.stateName)
+    : null;
   const whipPose = reactionState.whip ? getWhipPose(now) : null;
   const dancePivotX = offsetX + drawW * 0.5;
   const dancePivotY = offsetY + drawH * 0.68;
   const swingPivotX = offsetX + drawW * 0.5;
   const swingPivotY = offsetY - 8;
 
+  if (!isClimbingVisual && !usesIntegratedScene) {
+    const shadowPulse = STATIC_STATES.has(state.stateName)
+      ? 0.19 + Math.sin((now % BREATH_PERIOD) / BREATH_PERIOD * Math.PI * 2) * 0.025
+      : 0.16;
+    drawPersonaGroundShadow(ctx, centerX, _logH - 8, drawW * 0.62, shadowPulse);
+  }
   if (isClimbingVisual) {
     drawClimbBackdrop(ctx, _logW, _logH, state.climbEdgeType ?? 0, state.climbPhase, now);
   }
@@ -1434,6 +1555,14 @@ function draw(now) {
   // 视线追踪偏移
   if (glanceOffsetX !== 0 || glanceOffsetY !== 0) {
     ctx.translate(glanceOffsetX, glanceOffsetY);
+  }
+  if (personaIdlePose) {
+    const personaPivotX = offsetX + drawW * 0.5;
+    const personaPivotY = offsetY + drawH * PERSONA_FOOT_BASELINE_Y;
+    ctx.translate(personaPivotX + personaIdlePose.x, personaPivotY + personaIdlePose.y);
+    ctx.rotate(personaIdlePose.rotation);
+    ctx.scale(personaIdlePose.scaleX, personaIdlePose.scaleY);
+    ctx.translate(-personaPivotX, -personaPivotY);
   }
   if (dancePose) {
     ctx.translate(dancePivotX + dancePose.x, dancePivotY + dancePose.y);
@@ -1474,7 +1603,7 @@ function draw(now) {
   }
   if (climbPose) {
     const climbPivotX = offsetX + drawW * 0.5;
-    const climbPivotY = offsetY + drawH * 0.56;
+    const climbPivotY = offsetY + drawH * 0.72;
     ctx.translate(climbPivotX + climbPose.x, climbPivotY + climbPose.y);
     ctx.rotate(climbPose.rotation);
     ctx.scale(climbPose.scaleX, climbPose.scaleY);
@@ -1496,7 +1625,7 @@ function draw(now) {
     ctx.scale(whipPose.scaleX, whipPose.scaleY);
     ctx.translate(-whipPivotX, -whipPivotY);
   }
-  ctx.imageSmoothingEnabled = false; // pixel art：关闭插值，保持像素锐利
+  ctx.imageSmoothingEnabled = false; // keep sprite edges crisp inside the persona shadow pass
   if (danceSequence) {
     ctx.drawImage(
       danceSequence.img,
@@ -1510,12 +1639,14 @@ function draw(now) {
       drawH
     );
   } else {
-    ctx.drawImage(drawSprite, sourceFrame.frame * cell.width, sourceFrame.row * cell.height, cell.width, cell.height, offsetX, offsetY, drawW, drawH);
+    drawPersonaSpriteWithLayerMotion(ctx, drawSprite, sourceFrame, cell, offsetX, offsetY, drawW, drawH, personaIdlePose);
   }
   if (usesBaseSheet && !danceSequence) {
     drawExpressionFace(ctx, sourceFrame.row, offsetX, offsetY, drawW, drawH, now);
   }
   ctx.restore();
+
+  drawPersonaIdleAccent(ctx, offsetX, offsetY, drawW, drawH, now, personaIdlePose);
 
   // 绘制特效锚点
   const petCX = offsetX + drawW / 2 + (dancePose?.x || 0) + (runningPose?.x || 0) + (swingPose?.x || 0) + (fanPose?.x || 0) + (swimmingPose?.x || 0) + (climbPose?.x || 0) + (hungryPose?.x || 0) + (whipPose?.x || 0);

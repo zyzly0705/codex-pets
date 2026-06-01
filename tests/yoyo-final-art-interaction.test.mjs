@@ -70,6 +70,7 @@ test('main care flow triggers final-art effect after successful care', () => {
   const traySource = readFileSync(join(repoRoot, 'src/main/tray-menu.js'), 'utf8');
 
   assert.match(lifeSource, /normalizeCareRequest/);
+  assert.match(lifeSource, /YOYO_TEST_DESKTOP_RUN/);
   assert.match(lifeSource, /buildDesktopAction/);
   assert.match(lifeSource, /desktopAction: buildDesktopAction\(actionId/);
   assert.match(lifeSource, /!suppressFinalEffect && !snapshot\.blocked/);

@@ -1,0 +1,26 @@
+{
+  "id": "feed",
+  "engine": "spine-pixi-v8",
+  "version": 2,
+  "effectType": "spine-action",
+  "runtimeMode": "home-spine-action",
+  "strictAssets": true,
+  "durationMs": 5200,
+  "spine": {
+    "skeleton": "spine/yoyo.skel.json",
+    "atlas": "spine/yoyo.atlas",
+    "skin": "default",
+    "animation": "eat_table",
+    "idleAnimation": "idle_stand",
+    "scale": 0.92,
+    "visualSource": "../../home/yoyo-home-v7-room-palette.webp"
+  },
+  "scene": {
+    "mode": "home-feed",
+    "nativeRoomZone": true
+  },
+  "layers": [
+    "native-room-table",
+    "spine-v7-cutout"
+  ]
+}

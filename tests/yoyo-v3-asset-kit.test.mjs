@@ -61,6 +61,10 @@ describe('Yoyo V3 full asset kit contract', () => {
     assert.equal(manifest.runtimeCompatibility.avatarDriver, 'pixi-spritesheet');
     assert.equal(manifest.runtimeCompatibility.keepCurrentSpritesheet, true);
     assert.equal(manifest.rooms.length, 4);
+    assert.ok(
+      manifest.rooms.every((asset) => asset.runtime.endsWith('-safe.webp') && asset.width === 1272 && asset.height === 720),
+      'V3 room runtimes should point to the no-dog-bowl safe room derivatives',
+    );
     assert.equal(manifest.props.length, 9);
     assert.equal(manifest.composites.length, 5);
 
@@ -80,9 +84,10 @@ describe('Yoyo V3 full asset kit contract', () => {
     assert.equal(runtimeManifest.avatar.driver, 'pixi-spritesheet');
     assert.equal(runtimeManifest.avatar.sheet, 'spritesheet.webp');
     assert.equal(runtimeManifest.v3.active, true);
-    assert.equal(runtimeManifest.v3.rooms.day, 'home/room-v3-day.webp');
+    assert.equal(runtimeManifest.v3.rooms.day, 'home/room-v3-day-safe.webp');
     assert.equal(runtimeManifest.v3.props.feed, 'home/prop-v3-meal-table.webp');
-    assert.equal(runtimeManifest.v3.composites.sleep, 'home/composite-v3-sleep-yoyo.webp');
+    assert.deepEqual(runtimeManifest.v3.composites, {});
+    assert.equal(runtimeManifest.careScenes.sleep.prop, 'home/prop-v3-bed.webp');
   });
 
   test('V3 audit report exists after the audit command runs', () => {

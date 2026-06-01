@@ -1,7 +1,12 @@
 import { canvas, state } from './core-state.js';
+import { debugLog } from './debug-log.js';
 
 const RIG_MANIFEST_URL = '../assets/yoyo/desktop-rig/v1/manifest.json';
 const RUNNING_STATES = new Set(['runningRight', 'runningLeft']);
+const ACTIVE_RIG_STATES = new Set([
+  'idle', 'waiting', 'waving', 'bashful', 'review', 'petting',
+  'runningRight', 'runningLeft',
+]);
 const PART_DEPTH = [
   'hair_back',
   'side_hair_left',
@@ -72,6 +77,15 @@ function setRigVisible(visible) {
   if (canvas) canvas.style.opacity = visible ? '0' : '';
 }
 
+function resetParts(parts) {
+  for (const part of Object.values(parts)) {
+    part.x = part.baseX;
+    part.y = part.baseY;
+    part.rotation = 0;
+    part.scale.set(1);
+  }
+}
+
 async function loadRuntimeManifest() {
   const response = await fetch(new URL(RIG_MANIFEST_URL, window.location.href));
   if (!response.ok) throw new Error(`desktop rig manifest failed: ${response.status}`);
@@ -91,6 +105,37 @@ function createPart(layer, texture) {
   sprite.anchor.set(pivot.x, pivot.y);
   container.addChild(sprite);
   return container;
+}
+
+function applyIdleMotion(parts, elapsed) {
+  const breath = Math.sin(elapsed * 2.2);
+  const sway = Math.sin(elapsed * 1.35);
+  const root = rig.root;
+  root.y = rig.rootBaseY - 2.4 + breath * 1.6;
+  root.rotation = sway * 0.012;
+  root.scale.x = rig.rootBaseScale * (1 - breath * 0.008);
+  root.scale.y = rig.rootBaseScale * (1 + breath * 0.010);
+
+  resetParts(parts);
+  const pose = {
+    hair_front: { r: sway * 0.014, x: -sway * 1.2, y: -breath * 1.4 },
+    bangs_center: { r: sway * 0.010, x: -sway * 0.8, y: -breath * 0.8 },
+    side_hair_left: { r: -0.016 + sway * 0.012, x: -1.4 + sway, y: breath * 1.2 },
+    side_hair_right: { r: 0.016 + sway * 0.012, x: 1.4 + sway, y: breath * 1.2 },
+    bun: { r: sway * 0.018, x: sway * 1.1, y: -breath * 1.0 },
+    face_base: { r: sway * 0.004, x: sway * 0.5, y: -breath * 0.6 },
+    arm_left: { r: -0.025 + breath * 0.010, y: breath * 1.1 },
+    arm_right: { r: 0.025 + breath * 0.010, y: breath * 1.1 },
+    bow_left: { r: -breath * 0.010, y: breath * 0.5 },
+    bow_right: { r: breath * 0.010, y: breath * 0.5 },
+  };
+  for (const [name, motion] of Object.entries(pose)) {
+    const part = parts[name];
+    if (!part) continue;
+    part.x = part.baseX + (motion.x || 0);
+    part.y = part.baseY + (motion.y || 0);
+    part.rotation = motion.r || 0;
+  }
 }
 
 function applyPartMotion(parts, direction, elapsed) {
@@ -172,6 +217,10 @@ async function initRig() {
     startedAt: performance.now(),
     direction: 1,
   };
+  debugLog('desktop_rig_runtime_ready', {
+    layers: layers.length,
+    activeStates: [...ACTIVE_RIG_STATES],
+  });
   return rig;
 }
 
@@ -179,24 +228,33 @@ function frame() {
   frameHandle = requestAnimationFrame(frame);
   if (!rig) return;
 
-  const running = RUNNING_STATES.has(state.stateName);
-  setRigVisible(running);
-  if (!running) return;
+  const rigVisible = ACTIVE_RIG_STATES.has(state.stateName);
+  setRigVisible(rigVisible);
+  if (!rigVisible) return;
 
-  rig.direction = state.stateName === 'runningLeft' ? -1 : 1;
   const elapsed = (performance.now() - rig.startedAt) / 1000;
-  applyPartMotion(rig.parts, rig.direction, elapsed);
+  if (RUNNING_STATES.has(state.stateName)) {
+    rig.direction = state.stateName === 'runningLeft' ? -1 : 1;
+    applyPartMotion(rig.parts, rig.direction, elapsed);
+  } else {
+    rig.direction = 1;
+    applyIdleMotion(rig.parts, elapsed);
+  }
 }
 
 export function startDesktopPixiRunner() {
   if (initPromise || rig) return;
-  if (!canRun()) return;
+  if (!canRun()) {
+    debugLog('desktop_rig_runtime_error', { reason: window.PIXI ? 'missing-host' : 'missing-pixi' });
+    return;
+  }
   initPromise = initRig()
     .then(() => {
       if (!frameHandle) frame();
     })
     .catch((error) => {
       console.warn('[desktop-pixi-runner] disabled', error);
+      debugLog('desktop_rig_runtime_error', { message: error?.message || String(error) });
       setRigVisible(false);
     });
 }

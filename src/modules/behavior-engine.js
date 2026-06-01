@@ -77,51 +77,6 @@ export const BEHAVIORS = [
     async onExecute() {
       const lines = BEHAVIOR_DIALOGUES.walk;
       sayWithAi({ behavior: 'walk', fallback: lines[Math.floor(Math.random() * lines.length)] });
-
-      const { valence, arousal } = yoyoEmotion;
-
-      // 情绪决定步速和距离
-      let distanceMult = 1;
-      let stepSize = 2; // px per 50ms
-      if (valence > 70 && arousal > 55) {
-        distanceMult = 1.6; stepSize = 3; // 开心：步子大、走得远
-      } else if (valence < 35) {
-        distanceMult = 0.5; stepSize = 1; // 难过：只是挪一挪
-      }
-      if (arousal > 78) stepSize = Math.min(4, stepSize + 1);
-      else if (arousal < 28) stepSize = Math.max(1, stepSize - 1);
-
-      // 难过时向最近的屏幕边缘走（缩角落行为）
-      let direction;
-      if (valence < 35) {
-        const { bounds, workArea } = await window.petApi.getBounds();
-        const centerX = workArea.x + workArea.width / 2;
-        direction = bounds.x < centerX ? -1 : 1;
-      } else {
-        direction = Math.random() > 0.5 ? 1 : -1;
-      }
-
-      const distance = (40 + Math.random() * 60) * distanceMult;
-      const walkState = direction > 0 ? 'runningRight' : 'runningLeft';
-      setState(walkState);
-      let remaining = distance;
-      const walkTimer = setInterval(async () => {
-        if (state.currentBehavior !== 'walk') {
-          clearInterval(walkTimer);
-          return;
-        }
-        if (remaining <= 0) {
-          clearInterval(walkTimer);
-          if (state.currentBehavior === 'walk') setState('idle');
-          return;
-        }
-        const moved = await window.petApi.moveBy({ x: direction * stepSize, y: 0 });
-        remaining -= stepSize;
-        const { bounds, workArea } = await window.petApi.getBounds();
-        if (moved.x <= workArea.x || moved.x + bounds.width >= workArea.x + workArea.width) {
-          remaining = 0;
-        }
-      }, 50);
     }
   },
   {

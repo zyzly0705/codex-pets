@@ -207,38 +207,40 @@ async function init() {
 
   // 加载宠物并启动天气
   await loadPets();
-  refreshWeatherContext();
+  if (!desktopRunTestEnabled) refreshWeatherContext();
 
-  // 启动记忆系统
-  memoryOnStartup();
-  relationshipEvent('daily_start', 1);
-  maybeSpeakRelationshipStageEvent();
+  if (!desktopRunTestEnabled) {
+    // 启动记忆系统
+    memoryOnStartup();
+    relationshipEvent('daily_start', 1);
+    maybeSpeakRelationshipStageEvent();
 
-  // 启动时检测特殊日期和里程碑
-  setTimeout(() => {
-    if (!isStartupQuiet()) {
-      checkGoodMorning();
-      checkSpecialDate();
-      checkCompanionMilestone();
-    }
-  }, 4000);
+    // 启动时检测特殊日期和里程碑
+    setTimeout(() => {
+      if (!isStartupQuiet()) {
+        checkGoodMorning();
+        checkSpecialDate();
+        checkCompanionMilestone();
+      }
+    }, 4000);
 
-  // 记忆驱动的问候
-  setTimeout(() => {
-    if (isStartupQuiet()) return;
-    const line = getStartupMemoryLine();
-    if (line) {
-      setState('waving');
-      say(line, 8000);
-    } else {
-      memoryDrivenGreeting();
-    }
-  }, 6000);
+    // 记忆驱动的问候
+    setTimeout(() => {
+      if (isStartupQuiet()) return;
+      const line = getStartupMemoryLine();
+      if (line) {
+        setState('waving');
+        say(line, 8000);
+      } else {
+        memoryDrivenGreeting();
+      }
+    }, 6000);
 
-  // 每日签到系统
-  setTimeout(() => {
-    initCheckinSystem();
-  }, 8000);
+    // 每日签到系统
+    setTimeout(() => {
+      initCheckinSystem();
+    }, 8000);
+  }
 
   // 启动渲染循环
   startRenderLoop();
@@ -252,7 +254,7 @@ async function init() {
   }
 
   // 启动行为决策引擎
-  startBehaviorEngine();
+  if (!desktopRunTestEnabled) startBehaviorEngine();
   if (!live2dDemoEnabled) startDesktopPixiRunner();
   if (!live2dDemoEnabled) startDesktopRoaming();
 
@@ -260,7 +262,7 @@ async function init() {
   await initBehaviorDebugPanel();
 
   // 启动所有定时器
-  initTimers();
+  if (!desktopRunTestEnabled) initTimers();
 }
 
 init().catch(err => console.error('Yoyo init failed:', err));

@@ -52,34 +52,35 @@
   },
   "home": {
     "rooms": {
-      "day": "home/room-v3-day.webp",
-      "night": "home/room-v3-night.webp",
-      "rainy": "home/room-v3-rainy.webp",
-      "party": "home/room-v3-party.webp"
+      "day": "home/room-v3-day-safe.webp",
+      "night": "home/room-v3-night-safe.webp",
+      "rainy": "home/room-v3-rainy-safe.webp",
+      "party": "home/room-v3-party-safe.webp"
     },
     "runtimeSheet": "home/yoyo-home-sheet.webp",
+    "runtimeCharacter": "home/yoyo-home-v7-room-palette.webp",
     "zoneSource": "../../src/shared/home-scene.js"
   },
   "careScenes": {
     "feed": {
-      "composite": "home/composite-v3-feed-yoyo.webp",
-      "status": "keep"
+      "prop": "home/prop-v3-meal-table.webp",
+      "status": "native-room-zone"
     },
     "sleep": {
-      "composite": "home/composite-v3-sleep-yoyo.webp",
-      "status": "keep"
+      "prop": "home/prop-v3-bed.webp",
+      "status": "native-room-zone"
     },
     "bath": {
-      "composite": "home/composite-v3-bath-yoyo.webp",
-      "status": "keep"
+      "prop": "home/prop-v3-wash-stand.webp",
+      "status": "native-room-zone"
     },
     "play": {
-      "composite": "home/composite-v3-play-yoyo.webp",
-      "status": "keep"
+      "prop": "home/prop-v3-toy-shelf.webp",
+      "status": "native-room-zone"
     },
     "comfort": {
-      "composite": "home/composite-v3-comfort-yoyo.webp",
-      "status": "keep"
+      "prop": "home/prop-v3-comfort-cushion.webp",
+      "status": "native-room-zone"
     }
   },
   "specialActions": {
@@ -108,10 +109,10 @@
     "active": true,
     "sourceManifest": "../assets-src/yoyo/v3/manifest.json",
     "rooms": {
-      "day": "home/room-v3-day.webp",
-      "night": "home/room-v3-night.webp",
-      "rainy": "home/room-v3-rainy.webp",
-      "party": "home/room-v3-party.webp"
+      "day": "home/room-v3-day-safe.webp",
+      "night": "home/room-v3-night-safe.webp",
+      "rainy": "home/room-v3-rainy-safe.webp",
+      "party": "home/room-v3-party-safe.webp"
     },
     "props": {
       "feed": "home/prop-v3-meal-table.webp",
@@ -124,13 +125,7 @@
       "buildBlocks": "home/prop-v3-blocks.webp",
       "study": "home/prop-v3-study-desk.webp"
     },
-    "composites": {
-      "feed": "home/composite-v3-feed-yoyo.webp",
-      "sleep": "home/composite-v3-sleep-yoyo.webp",
-      "bath": "home/composite-v3-bath-yoyo.webp",
-      "play": "home/composite-v3-play-yoyo.webp",
-      "comfort": "home/composite-v3-comfort-yoyo.webp"
-    }
+    "composites": {}
   },
   "qa": {
     "report": "qa/asset-pack-report.md",
@@ -151,8 +146,23 @@
       "height": 8736
     },
     {
-      "path": "home/room-stage-v2.webp",
-      "width": 1080,
+      "path": "home/room-v3-day-safe.webp",
+      "width": 1272,
+      "height": 720
+    },
+    {
+      "path": "home/room-v3-night-safe.webp",
+      "width": 1272,
+      "height": 720
+    },
+    {
+      "path": "home/room-v3-rainy-safe.webp",
+      "width": 1272,
+      "height": 720
+    },
+    {
+      "path": "home/room-v3-party-safe.webp",
+      "width": 1272,
       "height": 720
     },
     {
@@ -161,9 +171,34 @@
       "height": 8736
     },
     {
-      "path": "home/composite-sleep-bed-yoyo.webp",
-      "width": 440,
-      "height": 344
+      "path": "home/yoyo-home-v7-room-palette.webp",
+      "width": 162,
+      "height": 420
+    },
+    {
+      "path": "home/prop-v3-meal-table.webp",
+      "width": 210,
+      "height": 150
+    },
+    {
+      "path": "home/prop-v3-wash-stand.webp",
+      "width": 260,
+      "height": 220
+    },
+    {
+      "path": "home/prop-v3-bed.webp",
+      "width": 360,
+      "height": 260
+    },
+    {
+      "path": "home/prop-v3-toy-shelf.webp",
+      "width": 260,
+      "height": 220
+    },
+    {
+      "path": "home/prop-v3-comfort-cushion.webp",
+      "width": 260,
+      "height": 180
     }
   ]
 }

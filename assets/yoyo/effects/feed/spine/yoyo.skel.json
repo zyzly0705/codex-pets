@@ -1,0 +1,143 @@
+{
+  "skeleton": {
+    "spine": "4.3.3",
+    "hash": "generated-yoyo-v7-feed-spine-v2",
+    "x": -81,
+    "y": 0,
+    "width": 162,
+    "height": 420,
+    "fps": 30,
+    "images": "./"
+  },
+  "bones": [
+    {
+      "name": "root"
+    },
+    {
+      "name": "body",
+      "parent": "root",
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "slots": [
+    {
+      "name": "body",
+      "bone": "body",
+      "attachment": "body"
+    }
+  ],
+  "skins": [
+    {
+      "name": "default",
+      "attachments": {
+        "body": {
+          "body": {
+            "type": "region",
+            "name": "body",
+            "path": "body",
+            "x": 0,
+            "y": 210,
+            "width": 162,
+            "height": 420,
+            "rotation": 0
+          }
+        }
+      }
+    }
+  ],
+  "animations": {
+    "idle_stand": {
+      "bones": {
+        "body": {
+          "translate": [
+            {
+              "time": 0,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "time": 0.6,
+              "x": 0,
+              "y": 4
+            },
+            {
+              "time": 1.2,
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.6,
+              "value": 1.2
+            },
+            {
+              "time": 1.2,
+              "value": 0
+            }
+          ]
+        }
+      }
+    },
+    "eat_table": {
+      "bones": {
+        "body": {
+          "translate": [
+            {
+              "time": 0,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "time": 0.18,
+              "x": -7,
+              "y": -8
+            },
+            {
+              "time": 0.36,
+              "x": -10,
+              "y": -14
+            },
+            {
+              "time": 0.56,
+              "x": -5,
+              "y": -6
+            },
+            {
+              "time": 0.76,
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "rotate": [
+            {
+              "time": 0,
+              "value": 0
+            },
+            {
+              "time": 0.18,
+              "value": -2.5
+            },
+            {
+              "time": 0.36,
+              "value": -5
+            },
+            {
+              "time": 0.56,
+              "value": -2
+            },
+            {
+              "time": 0.76,
+              "value": 0
+            }
+          ]
+        }
+      }
+    }
+  }
+}

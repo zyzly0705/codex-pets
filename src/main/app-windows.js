@@ -14,6 +14,9 @@ function createMainWindow({ appWidth, appHeight, appendDebugLog }) {
     y: primary.y + primary.height - appHeight - 24,
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
+    show: false,
+    paintWhenInitiallyHidden: true,
     resizable: false,
     alwaysOnTop: true,
     skipTaskbar: false,
@@ -26,6 +29,16 @@ function createMainWindow({ appWidth, appHeight, appendDebugLog }) {
   });
 
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
+  mainWindow.setBackgroundColor('#00000000');
+  const showTransparentWindow = () => {
+    if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isVisible()) return;
+    mainWindow.showInactive();
+    appendDebugLog('window_ready_shown', { transparent: true });
+  };
+  mainWindow.once('ready-to-show', showTransparentWindow);
+  mainWindow.webContents.once('did-finish-load', () => {
+    setTimeout(showTransparentWindow, 60);
+  });
   mainWindow.loadFile(path.join(__dirname, '..', 'index.html'));
   mainWindow.webContents.on('render-process-gone', (_event, details) => {
     appendDebugLog('render_process_gone', details);

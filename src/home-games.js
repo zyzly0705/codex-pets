@@ -332,7 +332,7 @@
     ui.body.appendChild(hint);
 
     const img = new Image();
-    img.src = new URL('../assets/yoyo/home/room-v3-day.webp', window.location.href).href;
+    img.src = new URL('../assets/yoyo/home/room-v3-day-safe.webp', window.location.href).href;
 
     // 随机生成5处不同（色块）
     const diffs = Array.from({ length: TARGET }, () => ({

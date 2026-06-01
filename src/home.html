@@ -8,9 +8,9 @@
 </head>
 <body>
   <main class="home-shell" aria-label="Yoyo 小屋">
-    <section class="room-stage" aria-label="Yoyo 的房间">
+    <section class="room-stage" aria-label="Yoyo 的房间" data-home-character-mode="v7-cutout">
       <div class="room-world" id="room-world">
-        <img id="room-art" class="room-art" src="../assets/yoyo/home/room-v3-day.webp" alt="">
+        <img id="room-art" class="room-art" src="../assets/yoyo/home/room-v3-day-safe.webp" alt="">
 
         <div class="home-zone-label zone-kitchen">厨房</div>
         <div class="home-zone-label zone-living">客厅</div>
@@ -21,61 +21,84 @@
         <div class="home-scene-objects scene-objects-back" id="home-scene-objects-back" aria-hidden="true"></div>
         <div class="room-effects" id="room-effects" aria-hidden="true"></div>
         <button class="room-hotspot hotspot-food" type="button" data-action="feed" aria-label="小餐桌：喂饭" data-tip="小餐桌 · 陪Yoyo吃饭">
-          <img src="../assets/yoyo/home/prop-food.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-meal-table.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-bath" type="button" data-action="bath" aria-label="浴盆：洗澡" data-tip="浴盆 · 洗香香">
-          <img src="../assets/yoyo/home/prop-bath.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-wash-stand.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-bed" type="button" data-action="sleep" aria-label="小床：休息" data-tip="小床 · 休息一下">
-          <img src="../assets/yoyo/home/prop-bed.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-bed.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-toy" type="button" data-action="play" aria-label="玩具箱：陪玩" data-tip="玩具箱 · 陪Yoyo玩">
-          <img src="../assets/yoyo/home/prop-toy.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-toy-shelf.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-tv" type="button" data-action="watchAnime" aria-label="电视：看动画" data-tip="电视 · 看动画">
-          <img src="../assets/yoyo/home/decor-tv-game-toys.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-media-screen.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-switch" type="button" data-action="playSwitch" aria-label="游戏机：玩 Switch" data-tip="游戏机 · 玩 Switch">
-          <img src="../assets/yoyo/home/decor-tv-game-toys.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-game-console.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-blocks" type="button" data-action="buildBlocks" aria-label="积木：叠积木" data-tip="积木 · 搭高高">
-          <img src="../assets/yoyo/home/prop-toy.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-blocks.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-study" type="button" data-action="study" aria-label="书桌：学习" data-tip="书桌 · 认真学">
-          <img src="../assets/yoyo/home/decor-wall-soft-furnishing.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-study-desk.webp" alt="">
         </button>
         <button class="room-hotspot hotspot-heart" type="button" data-action="pet" aria-label="Yoyo：摸摸" data-tip="Yoyo · 摸摸她">
-          <img src="../assets/yoyo/home/prop-heart.webp" alt="">
+          <img src="../assets/yoyo/home/prop-v3-comfort-cushion.webp" alt="">
         </button>
 
         <div class="pet-zone">
           <canvas id="home-pet" width="192" height="208" aria-label="Yoyo"></canvas>
-          <img id="home-sleep-pose" class="home-sleep-pose" src="../assets/yoyo/home/home-sleep-yoyo.webp" alt="" aria-hidden="true">
+          <img id="home-pet-cutout" class="home-pet-cutout" src="../assets/yoyo/home/yoyo-home-v7-room-palette.webp" alt="Yoyo">
+          <div id="home-spine-host" class="home-spine-host" aria-hidden="true"></div>
           <div class="accessory-layer" id="accessory-layer" aria-hidden="true"></div>
         </div>
         <div class="home-scene-objects scene-objects-front" id="home-scene-objects-front" aria-hidden="true"></div>
         <div class="home-scene-rig-layer" id="home-scene-rig-layer" aria-hidden="true"></div>
-        <img id="home-action-composite" class="home-action-composite" src="../assets/yoyo/home/composite-sleep-bed-yoyo.webp" alt="" aria-hidden="true">
+        <img id="home-action-composite" class="home-action-composite" alt="" aria-hidden="true">
       </div>
 
       <div class="status-orbs" id="needs-list" aria-label="Yoyo 状态"></div>
 
-      <div class="room-controls" id="room-controls">
-        <button class="ctrl-btn" id="ctrl-toggle" aria-label="小屋设置" data-tip="小屋设置">✦</button>
-        <div class="ctrl-panel" id="ctrl-panel" aria-hidden="true">
-          <div class="ctrl-row">
-            <button class="scene-chip scene-default active" type="button" data-room-scene="default" aria-label="日常小屋" data-tip="日常小屋"></button>
-            <button class="scene-chip scene-rainy" type="button" data-room-scene="rainy" aria-label="雨天小屋" data-tip="雨天小屋"></button>
-            <button class="scene-chip scene-night" type="button" data-room-scene="night" aria-label="夜晚小屋" data-tip="夜晚小屋"></button>
-            <button class="scene-chip scene-party" type="button" data-room-scene="party" aria-label="派对小屋" data-tip="派对小屋"></button>
-          </div>
-          <div class="ctrl-row">
-            <button class="decor-chip decor-fairy active" type="button" data-decor="fairyLights" aria-label="星星灯" data-tip="星星灯"></button>
-            <button class="decor-chip decor-stars" type="button" data-decor="floorStars" aria-label="地板星光" data-tip="地板星光"></button>
-            <button class="decor-chip decor-glow active" type="button" data-decor="softGlow" aria-label="暖光" data-tip="暖光"></button>
-            <button class="decor-chip decor-keepsakes" type="button" data-decor="keepsakes" aria-label="纪念小物" data-tip="纪念小物"></button>
+      <div class="home-tools" aria-label="小屋工具">
+        <div class="room-controls" id="room-controls">
+          <button class="ctrl-btn tool-button" id="ctrl-toggle" aria-label="小屋设置" data-tip="小屋设置">
+            <span class="tool-icon" aria-hidden="true">✦</span>
+            <span class="tool-label">布置</span>
+          </button>
+          <div class="ctrl-panel" id="ctrl-panel" aria-hidden="true">
+            <div class="ctrl-row">
+              <button class="scene-chip scene-default active" type="button" data-room-scene="default" aria-label="日常小屋" data-tip="日常小屋"></button>
+              <button class="scene-chip scene-rainy" type="button" data-room-scene="rainy" aria-label="雨天小屋" data-tip="雨天小屋"></button>
+              <button class="scene-chip scene-night" type="button" data-room-scene="night" aria-label="夜晚小屋" data-tip="夜晚小屋"></button>
+              <button class="scene-chip scene-party" type="button" data-room-scene="party" aria-label="派对小屋" data-tip="派对小屋"></button>
+            </div>
+            <div class="ctrl-row">
+              <button class="decor-chip decor-fairy active" type="button" data-decor="fairyLights" aria-label="星星灯" data-tip="星星灯"></button>
+              <button class="decor-chip decor-stars" type="button" data-decor="floorStars" aria-label="地板星光" data-tip="地板星光"></button>
+              <button class="decor-chip decor-glow active" type="button" data-decor="softGlow" aria-label="暖光" data-tip="暖光"></button>
+              <button class="decor-chip decor-keepsakes" type="button" data-decor="keepsakes" aria-label="纪念小物" data-tip="纪念小物"></button>
+            </div>
           </div>
         </div>
+
+        <button class="wardrobe-launcher tool-button" id="wardrobe-launcher" aria-label="换装" data-tip="给Yoyo换装">
+          <span class="tool-icon" aria-hidden="true">👗</span>
+          <span class="tool-label">换装</span>
+        </button>
+        <button class="game-launcher tool-button" id="game-launcher" aria-label="小游戏" data-tip="和Yoyo一起玩">
+          <span class="tool-icon" aria-hidden="true">🎮</span>
+          <span class="tool-label">游戏</span>
+        </button>
+        <button class="concert-launcher tool-button" id="concert-launcher" aria-label="演唱会" data-tip="Let it go 演唱会！">
+          <span class="tool-icon" aria-hidden="true">🎤</span>
+          <span class="tool-label">演唱</span>
+        </button>
+        <button id="refresh-life" class="refresh-button tool-button" type="button" aria-label="刷新" data-tip="刷新状态">
+          <span class="tool-icon" aria-hidden="true">↻</span>
+          <span class="tool-label">刷新</span>
+        </button>
       </div>
 
       <div class="bond-stack" aria-label="成长">
@@ -85,15 +108,9 @@
         <strong id="profile-intimacy">0</strong>
       </div>
 
-      <button id="refresh-life" class="refresh-button" type="button" aria-label="刷新" data-tip="刷新状态">↻</button>
-
       <div id="life-bubble" class="life-bubble">
         <span id="life-bubble-text">...</span>
       </div>
-
-      <button class="game-launcher" id="game-launcher" aria-label="小游戏" data-tip="和Yoyo一起玩">🎮</button>
-      <button class="concert-launcher" id="concert-launcher" aria-label="演唱会" data-tip="Let it go 演唱会！">🎤</button>
-      <button class="wardrobe-launcher" id="wardrobe-launcher" aria-label="换装" data-tip="给Yoyo换装">👗</button>
 
       <!-- 换装抽屉 -->
       <div class="wardrobe-drawer" id="wardrobe-drawer" aria-hidden="true">
@@ -127,11 +144,28 @@
       </div>
 
       <div class="care-dock" id="care-actions" hidden aria-hidden="true"></div>
+      <div class="home-intent-popover" id="home-intent-popover" hidden aria-hidden="true">
+        <div class="home-intent-copy">
+          <strong id="home-intent-title">看看 Yoyo</strong>
+          <span id="home-intent-detail">先看看她想不想。</span>
+        </div>
+        <div class="home-intent-actions">
+          <button class="home-intent-primary" id="home-intent-confirm" type="button">开始</button>
+          <button class="home-intent-cancel" id="home-intent-cancel" type="button" aria-label="取消">取消</button>
+        </div>
+      </div>
       <div class="home-tip" id="home-tip" aria-hidden="true"></div>
     </section>
   </main>
   <script src="shared/yoyo-actions.js"></script>
   <script src="shared/home-scene.js"></script>
+  <script src="../node_modules/pixi.js/dist/pixi.min.js"></script>
+  <script src="../node_modules/@esotericsoftware/spine-pixi-v8/dist/iife/spine-pixi-v8.min.js"></script>
+  <script>
+    if (typeof spine !== 'undefined' && !window.spine) window.spine = spine;
+  </script>
+  <script src="home-spine-feed-assets.js"></script>
+  <script src="home-spine-action.js"></script>
   <script src="home.js"></script>
   <script src="home-games.js"></script>
 </body>
