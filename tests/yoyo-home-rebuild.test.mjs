@@ -510,6 +510,112 @@ describe('Yoyo Home rebuild skeleton', () => {
     });
   });
 
+  test('Home HUD makes relationship and today care visible outside debug mode', async () => {
+    await withStaticServer(async (baseUrl) => {
+      const browser = await chromium.launch({ headless: true });
+      try {
+        const page = await browser.newPage({ viewport: { width: 1200, height: 760 }, deviceScaleFactor: 1 });
+        await page.addInitScript(() => {
+          window.__yoyoHomeCareCalls = [];
+          window.petApi = {
+            life: {
+              get: async () => ({
+                satiety: 68,
+                cleanliness: 74,
+                energy: 63,
+                mood: 82,
+                affection: 77,
+                summary: '心情很好',
+                today: {
+                  date: '2026-06-02',
+                  feed: 1,
+                  bath: 0,
+                  sleep: 1,
+                  play: 0,
+                  pet: 2,
+                  watchAnime: 0,
+                  playSwitch: 0,
+                  buildBlocks: 0,
+                  study: 0,
+                },
+                profile: { intimacy: 32, xp: 48, stage: 'close', companionDays: 6 },
+              }),
+              care: async (payload) => {
+                window.__yoyoHomeCareCalls.push(payload);
+                return {
+                  satiety: 94,
+                  cleanliness: 74,
+                  energy: 63,
+                  mood: 88,
+                  affection: 79,
+                  summary: '刚吃饱',
+                  message: '刚好饿了！这口饭把 Yoyo 救回来啦～',
+                  today: {
+                    date: '2026-06-02',
+                    feed: 2,
+                    bath: 0,
+                    sleep: 1,
+                    play: 0,
+                    pet: 2,
+                    watchAnime: 0,
+                    playSwitch: 0,
+                    buildBlocks: 0,
+                    study: 0,
+                  },
+                  profile: { intimacy: 33, xp: 50, stage: 'close', companionDays: 6 },
+                };
+              },
+              onChanged: () => {},
+            },
+          };
+        });
+
+        await page.goto(`${baseUrl}/src/yoyo-home.html`);
+        await page.waitForFunction(() => window.YOYO_HOME_REBUILD?.phase === 'phase-3-electron-bridge');
+        await page.waitForSelector('[data-home-hud="root"]');
+        const hydratedHud = await page.evaluate(() => ({
+          debugVisible: Boolean(document.querySelector('.yoyo-home-debug')),
+          stage: document.querySelector('[data-home-hud="relationship-stage"]')?.textContent,
+          today: document.querySelector('[data-home-hud="today-care"]')?.textContent,
+          feedback: document.querySelector('[data-home-hud="feedback"]')?.textContent,
+          affection: document.querySelector('[data-home-need="affection"]')?.textContent,
+        }));
+        assert.equal(hydratedHud.debugVisible, false);
+        assert.match(hydratedHud.stage, /亲近/u);
+        assert.match(hydratedHud.today, /喂饭 1/u);
+        assert.match(hydratedHud.today, /摸摸 2/u);
+        assert.match(hydratedHud.feedback, /心情很好/u);
+        assert.match(hydratedHud.affection, /77/u);
+
+        const mealClick = await page.evaluate(() => {
+          const rect = document.querySelector('canvas').getBoundingClientRect();
+          return { x: rect.left + 190, y: rect.top + 520 };
+        });
+        await page.mouse.click(mealClick.x, mealClick.y);
+        await page.waitForFunction(() => window.YOYO_HOME_REBUILD_STATE?.activeTask?.gameId === 'catchFood');
+        const foodClick = await page.evaluate(() => {
+          const rect = document.querySelector('canvas').getBoundingClientRect();
+          return { x: rect.left + 126, y: rect.top + 535 };
+        });
+        await page.mouse.click(foodClick.x, foodClick.y);
+        await page.waitForFunction(() => window.__yoyoHomeCareCalls?.length === 1);
+        await page.waitForFunction(() => /喂饭 2/u.test(document.querySelector('[data-home-hud="today-care"]')?.textContent || ''));
+        const afterHud = await page.evaluate(() => ({
+          stage: document.querySelector('[data-home-hud="relationship-stage"]')?.textContent,
+          today: document.querySelector('[data-home-hud="today-care"]')?.textContent,
+          feedback: document.querySelector('[data-home-hud="feedback"]')?.textContent,
+          affection: document.querySelector('[data-home-need="affection"]')?.textContent,
+        }));
+        assert.match(afterHud.stage, /亲近/u);
+        assert.match(afterHud.today, /喂饭 2/u);
+        assert.match(afterHud.feedback, /救回来/u);
+        assert.match(afterHud.affection, /79/u);
+      } finally {
+        await browser.close();
+      }
+    });
+  });
+
   test('preview boots a nonblank Phaser room and completes feed in the same scene', async () => {
     await withStaticServer(async (baseUrl) => {
       const browser = await chromium.launch({ headless: true });

@@ -8,11 +8,13 @@
     { YOYO_HOME_MANIFEST, validateHomeManifest },
     { createHomeState },
     { loadInitialLifeBridgeOptions, createElectronLifeBridge },
+    { createHomeHud },
     { createDebugPanel },
   ] = await Promise.all([
     import('./data/home-manifest.mjs'),
     import('./sim/home-sim.mjs'),
     import('./bridge/electron-life-bridge.mjs'),
+    import('./ui/home-hud.mjs'),
     import('./ui/debug-panel.mjs'),
   ]);
 
@@ -23,6 +25,7 @@
   }
 
   const root = document.getElementById('yoyo-home-game');
+  const homeHud = createHomeHud(document.body);
   const debugPanel = debug ? createDebugPanel(document.body) : null;
   const petApi = window.petApi || null;
   const fallbackState = createHomeState({ manifest: YOYO_HOME_MANIFEST, now: Date.now() });
@@ -39,6 +42,7 @@
     game = createYoyoHomeGame({
       parent: root,
       debugPanel,
+      homeHud,
       debug,
       initialState,
       onStateChange: (state) => bridge?.onStateChange?.(state),

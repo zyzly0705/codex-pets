@@ -46,11 +46,18 @@ function appendEventLog(state, event) {
 
 export function createHomeState(options = {}) {
   const now = options.now || 0;
+  const profile = options.lifeSnapshot?.profile || {};
   return {
     now,
     lastTickAt: now,
     needs: { ...NEED_BASELINE, ...(options.needs || {}) },
-    relationship: { intimacy: options.intimacy || 0, xp: options.xp || 0 },
+    relationship: {
+      intimacy: options.intimacy ?? profile.intimacy ?? 0,
+      xp: options.xp ?? profile.xp ?? 0,
+      stage: options.stage || profile.stage || 'first_meet',
+      companionDays: options.companionDays ?? profile.companionDays ?? 0,
+    },
+    lifeSnapshot: options.lifeSnapshot || null,
     currentTask: null,
     activeTask: null,
     activeMiniGame: null,

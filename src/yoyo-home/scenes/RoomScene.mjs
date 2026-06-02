@@ -24,12 +24,14 @@ export class RoomScene extends Phaser.Scene {
     this.state = createHomeState({ manifest: this.manifest, now: Date.now() });
     this.actor = null;
     this.debugPanel = null;
+    this.homeHud = null;
     this.phaseTimer = null;
     this.isRunningTask = false;
   }
 
   init(data = {}) {
     this.debugPanel = data.debugPanel || null;
+    this.homeHud = data.homeHud || null;
     this.debug = data.debug === true;
     this.onStateChange = typeof data.onStateChange === 'function' ? data.onStateChange : null;
     if (data.initialState) {
@@ -190,6 +192,7 @@ export class RoomScene extends Phaser.Scene {
 
   updateDebug() {
     this.debugPanel?.update(this.state);
+    this.homeHud?.update(this.state);
     window.YOYO_HOME_REBUILD_STATE = this.state;
     window.YOYO_HOME_REBUILD_RUNTIME = {
       isRunningTask: this.isRunningTask,
@@ -205,12 +208,21 @@ export class RoomScene extends Phaser.Scene {
   }
 
   applyExternalNeeds(needs, detail = {}) {
+    const profile = detail.snapshot?.profile || {};
     this.state = {
       ...this.state,
       needs: {
         ...this.state.needs,
         ...needs,
       },
+      relationship: {
+        ...this.state.relationship,
+        intimacy: profile.intimacy ?? this.state.relationship.intimacy,
+        xp: profile.xp ?? this.state.relationship.xp,
+        stage: profile.stage || this.state.relationship.stage,
+        companionDays: profile.companionDays ?? this.state.relationship.companionDays,
+      },
+      lifeSnapshot: detail.snapshot || this.state.lifeSnapshot,
       eventLog: [
         ...this.state.eventLog,
         {
@@ -224,7 +236,7 @@ export class RoomScene extends Phaser.Scene {
   }
 }
 
-export function createYoyoHomeGame({ parent, debugPanel, debug = false, initialState = null, onStateChange = null } = {}) {
+export function createYoyoHomeGame({ parent, debugPanel, homeHud, debug = false, initialState = null, onStateChange = null } = {}) {
   const config = {
     type: Phaser.AUTO,
     parent,
@@ -238,6 +250,6 @@ export function createYoyoHomeGame({ parent, debugPanel, debug = false, initialS
     },
   };
   const game = new Phaser.Game(config);
-  game.scene.add('YoyoHomeRoom', RoomScene, true, { debugPanel, debug, initialState, onStateChange });
+  game.scene.add('YoyoHomeRoom', RoomScene, true, { debugPanel, homeHud, debug, initialState, onStateChange });
   return game;
 }

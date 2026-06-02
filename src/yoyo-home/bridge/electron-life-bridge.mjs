@@ -66,6 +66,8 @@ export async function loadInitialLifeBridgeOptions(petApi, fallbackState) {
       needs: mapLifeSnapshotToHomeNeeds(snapshot, fallbackState?.needs),
       intimacy: snapshot.profile?.intimacy,
       xp: snapshot.profile?.xp,
+      stage: snapshot.profile?.stage,
+      companionDays: snapshot.profile?.companionDays,
       lifeSnapshot: snapshot,
     };
   } catch (error) {
@@ -99,6 +101,7 @@ export function createElectronLifeBridge({ petApi, game, debug = false } = {}) {
     if (scene && typeof scene.applyExternalNeeds === 'function') {
       scene.applyExternalNeeds(mapLifeSnapshotToHomeNeeds(snapshot, scene.state?.needs), {
         source: 'life:changed',
+        snapshot,
       });
     }
     window.YOYO_HOME_LIFE_BRIDGE = bridge;

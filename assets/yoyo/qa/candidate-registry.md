@@ -14,4 +14,3 @@ Useful comfort concept, but label and framing should shift from petting to compa
 | --- | --- | --- | ---: | --- |
 | `reference` | `assets/yoyo/home/composite-pet-cushion-yoyo.webp` | yes | 280x220 | Current runtime comfort composite. |
 | `reference` | `assets/yoyo/qa/candidates/found/composite-pet-cushion-yoyo-redesign-v1.webp` | yes | 280x220 | Older processed comfort composite from redesign v1, migrated out of output. |
-
