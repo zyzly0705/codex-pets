@@ -100,3 +100,20 @@ test('desktop care flow uses unified desktop action dispatcher', () => {
   assert.match(toysSource, /buildDesktopAction/);
   assert.match(toysSource, /export function playDesktopAction/);
 });
+
+test('right-click menu follows the care-first Yoyo 2.0 structure', () => {
+  const traySource = readFileSync(join(repoRoot, 'src/main/tray-menu.js'), 'utf8');
+
+  assert.match(traySource, /label: '看看 Yoyo'/);
+  assert.match(traySource, /label: '打开小屋'/);
+  assert.match(traySource, /label: '喂点东西'/);
+  assert.match(traySource, /label: '摸摸'/);
+  assert.match(traySource, /label: '照顾一下'/);
+  assert.match(traySource, /label: '工作陪伴'/);
+  assert.match(traySource, /work-mode:focus/);
+  assert.match(traySource, /work-mode:balanced/);
+  assert.match(traySource, /work-mode:wrapup/);
+  assert.match(traySource, /label: '成长奖励'/);
+  assert.doesNotMatch(traySource, /label: '小惊喜'/);
+  assert.doesNotMatch(traySource, /label: '泛资讯'/);
+});

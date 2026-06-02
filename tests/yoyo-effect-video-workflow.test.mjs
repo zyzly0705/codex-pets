@@ -99,19 +99,27 @@ test('clone runtime uses timeline clone count to keep the formation readable', (
   assert.match(source, /默认 9 个全身 Yoyo/);
 });
 
-test('right-click menu exposes clone and dharma as manual special performances', () => {
+test('right-click menu treats clone and dharma as growth rewards', () => {
   const traySource = readFileSync(trayMenuPath, 'utf8');
   const interactionSource = readFileSync(interactionPath, 'utf8');
 
-  assert.match(traySource, /label: '特殊演出'/);
+  assert.match(traySource, /label: '成长奖励'/);
+  assert.doesNotMatch(traySource, /label: '特殊演出'/);
+  assert.match(traySource, /requiredLevel: 4/);
+  assert.match(traySource, /requiredLevel: 5/);
+  assert.match(traySource, /requiredIntimacy: 80/);
   assert.match(traySource, /menu-action', 'special:clone'/);
   assert.match(traySource, /menu-action', 'special:giant'/);
   assert.match(interactionSource, /action === 'special:clone'/);
+  assert.match(interactionSource, /runGrowthReward\('special:clone'/);
   assert.match(interactionSource, /startPerformance\('cloneHeart', \{ manual: true, force: true \}\)/);
   assert.match(interactionSource, /window\.petApi\.triggerCloneEffect\(\)/);
   assert.match(interactionSource, /action === 'special:giant'/);
+  assert.match(interactionSource, /runGrowthReward\('special:giant'/);
   assert.match(interactionSource, /startPerformance\('dharmaManifest', \{ manual: true, force: true \}\)/);
   assert.match(interactionSource, /window\.petApi\.triggerGiantEffect\(\)/);
+  assert.match(interactionSource, /getLife\(\)/);
+  assert.match(interactionSource, /还没解锁/);
 });
 
 test('cook pot uses Pixi sequence performance instead of static pose', () => {

@@ -4,6 +4,31 @@ const { CARE_ACTIONS } = require('../shared/yoyo-actions');
 let tray = null;
 const menuState = { dancing: false, following: false, sleeping: false };
 
+const WATCH_ACTIONS = [
+  { label: '打开小屋', action: 'open-home' },
+  { label: '摸摸', action: 'care:pet' },
+  { label: '喂点东西', action: 'care:feed' },
+  { label: '看看状态', action: 'inspect-yoyo' },
+];
+
+const CARE_MENU_ACTIONS = ['bath', 'sleep', 'play'];
+
+const WORK_MODE_ACTIONS = [
+  { label: '专注中', action: 'work-mode:focus' },
+  { label: '轻松工作', action: 'work-mode:balanced' },
+  { label: '加班中', action: 'work-mode:overtime' },
+  { label: '准备收工', action: 'work-mode:wrapup' },
+];
+
+const GROWTH_REWARDS = [
+  { id: 'dance', label: '跳舞', action: 'swing', requiredLevel: 1, requiredIntimacy: 0 },
+  { id: 'cook', label: '入锅温泉', action: 'special:cook', requiredLevel: 2, requiredIntimacy: 0 },
+  { id: 'watch-tv', label: '看电视', action: 'special:watch-tv', requiredLevel: 2, requiredIntimacy: 0 },
+  { id: 'play-switch', label: '打游戏', action: 'special:play-switch', requiredLevel: 3, requiredIntimacy: 0 },
+  { id: 'clone', label: '分身术', action: 'special:clone', requiredLevel: 4, requiredIntimacy: 0 },
+  { id: 'giant', label: '法相天地', action: 'special:giant', requiredLevel: 5, requiredIntimacy: 80 },
+];
+
 function createTrayIcon() {
   const size = 16;
   const canvas = Buffer.alloc(size * size * 4);
@@ -99,13 +124,105 @@ function buildAppearanceMenu({ currentForm, getMainWindow }) {
   };
 }
 
+function sendMenuAction(getMainWindow, action) {
+  const win = getMainWindow();
+  if (win) win.webContents.send('menu-action', action);
+}
+
+function sendGrowthRewardAction(getMainWindow, action) {
+  const win = getMainWindow();
+  if (!win) return;
+  if (action === 'special:clone') {
+    win.webContents.send('menu-action', 'special:clone');
+    return;
+  }
+  if (action === 'special:giant') {
+    win.webContents.send('menu-action', 'special:giant');
+    return;
+  }
+  if (action === 'special:cook') {
+    win.webContents.send('menu-action', 'special:cook');
+    return;
+  }
+  if (action === 'special:watch-tv') {
+    win.webContents.send('menu-action', 'special:watch-tv');
+    return;
+  }
+  if (action === 'special:play-switch') {
+    win.webContents.send('menu-action', 'special:play-switch');
+    return;
+  }
+  sendMenuAction(getMainWindow, action);
+}
+
+function buildWatchMenu({ getMainWindow, openHome }) {
+  return {
+    label: '看看 Yoyo',
+    submenu: WATCH_ACTIONS.map((item) => ({
+      label: item.label,
+      click: () => {
+        if (item.action === 'open-home') {
+          openHome();
+          return;
+        }
+        sendMenuAction(getMainWindow, item.action);
+      },
+    })),
+  };
+}
+
 function buildCareMenuItems(getMainWindow) {
-  return Object.entries(CARE_ACTIONS).map(([id, action]) => ({
-    label: id === 'sleep' && menuState.sleeping ? '叫醒她' : action.label,
-    type: id === 'sleep' ? 'checkbox' : 'normal',
-    checked: id === 'sleep' ? menuState.sleeping : undefined,
-    click: () => { getMainWindow().webContents.send('menu-action', `care:${id}`); },
-  }));
+  return Object.entries(CARE_ACTIONS)
+    .filter(([id]) => CARE_MENU_ACTIONS.includes(id))
+    .map(([id, action]) => ({
+      label: id === 'sleep' && menuState.sleeping ? '叫醒她' : id === 'sleep' ? '哄睡' : action.label,
+      type: id === 'sleep' ? 'checkbox' : 'normal',
+      checked: id === 'sleep' ? menuState.sleeping : undefined,
+      click: () => { sendMenuAction(getMainWindow, `care:${id}`); },
+    }));
+}
+
+function buildWorkMenu(getMainWindow) {
+  return {
+    label: '工作陪伴',
+    submenu: WORK_MODE_ACTIONS.map((item) => ({
+      label: item.label,
+      click: () => { sendMenuAction(getMainWindow, item.action); },
+    })),
+  };
+}
+
+function getGrowthProgress(petData = {}) {
+  return {
+    level: Number(petData.growth?.level || 1),
+    intimacy: Number(petData.relationship?.intimacy || 0),
+  };
+}
+
+function isGrowthRewardUnlocked(reward, progress) {
+  return progress.level >= reward.requiredLevel && progress.intimacy >= reward.requiredIntimacy;
+}
+
+function growthRewardLockSuffix(reward, progress) {
+  const locks = [];
+  if (progress.level < reward.requiredLevel) locks.push(`Lv.${reward.requiredLevel}`);
+  if (progress.intimacy < reward.requiredIntimacy) locks.push(`亲密 ${reward.requiredIntimacy}`);
+  return locks.length ? `（${locks.join(' / ')} 解锁）` : '';
+}
+
+function buildGrowthRewardMenu({ petData, getMainWindow }) {
+  const progress = getGrowthProgress(petData);
+  return {
+    label: '成长奖励',
+    submenu: GROWTH_REWARDS.map((reward) => {
+      const unlocked = isGrowthRewardUnlocked(reward, progress);
+      return {
+        label: `${reward.label}${unlocked ? '' : growthRewardLockSuffix(reward, progress)}`,
+        enabled: unlocked,
+        click: () => { sendGrowthRewardAction(getMainWindow, reward.action); },
+      };
+    }),
+  };
 }
 
 function registerMenuIpc({ ipcMain, getData, getMainWindow, listPets, openHome, openSettings }) {
@@ -125,22 +242,13 @@ function registerMenuIpc({ ipcMain, getData, getMainWindow, listPets, openHome, 
       label: '照顾一下',
       submenu: buildCareMenuItems(getMainWindow)
     };
-    const specialMenu = {
-      label: '特殊演出',
-      submenu: [
-        { label: '分身术', click: () => { getMainWindow().webContents.send('menu-action', 'special:clone'); } },
-        { label: '法相天地', click: () => { getMainWindow().webContents.send('menu-action', 'special:giant'); } },
-        { label: '入锅温泉', click: () => { getMainWindow().webContents.send('menu-action', 'special:cook'); } },
-        { label: '看电视', click: () => { getMainWindow().webContents.send('menu-action', 'special:watch-tv'); } },
-        { label: '打游戏', click: () => { getMainWindow().webContents.send('menu-action', 'special:play-switch'); } },
-      ]
-    };
+    const growthRewardMenu = buildGrowthRewardMenu({ petData, getMainWindow });
 
     const template = [
-      { label: '看看 Yoyo', click: () => { getMainWindow().webContents.send('menu-action', 'inspect-yoyo'); } },
+      buildWatchMenu({ getMainWindow, openHome }),
       careMenu,
-      specialMenu,
-      { label: '打开小屋', click: () => openHome() },
+      buildWorkMenu(getMainWindow),
+      growthRewardMenu,
       { type: 'separator' },
       {
         label: '设置',

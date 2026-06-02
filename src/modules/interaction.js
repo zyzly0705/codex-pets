@@ -39,6 +39,11 @@ const KEYBOARD_COMPANION_DURATION = 2600;
 const KEYBOARD_COMPANION_MIN_INTERVAL = 900;
 const KEYBOARD_PROTECTED_BEHAVIORS = new Set(['weatherReminder', 'newsBroadcast', 'memoryTrigger']);
 
+const GROWTH_REWARD_REQUIREMENTS = {
+  'special:clone': { label: '分身术', requiredLevel: 4, requiredIntimacy: 0 },
+  'special:giant': { label: '法相天地', requiredLevel: 5, requiredIntimacy: 80 },
+};
+
 // 间隔超过这个时间视为真正休息了，重置打字会话
 const TYPING_BREAK_THRESHOLD_MS = 5 * 60 * 1000;
 
@@ -200,6 +205,40 @@ async function careFromMenu(actionId) {
     setState('failed');
     say('这下没照顾好，Yoyo有点懵。', 3600);
   }
+}
+
+async function getGrowthRewardProgress() {
+  try {
+    if (!window.petApi?.getLife) return { level: 1, intimacy: 0 };
+    const life = await window.petApi.getLife();
+    state.life = life;
+    return {
+      level: Number(life?.profile?.level || 1),
+      intimacy: Number(life?.profile?.intimacy || 0),
+    };
+  } catch {
+    return { level: 1, intimacy: 0 };
+  }
+}
+
+async function runGrowthReward(actionId, reward, playReward) {
+  const progress = await getGrowthRewardProgress();
+  const levelLocked = progress.level < reward.requiredLevel;
+  const intimacyLocked = progress.intimacy < reward.requiredIntimacy;
+  if (levelLocked || intimacyLocked) {
+    setState('waiting');
+    say(`${reward.label}还没解锁，先继续照顾Yoyo积累成长吧。`, 4800);
+    debugLog('growth_reward_locked', {
+      actionId,
+      level: progress.level,
+      intimacy: progress.intimacy,
+      requiredLevel: reward.requiredLevel,
+      requiredIntimacy: reward.requiredIntimacy,
+    });
+    return false;
+  }
+  playReward();
+  return true;
 }
 
 // ===== 同步菜单状态 =====
@@ -761,16 +800,20 @@ export function initInteraction() {
       return;
     }
     if (action === 'special:clone') {
-      startPerformance('cloneHeart', { manual: true, force: true });
-      window.petApi.triggerCloneEffect();
-      incrementAchievementStat('cloneTriggered');
-      trackFeatureUsed('clone');
+      await runGrowthReward('special:clone', GROWTH_REWARD_REQUIREMENTS['special:clone'], () => {
+        startPerformance('cloneHeart', { manual: true, force: true });
+        window.petApi.triggerCloneEffect();
+        incrementAchievementStat('cloneTriggered');
+        trackFeatureUsed('clone');
+      });
       return;
     }
     if (action === 'special:giant') {
-      startPerformance('dharmaManifest', { manual: true, force: true });
-      window.petApi.triggerGiantEffect();
-      trackFeatureUsed('giant');
+      await runGrowthReward('special:giant', GROWTH_REWARD_REQUIREMENTS['special:giant'], () => {
+        startPerformance('dharmaManifest', { manual: true, force: true });
+        window.petApi.triggerGiantEffect();
+        trackFeatureUsed('giant');
+      });
       return;
     }
     if (action === 'special:cook') {
