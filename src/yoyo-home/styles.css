@@ -64,6 +64,13 @@ body {
   line-height: 1.35;
 }
 
+.yoyo-home-hud__insight {
+  min-width: 0;
+  color: rgba(33, 58, 61, 0.72);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .yoyo-home-hud__needs {
   display: grid;
   gap: 7px;

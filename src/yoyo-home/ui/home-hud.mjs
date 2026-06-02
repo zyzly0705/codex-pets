@@ -50,6 +50,28 @@ function formatTodayCare(today = {}) {
   return items.map((item) => `${item.label} ${item.count}`).join(' · ');
 }
 
+function todayCareCount(today = {}) {
+  return Object.keys(ACTION_LABELS)
+    .reduce((total, key) => total + Math.max(0, Number(today[key] || 0)), 0);
+}
+
+function todayInsightLine(state) {
+  const today = state.lifeSnapshot?.today || {};
+  const careCount = todayCareCount(today);
+  const lastAction = state.lifeSnapshot?.action || state.aftermath?.actionId || null;
+  const lowest = state.lifeSnapshot?.lowestNeed;
+  if (lastAction && ACTION_LABELS[lastAction]) {
+    return `刚刚${ACTION_LABELS[lastAction]}后，Yoyo觉得你很会照顾她。`;
+  }
+  if (lowest?.value < 42 && lowest.label) {
+    return `Yoyo觉得你今天可能还没注意到她的${lowest.label}。`;
+  }
+  if (careCount > 0) {
+    return `今天你已经照顾了 ${careCount} 次，Yoyo觉得你一直在认真陪她。`;
+  }
+  return 'Yoyo觉得你今天还没正式来看她，正在乖乖等你。';
+}
+
 function feedbackLine(state) {
   if (state.lifeSnapshot?.message) return state.lifeSnapshot.message;
   if (state.lifeSnapshot?.summary) return state.lifeSnapshot.summary;
@@ -69,6 +91,7 @@ export function createHomeHud(root) {
     <div class="yoyo-home-hud__status">
       <span class="yoyo-home-hud__caption">Yoyo 今天</span>
       <strong data-home-hud="feedback">安稳陪伴中</strong>
+      <span class="yoyo-home-hud__insight" data-home-hud="today-insight">Yoyo觉得你今天还没正式来看她。</span>
     </div>
     <div class="yoyo-home-hud__needs" aria-label="生活状态">
       ${NEED_ROWS.map((need) => `
@@ -100,6 +123,7 @@ export function createHomeHud(root) {
       }
       read('[data-home-hud="relationship-stage"]').textContent = relationshipStageLabel(state);
       read('[data-home-hud="today-care"]').textContent = formatTodayCare(state.lifeSnapshot?.today);
+      read('[data-home-hud="today-insight"]').textContent = todayInsightLine(state);
       read('[data-home-hud="feedback"]').textContent = feedbackLine(state);
     },
   };

@@ -577,6 +577,7 @@ describe('Yoyo Home rebuild skeleton', () => {
           debugVisible: Boolean(document.querySelector('.yoyo-home-debug')),
           stage: document.querySelector('[data-home-hud="relationship-stage"]')?.textContent,
           today: document.querySelector('[data-home-hud="today-care"]')?.textContent,
+          insight: document.querySelector('[data-home-hud="today-insight"]')?.textContent,
           feedback: document.querySelector('[data-home-hud="feedback"]')?.textContent,
           affection: document.querySelector('[data-home-need="affection"]')?.textContent,
         }));
@@ -584,6 +585,8 @@ describe('Yoyo Home rebuild skeleton', () => {
         assert.match(hydratedHud.stage, /亲近/u);
         assert.match(hydratedHud.today, /喂饭 1/u);
         assert.match(hydratedHud.today, /摸摸 2/u);
+        assert.match(hydratedHud.insight, /今天你已经照顾了 4 次/u);
+        assert.match(hydratedHud.insight, /Yoyo觉得你一直在认真陪她/u);
         assert.match(hydratedHud.feedback, /心情很好/u);
         assert.match(hydratedHud.affection, /77/u);
 
@@ -603,11 +606,14 @@ describe('Yoyo Home rebuild skeleton', () => {
         const afterHud = await page.evaluate(() => ({
           stage: document.querySelector('[data-home-hud="relationship-stage"]')?.textContent,
           today: document.querySelector('[data-home-hud="today-care"]')?.textContent,
+          insight: document.querySelector('[data-home-hud="today-insight"]')?.textContent,
           feedback: document.querySelector('[data-home-hud="feedback"]')?.textContent,
           affection: document.querySelector('[data-home-need="affection"]')?.textContent,
         }));
         assert.match(afterHud.stage, /亲近/u);
         assert.match(afterHud.today, /喂饭 2/u);
+        assert.match(afterHud.insight, /刚刚喂饭后/u);
+        assert.match(afterHud.insight, /Yoyo觉得你很会照顾她/u);
         assert.match(afterHud.feedback, /救回来/u);
         assert.match(afterHud.affection, /79/u);
       } finally {
