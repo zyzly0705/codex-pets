@@ -1,8 +1,9 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 import {
   applyGravityStep,
@@ -14,6 +15,31 @@ const workArea = { x: 0, y: 0, width: 800, height: 600 };
 const pet = { x: 300, y: 200, width: 200, height: 260 };
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
+
+function readJson(relativePath) {
+  return JSON.parse(readFileSync(join(repoRoot, relativePath), 'utf8'));
+}
+
+async function alphaBox(filePath) {
+  const { data, info } = await sharp(filePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let alpha = 0;
+  let minX = info.width;
+  let minY = info.height;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < info.height; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const a = data[(y * info.width + x) * 4 + 3];
+      if (!a) continue;
+      alpha += 1;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+  return { alpha, minX, minY, maxX, maxY, width: info.width, height: info.height };
+}
 
 describe('desktop edge patrol geometry', () => {
   test('gravity pulls a detached Yoyo down until she lands on the desktop floor', () => {
@@ -81,6 +107,31 @@ describe('desktop edge patrol geometry', () => {
     assert.deepEqual(result.target, { x: 0, y: 0 });
     assert.equal(result.state.edge, 'left');
   });
+});
+
+test('Yoyo climbing source assets cover the full edge-crawl loop safely', async () => {
+  const manifest = readJson('assets-src/yoyo/manifest.json');
+  const petManifest = readJson('assets/yoyo/pet.json');
+  const coreState = readFileSync(join(repoRoot, 'src/modules/core-state.js'), 'utf8');
+  const row = manifest.rows.find((item) => item.name === 'climbing');
+  const frameDir = join(repoRoot, 'assets-src/yoyo/frames/climbing');
+  const frames = readdirSync(frameDir).filter((file) => /^\d+\.png$/u.test(file)).sort();
+
+  assert.equal(row.frames, 8);
+  assert.equal(petManifest.states.climbing.frames, 8);
+  assert.match(coreState, /climbing:\s*\{\s*row:\s*9,\s*frames:\s*8,\s*fps:\s*5\s*\}/u);
+  assert.deepEqual(frames, ['00.png', '01.png', '02.png', '03.png', '04.png', '05.png', '06.png', '07.png']);
+
+  for (const frame of frames) {
+    const file = join(frameDir, frame);
+    assert.equal(existsSync(file), true, `${frame} should exist`);
+    const box = await alphaBox(file);
+    assert.ok(box.alpha > 8000, `${frame} should be a non-empty Yoyo climbing frame`);
+    assert.ok(box.minX >= 12, `${frame} should not touch the left cell edge`);
+    assert.ok(box.maxX <= box.width - 13, `${frame} should not touch the right cell edge`);
+    assert.ok(box.minY >= 36, `${frame} should keep top padding for edge crawl rotation`);
+    assert.ok(box.maxY <= box.height - 32, `${frame} should keep bottom padding for edge crawl rotation`);
+  }
 });
 
 test('desktop roaming uses edge patrol instead of bottom-only random walking', () => {

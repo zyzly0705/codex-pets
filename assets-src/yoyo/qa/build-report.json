@@ -99,7 +99,7 @@
       "row": 9,
       "name": "climbing",
       "type": "base-action",
-      "frames": 5,
+      "frames": 8,
       "sourceFrames": 8,
       "fallbackFrames": 0,
       "missingFrames": [],

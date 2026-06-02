@@ -38,7 +38,7 @@
     "waiting": { "row": 6, "frames": 6, "fps": 3, "loop": "pingpong" },
     "bashful": { "row": 7, "frames": 6, "speed": 250, "loop": "pingpong" },
     "review": { "row": 8, "frames": 6, "fps": 4, "loop": "pingpong" },
-    "climbing": { "row": 9, "frames": 6, "fps": 5 },
+    "climbing": { "row": 9, "frames": 8, "fps": 5 },
     "perching": { "row": 10, "frames": 4, "fps": 3, "loop": "pingpong" },
     "petting": { "row": 11, "frames": 4, "fps": 4, "loop": "pingpong" },
     "yawning": { "row": 12, "frames": 5, "fps": 3, "loop": "pingpong" },

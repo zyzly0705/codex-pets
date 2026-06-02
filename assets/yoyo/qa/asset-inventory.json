@@ -1159,7 +1159,7 @@
     },
     {
       "path": "spritesheet.webp",
-      "bytes": 7205350,
+      "bytes": 7169776,
       "status": "keep",
       "sourceStatusPath": "spritesheet.webp",
       "reason": "Current desktop avatar runtime sheet; keep until the pack loader replaces row access."

@@ -19,7 +19,7 @@
     { "row": 6, "name": "waiting", "frames": 6, "type": "base-action" },
     { "row": 7, "name": "bashful", "frames": 6, "type": "base-action" },
     { "row": 8, "name": "review", "frames": 6, "type": "base-action" },
-    { "row": 9, "name": "climbing", "frames": 5, "type": "base-action" },
+    { "row": 9, "name": "climbing", "frames": 8, "type": "base-action" },
     { "row": 10, "name": "perching", "frames": 4, "type": "base-action" },
     { "row": 11, "name": "petting", "frames": 4, "type": "base-action" },
     { "row": 12, "name": "yawning", "frames": 5, "type": "base-action" },
