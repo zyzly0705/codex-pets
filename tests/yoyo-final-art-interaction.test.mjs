@@ -78,6 +78,22 @@ test('bath final-art uses an animated layered rig instead of a static scene imag
   assert.ok(rig.motions['bath-final'].keyframes.some((frame) => frame.foamY !== 0));
 });
 
+test('auto-rig final effects are sized around the desktop pet instead of the screen', () => {
+  const stageSource = readFileSync(join(repoRoot, 'src/pixi-effect-stage.js'), 'utf8');
+  const autoRigSource = stageSource.slice(
+    stageSource.indexOf('async function makeAutoRigActionStage'),
+    stageSource.indexOf('function makeMissingSpineAssetStage'),
+  );
+
+  assert.match(autoRigSource, /const rigScaleBase = Math\.max\(\(options\.petSize && options\.petSize\.w\) \|\| FRAME_W/);
+  assert.match(autoRigSource, /const stageScale = clamp\(rigScaleBase \/ stage\.width/);
+  assert.match(autoRigSource, /const effectCenter = options\.sourceCenter \|\| options\.arenaCenter/);
+  assert.match(autoRigSource, /const dimAlpha = Number\(timeline\.scene\?\.dimAlpha\) \|\| 0/);
+  assert.match(autoRigSource, /dim\.alpha = dimAlpha \* fadeOut/);
+  assert.doesNotMatch(autoRigSource, /Math\.min\(W \/ stage\.width, H \/ stage\.height\) \* 0\.84/);
+  assert.doesNotMatch(autoRigSource, /dim\.alpha = 0\.06 \* fadeOut/);
+});
+
 test('main care flow triggers final-art effect after successful care', () => {
   const lifeSource = readFileSync(join(repoRoot, 'src/main/life.js'), 'utf8');
   const homeBridgeSource = readFileSync(join(repoRoot, 'src/yoyo-home/bridge/electron-life-bridge.mjs'), 'utf8');

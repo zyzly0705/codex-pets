@@ -1368,14 +1368,22 @@
     const root = new PIXI.Container();
     app.stage.addChild(root);
 
+    const dimAlpha = Number(timeline.scene?.dimAlpha) || 0;
     const dim = new PIXI.Graphics();
-    dim.rect(0, 0, W, H).fill({ color: 0x0d1720, alpha: 0.06 });
+    dim.rect(0, 0, W, H).fill({ color: 0x0d1720, alpha: dimAlpha });
     root.addChild(dim);
 
     const stage = rig.stage || { width: 512, height: 384 };
-    const stageScale = Math.min(W / stage.width, H / stage.height) * 0.84;
+    const rigScaleBase = Math.max((options.petSize && options.petSize.w) || FRAME_W, FRAME_W) * 1.35;
+    const stageScale = clamp(rigScaleBase / stage.width, 0.34, 0.62);
+    const effectCenter = options.sourceCenter || options.arenaCenter || { x: W / 2, y: H * 0.7 };
+    const scaledStageWidth = stage.width * stageScale;
+    const scaledStageHeight = stage.height * stageScale;
     const group = new PIXI.Container();
-    group.position.set((W - stage.width * stageScale) / 2, (H - stage.height * stageScale) / 2);
+    group.position.set(
+      clamp(effectCenter.x - scaledStageWidth / 2, 12, Math.max(12, W - scaledStageWidth - 12)),
+      clamp(effectCenter.y - scaledStageHeight * 0.68, 12, Math.max(12, H - scaledStageHeight - 12)),
+    );
     group.scale.set(stageScale);
     root.addChild(group);
 
@@ -1423,7 +1431,7 @@
         const frame = keyframes.length ? keyframes[Math.floor(elapsed / frameMs) % keyframes.length] : {};
         const fadeOut = 1 - segment(elapsed, END - 650, END);
         root.alpha = fadeOut;
-        dim.alpha = 0.06 * fadeOut;
+        dim.alpha = dimAlpha * fadeOut;
         if (partById['yoyo.body']) {
           partById['yoyo.body'].sprite.y = partById['yoyo.body'].baseY + (Number(frame.bobY) || 0);
         }
