@@ -49,17 +49,33 @@ test('resolves final-art rig parts inside copied app pet packages', () => {
   const { resolveAutoRigPartPath } = require('../src/main/effects.js');
   const packageRoot = join(tmpdir(), `yoyo-final-art-package-${Date.now()}`);
   const effectDir = join(packageRoot, 'pets/yoyo/effects/bath-final');
-  const partPath = join(effectDir, 'rig/parts/scene-full.png');
+  const partPath = join(effectDir, 'rig/parts/bath-front.png');
   mkdirSync(dirname(partPath), { recursive: true });
 
   const resolved = resolveAutoRigPartPath({
     spritePath: join(packageRoot, 'pets/yoyo/spritesheet.webp'),
     effectId: 'bath-final',
     effectDir,
-    partFile: 'assets/yoyo/effects/bath-final/rig/parts/scene-full.png',
+    partFile: 'assets/yoyo/effects/bath-final/rig/parts/bath-front.png',
   });
 
   assert.equal(resolved, partPath);
+});
+
+test('bath final-art uses an animated layered rig instead of a static scene image', () => {
+  const timeline = JSON.parse(readFileSync(join(repoRoot, 'assets/yoyo/effects/bath-final/timeline.json'), 'utf8'));
+  const rig = JSON.parse(readFileSync(join(repoRoot, 'assets/yoyo/effects/bath-final/rig/yoyo.rig.json'), 'utf8'));
+  const partIds = rig.parts.map((part) => part.id);
+
+  assert.equal(timeline.id, 'bath-final');
+  assert.equal(timeline.motion, 'bath-final');
+  assert.equal(timeline.scene.mode, 'bath');
+  assert.equal(timeline.qa.requireOcclusionPass, true);
+  assert.deepEqual(partIds, ['bath.back', 'yoyo.body', 'bath.water', 'bath.bubbles', 'bath.frontMask']);
+  assert.equal(partIds.includes('scene.full'), false);
+  assert.equal(rig.masks[0].id, 'bath-front-occlusion');
+  assert.ok(rig.motions['bath-final'].keyframes.some((frame) => frame.bobY !== 0));
+  assert.ok(rig.motions['bath-final'].keyframes.some((frame) => frame.foamY !== 0));
 });
 
 test('main care flow triggers final-art effect after successful care', () => {

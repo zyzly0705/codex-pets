@@ -9,10 +9,13 @@
   "rig": "rig/yoyo.rig.json",
   "motion": "bath-final",
   "scene": {
-    "mode": "bath-final-art",
-    "artSource": "assets-src/yoyo/final-art/bath-final-art-v1.png"
+    "mode": "bath",
+    "characterSource": "spritesheet",
+    "spriteState": "idle",
+    "spriteFrame": 0
   },
   "qa": {
-    "requireNonBlankPreview": true
+    "requireOcclusionPass": true,
+    "maxUncoveredLowerRatio": 0.08
   }
 }

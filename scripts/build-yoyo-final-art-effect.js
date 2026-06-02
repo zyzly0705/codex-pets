@@ -1,5 +1,5 @@
-const { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } = require('node:fs');
-const { dirname, isAbsolute, join, relative } = require('node:path');
+const { basename, dirname, isAbsolute, join, relative } = require('node:path');
+const { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } = require('node:fs');
 const sharp = require('sharp');
 
 const repoRoot = join(__dirname, '..');
@@ -36,6 +36,15 @@ function ensureDir(path) {
 function writeJson(path, value) {
   ensureDir(dirname(path));
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function resetDir(path) {
+  rmSync(path, { recursive: true, force: true });
+  ensureDir(path);
+}
+
+function readJson(path) {
+  return JSON.parse(readFileSync(path, 'utf8'));
 }
 
 async function writeFullScene(manifest, output) {
@@ -231,8 +240,69 @@ function makeTimeline(manifest) {
   };
 }
 
+function resolveTemplatePartPath(templateEffectId, templateEffectDir, partFile) {
+  const packagePrefix = `assets/yoyo/effects/${templateEffectId}/`;
+  if (partFile.startsWith(packagePrefix)) {
+    return join(templateEffectDir, partFile.slice(packagePrefix.length));
+  }
+  return repoPath(partFile);
+}
+
+function makeDynamicRig(manifest, templateRig, partsDir) {
+  return {
+    id: manifest.rigId,
+    version: manifest.version,
+    format: 'codex-pet-auto-rig',
+    intent: manifest.intent,
+    stage: manifest.stage || templateRig.stage,
+    sources: {
+      ...(templateRig.sources || {}),
+      dynamicTemplateEffectId: manifest.dynamicTemplateEffectId,
+      finalArtReference: manifest.sourceArt,
+      manifest: relative(repoRoot, repoPath(manifest.__manifestPath)),
+      note: 'Bath final uses a layered runtime rig so the pet, foam, and front-rim occlusion animate instead of falling back to a static composed scene.',
+    },
+    parts: (templateRig.parts || []).map((part) => ({
+      ...part,
+      file: relative(repoRoot, join(partsDir, basename(part.file))),
+    })),
+    placements: templateRig.placements,
+    anchors: templateRig.anchors,
+    masks: templateRig.masks,
+    motions: {
+      [manifest.motion.id]: {
+        fps: manifest.motion.fps,
+        loop: manifest.motion.loop,
+        keyframes: manifest.motion.keyframes,
+      },
+    },
+    qa: {
+      ...(templateRig.qa || {}),
+      dynamicFinalArt: true,
+    },
+  };
+}
+
+function makeDynamicTimeline(manifest) {
+  return {
+    id: manifest.id,
+    version: manifest.version,
+    engine: 'codex-pet-auto-rig',
+    effectType: 'auto-rig-action',
+    runtimeMode: 'pixi-auto-rig',
+    strictAssets: true,
+    durationMs: manifest.motion.durationMs,
+    rig: 'rig/yoyo.rig.json',
+    motion: manifest.motion.id,
+    scene: manifest.scene,
+    qa: {
+      ...(manifest.qa || {}),
+    },
+  };
+}
+
 function copyParts(partFiles, targetDir) {
-  ensureDir(targetDir);
+  resetDir(targetDir);
   for (const partFile of partFiles) {
     copyFileSync(partFile.source, join(targetDir, partFile.name));
   }
@@ -261,10 +331,74 @@ function readManifest(manifestPath) {
   return manifest;
 }
 
-async function build(manifest) {
+function readTemplateRig(manifest) {
+  const templateEffectId = manifest.dynamicTemplateEffectId;
+  const templateEffectDir = repoPath(`assets/yoyo/effects/${templateEffectId}`);
+  const rigPath = join(templateEffectDir, 'rig/yoyo.rig.json');
+  if (!existsSync(rigPath)) throw new Error(`Missing dynamic template rig: ${rigPath}`);
+  return {
+    templateEffectDir,
+    templateRig: readJson(rigPath),
+  };
+}
+
+function copyDynamicTemplateParts(manifest, templateEffectDir, templateRig, partsDir) {
+  resetDir(partsDir);
+  const partFiles = [];
+  for (const part of templateRig.parts || []) {
+    const source = resolveTemplatePartPath(manifest.dynamicTemplateEffectId, templateEffectDir, part.file);
+    if (!existsSync(source)) throw new Error(`Missing dynamic template part: ${source}`);
+    const name = basename(part.file);
+    copyFileSync(source, join(partsDir, name));
+    partFiles.push({ name, source: join(partsDir, name) });
+  }
+  return partFiles;
+}
+
+function copyPreview(manifest, partsDir, outputDir) {
+  const previewName = manifest.previewName || `${manifest.id}-preview.png`;
+  const previewPart = manifest.previewPart || 'bath-front.png';
+  const source = existsSync(join(partsDir, previewPart))
+    ? join(partsDir, previewPart)
+    : repoPath(manifest.sourceArt);
+  copyFileSync(source, join(outputDir, previewName));
+  return join(outputDir, previewName);
+}
+
+async function buildDynamic(manifest) {
   const outputDir = repoPath(manifest.outputDir);
   const partsDir = join(outputDir, 'parts');
-  ensureDir(partsDir);
+  const { templateEffectDir, templateRig } = readTemplateRig(manifest);
+  const partFiles = copyDynamicTemplateParts(manifest, templateEffectDir, templateRig, partsDir);
+
+  const rig = makeDynamicRig(manifest, templateRig, partsDir);
+  const timeline = makeDynamicTimeline(manifest);
+  writeJson(join(outputDir, 'yoyo.rig.json'), rig);
+  writeJson(join(outputDir, 'timeline.json'), timeline);
+
+  const sourceRigDir = repoPath(manifest.sourceRigDir);
+  const runtimeDir = repoPath(manifest.runtimeDir);
+  copyParts(partFiles, join(sourceRigDir, 'parts'));
+  copyParts(partFiles, join(runtimeDir, 'rig/parts'));
+  writeJson(join(sourceRigDir, 'yoyo.rig.json'), makeDynamicRig(manifest, templateRig, join(sourceRigDir, 'parts')));
+  writeJson(join(sourceRigDir, 'timeline.json'), timeline);
+  writeJson(join(runtimeDir, 'rig/yoyo.rig.json'), makeDynamicRig(manifest, templateRig, join(runtimeDir, 'rig/parts')));
+  writeJson(join(runtimeDir, 'timeline.json'), timeline);
+
+  const previewPath = copyPreview(manifest, partsDir, outputDir);
+  console.log(`Wrote ${relative(repoRoot, previewPath)}`);
+  console.log(`Wrote ${relative(repoRoot, join(runtimeDir, 'timeline.json'))}`);
+}
+
+async function build(manifest) {
+  if (manifest.dynamicTemplateEffectId) {
+    await buildDynamic(manifest);
+    return;
+  }
+
+  const outputDir = repoPath(manifest.outputDir);
+  const partsDir = join(outputDir, 'parts');
+  resetDir(partsDir);
 
   const partFiles = [{ name: 'scene-full.png', source: join(partsDir, 'scene-full.png') }];
   await writeFullScene(manifest, partFiles[0].source);

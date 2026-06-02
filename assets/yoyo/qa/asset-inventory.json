@@ -1,6 +1,6 @@
 {
   "pack": "yoyo",
-  "generatedAt": "2026-06-02T10:32:02.301Z",
+  "generatedAt": "2026-06-02T11:42:47.454Z",
   "assets": [
     {
       "path": "desktop-rig/v1/arms-arm_left.png",
@@ -269,36 +269,50 @@
       "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
     },
     {
-      "path": "effects/bath-final/rig/parts/scene-full.png",
-      "bytes": 220161,
+      "path": "effects/bath-final/rig/parts/bath-back.png",
+      "bytes": 5243,
       "status": "experimental",
       "sourceStatusPath": "effects/",
       "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
     },
     {
-      "path": "effects/bath-final/rig/parts/scene-shimmer.png",
-      "bytes": 3196,
+      "path": "effects/bath-final/rig/parts/bath-bubbles.png",
+      "bytes": 3758,
       "status": "experimental",
       "sourceStatusPath": "effects/",
       "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
     },
     {
-      "path": "effects/bath-final/rig/parts/scene-steam.png",
-      "bytes": 2582,
+      "path": "effects/bath-final/rig/parts/bath-front.png",
+      "bytes": 5135,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-final/rig/parts/bath-water.png",
+      "bytes": 1834,
+      "status": "experimental",
+      "sourceStatusPath": "effects/",
+      "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
+    },
+    {
+      "path": "effects/bath-final/rig/parts/yoyo-idle-0.png",
+      "bytes": 39876,
       "status": "experimental",
       "sourceStatusPath": "effects/",
       "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
     },
     {
       "path": "effects/bath-final/rig/yoyo.rig.json",
-      "bytes": 2131,
+      "bytes": 3470,
       "status": "experimental",
       "sourceStatusPath": "effects/",
       "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
     },
     {
       "path": "effects/bath-final/timeline.json",
-      "bytes": 411,
+      "bytes": 454,
       "status": "experimental",
       "sourceStatusPath": "effects/",
       "reason": "Default status for timeline, rig, Spine, and special-action experiments until the action driver is stabilized."
