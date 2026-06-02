@@ -12,6 +12,7 @@ const manifestPath = join(repoRoot, 'assets-src/yoyo/effects/video-workflow-mani
 const pixiStagePath = join(repoRoot, 'src/pixi-effect-stage.js');
 const trayMenuPath = join(repoRoot, 'src/main/tray-menu.js');
 const interactionPath = join(repoRoot, 'src/modules/interaction.js');
+const performancePath = join(repoRoot, 'src/modules/performance-script.js');
 const preloadPath = join(repoRoot, 'src/preload.js');
 const effectsPath = join(repoRoot, 'src/main/effects.js');
 const cookTimelinePath = join(repoRoot, 'assets/yoyo/effects/cook-pot/timeline.json');
@@ -102,6 +103,7 @@ test('clone runtime uses timeline clone count to keep the formation readable', (
 test('right-click menu treats clone and dharma as growth rewards', () => {
   const traySource = readFileSync(trayMenuPath, 'utf8');
   const interactionSource = readFileSync(interactionPath, 'utf8');
+  const performanceSource = readFileSync(performancePath, 'utf8');
 
   assert.match(traySource, /label: '成长奖励'/);
   assert.doesNotMatch(traySource, /label: '特殊演出'/);
@@ -120,6 +122,10 @@ test('right-click menu treats clone and dharma as growth rewards', () => {
   assert.match(interactionSource, /window\.petApi\.triggerGiantEffect\(\)/);
   assert.match(interactionSource, /getLife\(\)/);
   assert.match(interactionSource, /还没解锁/);
+  assert.match(performanceSource, /cloneHeart:[\s\S]*requiredLevel: 4/);
+  assert.match(performanceSource, /dharmaManifest:[\s\S]*requiredLevel: 5/);
+  assert.match(performanceSource, /dharmaManifest:[\s\S]*requiredIntimacy: 80/);
+  assert.match(performanceSource, /performance_reward_locked/);
 });
 
 test('cook pot uses Pixi sequence performance instead of static pose', () => {

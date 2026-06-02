@@ -101,6 +101,8 @@ export const PERFORMANCE_SCRIPTS = {
     state: 'clapping',
     duration: 6500,
     lock: true,
+    requiredLevel: 4,
+    requiredIntimacy: 0,
     endState: 'bashful',
     emotion: 'happy',
     timeline: [
@@ -114,6 +116,8 @@ export const PERFORMANCE_SCRIPTS = {
     state: 'clapping',
     duration: 5600,
     lock: true,
+    requiredLevel: 5,
+    requiredIntimacy: 80,
     endState: 'idle',
     emotion: 'happy',
     timeline: [
@@ -188,6 +192,31 @@ export function isPerformanceLocked(now = Date.now()) {
   return Boolean(state.activePerformance?.lockUntil && now < state.activePerformance.lockUntil);
 }
 
+function getPerformanceGrowthProgress(options = {}) {
+  const profile = options.growthProgress || state.life?.profile || {};
+  return {
+    level: Number(profile.level || 1),
+    intimacy: Number(profile.intimacy || 0),
+  };
+}
+
+function canStartGrowthRewardPerformance(script, options = {}) {
+  if (!script.requiredLevel && !script.requiredIntimacy) return true;
+  const progress = getPerformanceGrowthProgress(options);
+  const requiredLevel = Number(script.requiredLevel || 1);
+  const requiredIntimacy = Number(script.requiredIntimacy || 0);
+  if (progress.level >= requiredLevel && progress.intimacy >= requiredIntimacy) return true;
+
+  debugLog('performance_reward_locked', {
+    requiredLevel,
+    requiredIntimacy,
+    level: progress.level,
+    intimacy: progress.intimacy,
+  });
+  say('这个奖励还没解锁，先继续照顾Yoyo积累成长吧。', 4200);
+  return false;
+}
+
 export function endPerformance(reason = 'ended') {
   const active = state.activePerformance;
   if (!active) return;
@@ -215,6 +244,9 @@ export function endPerformance(reason = 'ended') {
 export function startPerformance(id, options = {}) {
   const script = PERFORMANCE_SCRIPTS[id];
   if (!script) return false;
+  if (!canStartGrowthRewardPerformance(script, options)) {
+    return false;
+  }
   if (isPerformanceLocked() && !options.force) {
     debugLog('performance_rejected', {
       id,
