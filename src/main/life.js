@@ -273,14 +273,20 @@ function broadcastLifeChanged(snapshot) {
 function normalizeCareRequest(request) {
   const suppressForDesktopRunTest = process.env.YOYO_TEST_DESKTOP_RUN === '1';
   if (typeof request === 'string') {
-    return { actionId: request, suppressFinalEffect: suppressForDesktopRunTest };
+    return { actionId: request, source: 'legacy', suppressFinalEffect: suppressForDesktopRunTest };
   }
   if (!request || typeof request !== 'object') {
-    return { actionId: '', suppressFinalEffect: suppressForDesktopRunTest };
+    return { actionId: '', source: '', suppressFinalEffect: suppressForDesktopRunTest };
   }
+  const source = request.source || '';
   return {
     actionId: request.actionId || request.action || '',
-    suppressFinalEffect: Boolean(suppressForDesktopRunTest || request.suppressFinalEffect || request.source === 'home'),
+    source,
+    suppressFinalEffect: Boolean(
+      suppressForDesktopRunTest
+      || request.suppressFinalEffect
+      || source === 'home'
+    ),
   };
 }
 
@@ -295,7 +301,7 @@ function registerLifeIpc({ ipcMain, getData, saveData, getMainWindow, triggerCar
   });
 
   ipcMain.handle('life:care', (_event, request) => {
-    const { actionId, suppressFinalEffect } = normalizeCareRequest(request);
+    const { actionId, source, suppressFinalEffect } = normalizeCareRequest(request);
     const action = CARE_ACTIONS[actionId];
     if (!action) return { ok: false, error: '未知的陪伴动作' };
 
@@ -334,7 +340,8 @@ function registerLifeIpc({ ipcMain, getData, saveData, getMainWindow, triggerCar
       desktopAction: buildDesktopAction(actionId, {
         stateName: response.stateName,
         line: response.message,
-        source: 'care-result',
+        propId: source === 'desktop-menu' ? null : undefined,
+        source: source === 'desktop-menu' ? 'desktop-menu' : 'care-result',
       }),
       effective: response.effective,
       blocked: Boolean(response.blocked),

@@ -1,0 +1,70 @@
+html,
+body {
+  margin: 0;
+  min-width: 100%;
+  min-height: 100%;
+  background: #d8ece8;
+  font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow: hidden;
+}
+
+.yoyo-home-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(247, 255, 252, 0.82), rgba(205, 231, 224, 0.9)),
+    #d8ece8;
+}
+
+.yoyo-home-game {
+  width: min(100vw, 1272px);
+  aspect-ratio: 1272 / 720;
+  max-height: 100vh;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 24px 58px rgba(51, 92, 85, 0.22);
+}
+
+.yoyo-home-game canvas {
+  display: block;
+}
+
+.yoyo-home-debug {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  min-width: 210px;
+  padding: 12px 14px;
+  border: 1px solid rgba(70, 109, 106, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #213a3d;
+  font-size: 12px;
+  box-shadow: 0 12px 28px rgba(34, 63, 60, 0.15);
+  backdrop-filter: blur(12px);
+}
+
+.yoyo-home-debug strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.yoyo-home-debug dl {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.yoyo-home-debug dt {
+  color: rgba(33, 58, 61, 0.62);
+}
+
+.yoyo-home-debug dd {
+  margin: 0;
+  font-weight: 700;
+}

@@ -119,22 +119,22 @@
     default: {
       label: '日常小屋',
       asset: '../assets/yoyo/home/room-v3-day-safe.webp',
-      artMode: 'saved-compact-room',
+      artMode: 'v3-safe-room',
     },
     night: {
       label: '夜晚小屋',
       asset: '../assets/yoyo/home/room-v3-night-safe.webp',
-      artMode: 'saved-compact-room',
+      artMode: 'v3-safe-room',
     },
     rainy: {
       label: '雨天小屋',
       asset: '../assets/yoyo/home/room-v3-rainy-safe.webp',
-      artMode: 'saved-compact-room',
+      artMode: 'v3-safe-room',
     },
     party: {
       label: '派对小屋',
       asset: '../assets/yoyo/home/room-v3-party-safe.webp',
-      artMode: 'saved-compact-room',
+      artMode: 'v3-safe-room',
     },
   };
 

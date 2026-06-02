@@ -1,6 +1,6 @@
 {
   "pack": "yoyo",
-  "generatedAt": "2026-06-01T09:36:01.211Z",
+  "generatedAt": "2026-06-02T10:32:02.301Z",
   "assets": [
     {
       "path": "desktop-rig/v1/arms-arm_left.png",
@@ -969,53 +969,11 @@
       "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
     },
     {
-      "path": "home/room-shell-clean-2d.webp",
-      "bytes": 121630,
-      "status": "keep",
-      "sourceStatusPath": "home/room-shell-clean-2d.webp",
-      "reason": "Best current candidate for modular home shell and persistent room layout."
-    },
-    {
-      "path": "home/room-stage-night-sleep-yoyo.webp",
-      "bytes": 159220,
-      "status": "keep",
-      "sourceStatusPath": "home/",
-      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
-    },
-    {
-      "path": "home/room-stage-night.webp",
-      "bytes": 858322,
-      "status": "redraw",
-      "sourceStatusPath": "home/room-stage-night.webp",
-      "reason": "Strong mood reference, but it should be normalized with the clean companion room kit."
-    },
-    {
-      "path": "home/room-stage-party.webp",
-      "bytes": 992220,
-      "status": "redraw",
-      "sourceStatusPath": "home/room-stage-party.webp",
-      "reason": "Useful event variant, but should be rebuilt after the base room style is locked."
-    },
-    {
-      "path": "home/room-stage-rainy.webp",
-      "bytes": 871182,
-      "status": "redraw",
-      "sourceStatusPath": "home/room-stage-rainy.webp",
-      "reason": "Useful weather variant, but should follow the same cleaned room contract as day and night."
-    },
-    {
-      "path": "home/room-stage-v2.webp",
-      "bytes": 982784,
-      "status": "redraw",
-      "sourceStatusPath": "home/room-stage-v2.webp",
-      "reason": "Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task."
-    },
-    {
       "path": "home/room-v3-day-safe.webp",
       "bytes": 284070,
       "status": "keep",
-      "sourceStatusPath": "home/",
-      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+      "sourceStatusPath": "home/room-v3-day-safe.webp",
+      "reason": "Active default v3-safe Yoyo room runtime."
     },
     {
       "path": "home/room-v3-day.webp",
@@ -1028,8 +986,8 @@
       "path": "home/room-v3-night-safe.webp",
       "bytes": 256688,
       "status": "keep",
-      "sourceStatusPath": "home/",
-      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+      "sourceStatusPath": "home/room-v3-night-safe.webp",
+      "reason": "Active v3-safe night room variant."
     },
     {
       "path": "home/room-v3-night.webp",
@@ -1042,8 +1000,8 @@
       "path": "home/room-v3-party-safe.webp",
       "bytes": 304656,
       "status": "keep",
-      "sourceStatusPath": "home/",
-      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+      "sourceStatusPath": "home/room-v3-party-safe.webp",
+      "reason": "Active v3-safe party room variant."
     },
     {
       "path": "home/room-v3-party.webp",
@@ -1056,8 +1014,8 @@
       "path": "home/room-v3-rainy-safe.webp",
       "bytes": 311604,
       "status": "keep",
-      "sourceStatusPath": "home/",
-      "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
+      "sourceStatusPath": "home/room-v3-rainy-safe.webp",
+      "reason": "Active v3-safe rainy room variant."
     },
     {
       "path": "home/room-v3-rainy.webp",

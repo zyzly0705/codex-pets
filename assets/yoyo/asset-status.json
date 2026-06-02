@@ -29,54 +29,24 @@
       "reason": "Default status for current home assets; specific room or prop entries override this when redraw is needed."
     },
     {
-      "path": "home/room-stage-v2.webp",
-      "status": "redraw",
-      "reason": "Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task.",
-      "candidates": [
-        { "path": "assets/yoyo/home/room-stage-v2.webp", "disposition": "v1-vibe", "note": "Accepted as the current runtime base because it is compact, high-energy, warm, and already stored; preserve this direction while removing animal-pet props later." },
-        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "cleanup-base", "note": "Cleaner compact shell, useful for removing pet semantics but too quiet to be the final mood by itself." },
-        { "path": "assets-src/yoyo/home/ai/yoyo-room-refined.png", "disposition": "reference", "note": "High-resolution source for the current day room." },
-        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-default.png", "disposition": "reference", "note": "Aseprite day-room export." },
-        { "path": "assets/yoyo/qa/candidates/home-room-stage-v2-candidate-01.webp", "disposition": "candidate", "note": "Clean companion-room candidate; use as semantic cleanup reference, but keep the livelier v1 compact-room mood." }
-      ]
-    },
-    {
-      "path": "home/room-stage-night.webp",
-      "status": "redraw",
-      "reason": "Strong mood reference, but it should be normalized with the clean companion room kit.",
-      "candidates": [
-        { "path": "assets/yoyo/home/room-stage-night.webp", "disposition": "reference", "note": "Current runtime night room with pet semantics." },
-        { "path": "assets-src/yoyo/home/ai/yoyo-room-night.png", "disposition": "reference", "note": "High-resolution night-room source." },
-        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-night.png", "disposition": "reference", "note": "Aseprite night-room export." },
-        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "base", "note": "Use as the cleaned base for future night variant." }
-      ]
-    },
-    {
-      "path": "home/room-stage-rainy.webp",
-      "status": "redraw",
-      "reason": "Useful weather variant, but should follow the same cleaned room contract as day and night.",
-      "candidates": [
-        { "path": "assets/yoyo/home/room-stage-rainy.webp", "disposition": "reference", "note": "Current runtime rainy room with pet semantics." },
-        { "path": "assets-src/yoyo/home/ai/yoyo-room-rainy.png", "disposition": "reference", "note": "High-resolution rainy-room source." },
-        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-rainy.png", "disposition": "reference", "note": "Aseprite rainy-room export." },
-        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "base", "note": "Use as the cleaned base for future rainy variant." }
-      ]
-    },
-    {
-      "path": "home/room-stage-party.webp",
-      "status": "redraw",
-      "reason": "Useful event variant, but should be rebuilt after the base room style is locked.",
-      "candidates": [
-        { "path": "assets/yoyo/home/room-stage-party.webp", "disposition": "reference", "note": "Current runtime party room with pet semantics." },
-        { "path": "assets-src/yoyo/home/ai/yoyo-room-party.png", "disposition": "reference", "note": "High-resolution party-room source." },
-        { "path": "assets-src/yoyo/home/aseprite/yoyo-home-room-party.png", "disposition": "reference", "note": "Aseprite party-room export." },
-        { "path": "assets/yoyo/home/room-shell-clean-2d.webp", "disposition": "base", "note": "Use as the cleaned base for future party variant." }
-      ]
-    },
-    {
-      "path": "home/room-shell-clean-2d.webp",
+      "path": "home/room-v3-day-safe.webp",
       "status": "keep",
-      "reason": "Best current candidate for modular home shell and persistent room layout."
+      "reason": "Active default v3-safe Yoyo room runtime."
+    },
+    {
+      "path": "home/room-v3-night-safe.webp",
+      "status": "keep",
+      "reason": "Active v3-safe night room variant."
+    },
+    {
+      "path": "home/room-v3-rainy-safe.webp",
+      "status": "keep",
+      "reason": "Active v3-safe rainy room variant."
+    },
+    {
+      "path": "home/room-v3-party-safe.webp",
+      "status": "keep",
+      "reason": "Active v3-safe party room variant."
     },
     {
       "path": "home/composite-feed-table-yoyo.webp",

@@ -1,6 +1,6 @@
 # Yoyo Asset Pack QA Report
 
-Generated: 2026-06-01T09:36:01.542Z
+Generated: 2026-06-02T10:32:02.550Z
 
 ## Pack
 
@@ -26,38 +26,26 @@ Generated: 2026-06-01T09:36:01.542Z
 
 | Status | Count |
 | --- | ---: |
-| `keep` | 58 |
-| `redraw` | 5 |
+| `keep` | 56 |
+| `redraw` | 1 |
 | `remove` | 0 |
 | `experimental` | 108 |
 | `archive` | 1 |
 
 ## Redraw Queue
 
-- `home/room-stage-v2.webp`: Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task.
-- `home/room-stage-night.webp`: Strong mood reference, but it should be normalized with the clean companion room kit.
-- `home/room-stage-rainy.webp`: Useful weather variant, but should follow the same cleaned room contract as day and night.
-- `home/room-stage-party.webp`: Useful event variant, but should be rebuilt after the base room style is locked.
 - `home/composite-pet-cushion-yoyo.webp`: Useful comfort concept, but label and framing should shift from petting to companion comfort.
 
 ## Redraw Production Queue
 
 | Priority | Kind | Asset | Brief |
 | --- | --- | --- | --- |
-| `high` | `room` | `home/room-stage-v2.webp` | `qa/redraw-briefs/home-room-stage-v2.md` |
-| `medium` | `room` | `home/room-stage-night.webp` | `qa/redraw-briefs/home-room-stage-night.md` |
-| `medium` | `room` | `home/room-stage-rainy.webp` | `qa/redraw-briefs/home-room-stage-rainy.md` |
-| `medium` | `room` | `home/room-stage-party.webp` | `qa/redraw-briefs/home-room-stage-party.md` |
 | `medium` | `composite` | `home/composite-pet-cushion-yoyo.webp` | `qa/redraw-briefs/home-composite-pet-cushion-yoyo.md` |
 
 ## Candidate Registry
 
 | Target | Candidates | Recommended disposition | Recommended path |
 | --- | ---: | --- | --- |
-| `home/room-stage-v2.webp` | 5 | `v1-vibe` | `assets/yoyo/home/room-stage-v2.webp` |
-| `home/room-stage-night.webp` | 4 | `base` | `assets/yoyo/home/room-shell-clean-2d.webp` |
-| `home/room-stage-rainy.webp` | 4 | `base` | `assets/yoyo/home/room-shell-clean-2d.webp` |
-| `home/room-stage-party.webp` | 4 | `base` | `assets/yoyo/home/room-shell-clean-2d.webp` |
 | `home/composite-pet-cushion-yoyo.webp` | 2 | `reference` | `assets/yoyo/home/composite-pet-cushion-yoyo.webp` |
 
 ## Experimental Queue
@@ -75,10 +63,6 @@ Generated: 2026-06-01T09:36:01.542Z
 
 ## Companion Semantics Watchlist
 
-- `home/room-stage-v2.webp` (redraw): Runtime now uses the saved compact room art for the current v1 mood; animal-pet semantics remain a later companion-aligned cleanup task.
-- `home/room-stage-night.webp` (redraw): Strong mood reference, but it should be normalized with the clean companion room kit.
-- `home/room-stage-rainy.webp` (redraw): Useful weather variant, but should follow the same cleaned room contract as day and night.
-- `home/room-stage-party.webp` (redraw): Useful event variant, but should be rebuilt after the base room style is locked.
 - `home/composite-pet-cushion-yoyo.webp` (redraw): Useful comfort concept, but label and framing should shift from petting to companion comfort.
 - `home/prop-food.webp` (keep): Accepted human meal tray candidate with rice bowl, plate, fruit, egg, cup, and tableware.
 - `home/prop-food-back.webp` (keep): Accepted meal tray now lives in the persistent back layer so the kitchen reads as human tableware.

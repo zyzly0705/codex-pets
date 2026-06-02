@@ -9,8 +9,8 @@ function parseArgs(argv) {
   const args = {
     action: '',
     out: path.join(repoRoot, 'output', 'home-scene-capture.png'),
-    width: 1180,
-    height: 820,
+    width: 1272,
+    height: 720,
     wait: 1800,
   };
 
@@ -51,7 +51,14 @@ async function main() {
     },
   });
 
-  await win.loadFile(path.join(repoRoot, 'src', 'home.html'));
+  await win.loadFile(path.join(repoRoot, 'src', 'yoyo-home.html'), { query: { debug: '1' } });
+  await win.webContents.executeJavaScript(`
+    new Promise((resolve) => {
+      if (window.YOYO_HOME_REBUILD?.phase) return resolve();
+      window.addEventListener('yoyo-home-ready', resolve, { once: true });
+      setTimeout(resolve, 3500);
+    })
+  `);
   await win.webContents.executeJavaScript(`
     new Promise((resolve) => {
       const images = Array.from(document.images);
@@ -68,38 +75,21 @@ async function main() {
 
   if (args.action) {
     await win.webContents.executeJavaScript(`
-      window.petApi = window.petApi || {
-        getLife: async () => ({
-          status: 'steady',
-          satiety: 82,
-          cleanliness: 78,
-          mood: 86,
-          energy: 72,
-          affection: 66,
-          profile: { level: 3, intimacy: 28 },
-        }),
-        careForYoyo: async (request) => {
-          const action = typeof request === 'string' ? request : request?.actionId || request?.action || '';
-          return {
-            ok: true,
-            action,
-            stateName: ({ feed: 'eating', bath: 'fanCooling', sleep: 'sleeping', play: 'dancing', pet: 'petting' })[action] || 'idle',
-            status: 'steady',
-            satiety: 82,
-            cleanliness: 78,
-            mood: 86,
-            energy: 72,
-            affection: 66,
-            profile: { level: 3, intimacy: 28 },
-          };
-        },
-        storeLoad: async () => ({}),
-        storeSet: async () => {},
-        onLifeChanged: () => {},
-      };
-      if (typeof care === 'function') care('${args.action}');
-      else document.querySelector('[data-action="${args.action}"]')?.click();
+      new Promise((resolve) => {
+        if (typeof window.YOYO_HOME_REBUILD_RUNTIME?.startAction === 'function') return resolve();
+        const startedAt = Date.now();
+        const timer = setInterval(() => {
+          if (typeof window.YOYO_HOME_REBUILD_RUNTIME?.startAction === 'function' || Date.now() - startedAt > 3500) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 50);
+      })
     `);
+    const started = await win.webContents.executeJavaScript(`
+      window.YOYO_HOME_REBUILD_RUNTIME?.startAction?.(${JSON.stringify(args.action)}) === true
+    `);
+    if (!started) throw new Error(`Unknown Yoyo Home action: ${args.action}`);
     await delay(args.wait);
   } else {
     await delay(700);

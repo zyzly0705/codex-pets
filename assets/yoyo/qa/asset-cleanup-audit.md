@@ -35,32 +35,26 @@ The current generated report is `assets/yoyo/qa/asset-pack-report.md`.
 
 | Status | Count |
 | --- | ---: |
-| `keep` | 35 |
-| `redraw` | 5 |
+| `keep` | 39 |
+| `redraw` | 1 |
 | `remove` | 0 |
 | `experimental` | 104 |
 | `archive` | 1 |
 
-High-priority redraw work remains:
-
-- `home/room-stage-v2.webp`: currently accepted as the saved compact runtime base; later cleanup should remove animal-pet room semantics without changing the lively v1 room direction.
-
 Medium-priority redraw work remains:
 
-- `home/room-stage-night.webp`
-- `home/room-stage-rainy.webp`
-- `home/room-stage-party.webp`
 - `home/composite-pet-cushion-yoyo.webp`
 
 Accepted during follow-up:
 
-- `home/room-stage-v2.webp`: restored as the direct runtime background via `saved-compact-room` mode.
+- `home/room-v3-day-safe.webp`: accepted as the active default home-room background.
+- `home/room-v3-night-safe.webp`: accepted as the active night variant.
+- `home/room-v3-rainy-safe.webp`: accepted as the active rainy variant.
+- `home/room-v3-party-safe.webp`: accepted as the active party variant.
 - `home/prop-food.webp`: accepted human meal tray runtime asset.
 - `home/prop-food-back.webp`: accepted visible meal tray layer.
 - `home/prop-food-front.webp`: transparent compatibility layer after removing the old bowl rim.
 - `assets/yoyo/qa/home-feed-human-meal-runtime.png`: runtime feed placement proof with Yoyo beside the table instead of standing on it.
-- `assets/yoyo/qa/home-saved-room-stage-v2-runtime.png`: runtime proof for the saved compact room base.
-- `assets/yoyo/qa/home-saved-room-stage-v2-feed-runtime.png`: runtime proof for the saved compact room feed state.
 
 ## Verification
 

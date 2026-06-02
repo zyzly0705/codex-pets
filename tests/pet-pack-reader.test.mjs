@@ -24,12 +24,12 @@ test('reads bundled Yoyo asset pack metadata for pet list snapshots', () => {
   assert.equal(pack.inventorySummary.uncovered, 0);
   assert.ok(pack.inventorySummary.total >= 40);
   assert.ok(pack.inventorySummary.statusCounts.keep >= 1);
-  assert.equal(pack.redrawQueueSummary.total, 5);
-  assert.equal(pack.redrawQueueSummary.highPriority, 1);
-  assert.equal(pack.redrawQueueSummary.next.path, 'home/room-stage-v2.webp');
-  assert.equal(pack.candidateRegistrySummary.totalTargets, 5);
-  assert.ok(pack.candidateRegistrySummary.totalCandidates >= 19);
-  assert.equal(pack.candidateRegistrySummary.dispositionCounts.candidate, 1);
+  assert.equal(pack.redrawQueueSummary.total, 1);
+  assert.equal(pack.redrawQueueSummary.highPriority, 0);
+  assert.equal(pack.redrawQueueSummary.next.path, 'home/composite-pet-cushion-yoyo.webp');
+  assert.equal(pack.candidateRegistrySummary.totalTargets, 1);
+  assert.equal(pack.candidateRegistrySummary.totalCandidates, 2);
+  assert.equal(pack.candidateRegistrySummary.dispositionCounts.reference, 2);
   assert.deepEqual(pack.avatar.goldenActions.slice(0, 3), ['idle', 'runningLeft', 'runningRight']);
 });
 

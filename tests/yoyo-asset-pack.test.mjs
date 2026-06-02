@@ -43,18 +43,23 @@ describe('Yoyo asset pack contract', () => {
       'dancing',
     ]);
 
-    assert.equal(manifest.home.rooms.day, 'home/room-v3-day-safe.webp');
-    assert.equal(manifest.home.rooms.night, 'home/room-v3-night-safe.webp');
-    assert.equal(manifest.home.rooms.rainy, 'home/room-v3-rainy-safe.webp');
-    assert.equal(manifest.home.rooms.party, 'home/room-v3-party-safe.webp');
+    assert.equal(manifest.home.roomMode, 'phaser-v3-safe-room');
+    assert.deepEqual(manifest.home.rooms, {
+      default: 'home/room-v3-day-safe.webp',
+      night: 'home/room-v3-night-safe.webp',
+      rainy: 'home/room-v3-rainy-safe.webp',
+      party: 'home/room-v3-party-safe.webp',
+    });
     assert.equal(manifest.careScenes.feed.prop, 'home/prop-v3-meal-table.webp');
     assert.equal(manifest.careScenes.sleep.prop, 'home/prop-v3-bed.webp');
     assert.equal(manifest.careScenes.bath.prop, 'home/prop-v3-wash-stand.webp');
     assert.equal(manifest.careScenes.play.prop, 'home/prop-v3-toy-shelf.webp');
     assert.equal(manifest.careScenes.comfort.prop, 'home/prop-v3-comfort-cushion.webp');
     assert.equal(manifest.home.runtimeCharacter, 'home/yoyo-home-v7-room-palette.webp');
+    assert.equal(manifest.home.runtimeEntry, '../../src/yoyo-home.html');
+    assert.equal(manifest.home.zoneSource, '../../src/yoyo-home/data/home-manifest.mjs');
     for (const scene of ['feed', 'sleep', 'bath', 'play', 'comfort']) {
-      assert.equal(manifest.careScenes[scene].status, 'native-room-zone');
+      assert.equal(manifest.careScenes[scene].status, 'entity-prop');
     }
     assert.equal(manifest.specialActions.watchAnime.timeline, 'effects/watch-anime-final/timeline.json');
   });
@@ -78,7 +83,11 @@ describe('Yoyo asset pack contract', () => {
     assert.equal(byPath.get('pet.json').status, 'keep');
     assert.equal(byPath.get('desktop-rig/').status, 'experimental');
     assert.equal(byPath.get('live2d/').status, 'experimental');
-    assert.equal(byPath.get('home/room-stage-v2.webp').status, 'redraw');
+    assert.equal(byPath.get('home/room-v3-day-safe.webp').status, 'keep');
+    assert.equal(byPath.get('home/room-v3-night-safe.webp').status, 'keep');
+    assert.equal(byPath.get('home/room-v3-rainy-safe.webp').status, 'keep');
+    assert.equal(byPath.get('home/room-v3-party-safe.webp').status, 'keep');
+    assert.equal(byPath.has('home/room-stage-v2.webp'), false);
     assert.equal(byPath.get('home/prop-food.webp').status, 'keep');
     assert.equal(byPath.get('home/prop-food-back.webp').status, 'keep');
     assert.equal(byPath.get('home/prop-food-front.webp').status, 'keep');
@@ -116,7 +125,9 @@ describe('Yoyo asset pack contract', () => {
     assert.deepEqual(inventory.uncovered, []);
 
     const byPath = new Map(inventory.assets.map((entry) => [entry.path, entry]));
-    assert.equal(byPath.get('home/room-stage-v2.webp').status, 'redraw');
+    assert.equal(byPath.get('home/room-v3-day-safe.webp').status, 'keep');
+    assert.equal(byPath.get('home/room-v3-night-safe.webp').status, 'keep');
+    assert.equal(byPath.has('home/room-stage-v2.webp'), false);
     assert.equal(byPath.get('home/prop-bed.webp').status, 'keep');
     assert.equal(byPath.get('effects/clone-heart/timeline.json').status, 'experimental');
     assert.equal(byPath.get('desktop-rig/v1/manifest.json').status, 'experimental');
@@ -133,8 +144,8 @@ describe('Yoyo asset pack contract', () => {
 
     const queue = readJson(redrawQueuePath);
     assert.equal(queue.pack, 'yoyo');
-    assert.equal(queue.total, 5);
-    assert.equal(queue.items.length, 5);
+    assert.equal(queue.total, 1);
+    assert.equal(queue.items.length, 1);
     assert.equal(
       queue.items.some((item) => item.path === 'home/prop-food.webp'),
       false,
@@ -143,26 +154,27 @@ describe('Yoyo asset pack contract', () => {
 
     for (const item of queue.items) {
       assert.equal(item.status, 'queued');
-      assert.ok(['high', 'medium'].includes(item.priority), `${item.path} needs a production priority`);
-      assert.ok(['room', 'composite', 'prop'].includes(item.kind), `${item.path} needs an asset kind`);
+      assert.equal(item.priority, 'medium', `${item.path} needs a production priority`);
+      assert.ok(['composite', 'prop'].includes(item.kind), `${item.path} needs an asset kind`);
       assert.ok(item.briefPath.startsWith('qa/redraw-briefs/'), `${item.path} needs a generated brief path`);
       assert.ok(item.acceptance.length >= 4, `${item.path} needs concrete acceptance checks`);
       assert.ok(item.acceptance.some((rule) => /human-like companion/u.test(rule)));
       assert.ok(existsSync(join(repoRoot, 'assets/yoyo', item.briefPath)), `${item.path} brief should exist`);
     }
 
-    const roomItem = queue.items.find((item) => item.path === 'home/room-stage-v2.webp');
-    assert.equal(roomItem.kind, 'room');
-    assert.equal(roomItem.priority, 'high');
+    const comfortItem = queue.items.find((item) => item.path === 'home/composite-pet-cushion-yoyo.webp');
+    assert.equal(comfortItem.kind, 'composite');
+    assert.equal(comfortItem.priority, 'medium');
 
-    const roomBrief = readFileSync(join(repoRoot, 'assets/yoyo', roomItem.briefPath), 'utf8');
-    assert.match(roomBrief, /human-like companion/u);
-    assert.match(roomBrief, /dog bowl/u);
-    assert.match(roomBrief, /paw motif/u);
+    const comfortBrief = readFileSync(join(repoRoot, 'assets/yoyo', comfortItem.briefPath), 'utf8');
+    assert.match(comfortBrief, /human-like companion/u);
+    assert.match(comfortBrief, /dog bowl/u);
+    assert.match(comfortBrief, /paw motif/u);
 
     const report = readFileSync(reportPath, 'utf8');
     assert.match(report, /Redraw Production Queue/u);
-    assert.match(report, /qa\/redraw-briefs\/home-room-stage-v2\.md/u);
+    assert.match(report, /qa\/redraw-briefs\/home-composite-pet-cushion-yoyo\.md/u);
+    assert.doesNotMatch(report, /home-room-stage-v2/u);
   });
 
   test('audit script writes a candidate registry for found and generated redraw material', () => {
@@ -176,22 +188,20 @@ describe('Yoyo asset pack contract', () => {
 
     const registry = readJson(candidateRegistryPath);
     assert.equal(registry.pack, 'yoyo');
-    assert.ok(registry.items.length >= 5);
+    assert.equal(registry.items.length, 1);
 
     const byTarget = new Map(registry.items.map((item) => [item.targetPath, item]));
-    const dayRoom = byTarget.get('home/room-stage-v2.webp');
-    assert.ok(dayRoom.candidates.some((candidate) => candidate.disposition === 'v1-vibe'));
-    assert.ok(dayRoom.candidates.some((candidate) => candidate.path === 'assets/yoyo/qa/candidates/home-room-stage-v2-candidate-01.webp'));
-    assert.ok(dayRoom.candidates.every((candidate) => candidate.exists), 'day room candidates should exist');
-
-    const nightRoom = byTarget.get('home/room-stage-night.webp');
-    assert.ok(nightRoom.candidates.some((candidate) => candidate.path === 'assets-src/yoyo/home/ai/yoyo-room-night.png'));
-    assert.ok(nightRoom.candidates.some((candidate) => candidate.path === 'assets-src/yoyo/home/aseprite/yoyo-home-room-night.png'));
+    const comfort = byTarget.get('home/composite-pet-cushion-yoyo.webp');
+    assert.ok(comfort.candidates.some((candidate) => candidate.path === 'assets/yoyo/home/composite-pet-cushion-yoyo.webp'));
+    assert.ok(comfort.candidates.every((candidate) => candidate.exists), 'comfort candidates should exist');
+    assert.equal(byTarget.has('home/room-stage-v2.webp'), false);
+    assert.equal(byTarget.has('home/room-stage-night.webp'), false);
 
     assert.equal(byTarget.has('home/prop-food.webp'), false, 'accepted food prop should leave the redraw candidate registry');
 
     const report = readFileSync(reportPath, 'utf8');
     assert.match(report, /Candidate Registry/u);
-    assert.match(report, /v1-vibe/u);
+    assert.doesNotMatch(report, /v1-vibe/u);
+    assert.doesNotMatch(report, /room-stage-v2/u);
   });
 });

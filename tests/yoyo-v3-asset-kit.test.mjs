@@ -26,11 +26,11 @@ describe('Yoyo V3 full asset kit contract', () => {
     assert.equal(styleGuide.character.runtimeDriver, 'pixi-spritesheet-compat');
     assert.match(styleGuide.character.description, /3-5 year old/u);
     assert.match(styleGuide.character.description, /short childlike limbs/u);
-    assert.deepEqual(styleGuide.rooms.size, { width: 1080, height: 720 });
+    assert.deepEqual(styleGuide.rooms.size, { width: 1272, height: 720 });
     assert.ok(styleGuide.avoid.includes('dog bowl'));
     assert.ok(styleGuide.avoid.includes('kibble'));
     assert.ok(styleGuide.avoid.includes('paw motif'));
-    assert.ok(styleGuide.mustPreserve.includes('compact lively room-stage-v2 mood'));
+    assert.ok(styleGuide.mustPreserve.includes('warm v3-safe Yoyo nook mood'));
 
     const promptIds = new Set(promptPack.prompts.map((prompt) => prompt.id));
     assert.ok(

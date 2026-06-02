@@ -39,3 +39,17 @@ test('desktop action executor pauses roaming and restores idle after timed actio
   assert.match(source, /scheduleDesktopActionEnd/);
   assert.match(source, /setState\('idle'\)/);
 });
+
+test('desktop menu care actions use existing action assets instead of ad-hoc CSS particles', () => {
+  const html = readFileSync(join(repoRoot, 'src/index.html'), 'utf8');
+  const css = readFileSync(join(repoRoot, 'src/styles.css'), 'utf8');
+  const interactionSource = readFileSync(join(repoRoot, 'src/modules/interaction.js'), 'utf8');
+  const lifeSource = readFileSync(join(repoRoot, 'src/main/life.js'), 'utf8');
+
+  assert.doesNotMatch(html + css, /desktop-action-effect/);
+  assert.doesNotMatch(css, /desktopActionFloat|desktopActionHeart|desktopActionPop/);
+  assert.match(interactionSource, /source: 'desktop-menu'/);
+  assert.doesNotMatch(interactionSource, /source: 'desktop-menu',\s*suppressFinalEffect: true/s);
+  assert.match(lifeSource, /propId: source === 'desktop-menu' \? null : undefined/);
+  assert.match(lifeSource, /triggerCareEffect\(action\.finalEffectId, actionId\)/);
+});

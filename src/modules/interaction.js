@@ -190,7 +190,10 @@ async function careFromMenu(actionId) {
     return;
   }
   try {
-    const life = await window.petApi.careForYoyo(actionId);
+    const life = await window.petApi.careForYoyo({
+      actionId,
+      source: 'desktop-menu',
+    });
     if (life?.stateName) setState(life.stateName);
     state.life = life;
   } catch {

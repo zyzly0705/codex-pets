@@ -13,11 +13,10 @@ This index captures the existing room, food, and comfort assets found before gen
 
 | Asset | Size | Current take |
 | --- | ---: | --- |
-| `assets/yoyo/home/room-stage-v2.webp` | 1080x720 | Current runtime base. Preferred compact v1-vibe direction: bright, busy, cozy, and more fun than the cleaner candidate. Keep the energy, remove only the animal-pet props in a later local cleanup. |
-| `assets/yoyo/home/room-stage-night.webp` | 1080x720 | Existing night room, same pet-care semantics. Useful mood reference only. |
-| `assets/yoyo/home/room-stage-rainy.webp` | 1080x720 | Existing rainy room, same pet-care semantics. Useful weather reference only. |
-| `assets/yoyo/home/room-stage-party.webp` | 1080x720 | Existing party room, but still uses toy/pet framing. Useful event reference only. |
-| `assets/yoyo/home/room-shell-clean-2d.webp` | 1080x720 | Cleaner compact shell with fewer pet signals. Useful cleanup base, but too quiet to become the final mood by itself. |
+| `assets/yoyo/home/room-v3-day-safe.webp` | 1272x720 | Active default Yoyo home room. Warm companion-room art with no animal feeding read. |
+| `assets/yoyo/home/room-v3-night-safe.webp` | 1272x720 | Active night variant using the same safe room contract. |
+| `assets/yoyo/home/room-v3-rainy-safe.webp` | 1272x720 | Active rainy variant using the same safe room contract. |
+| `assets/yoyo/home/room-v3-party-safe.webp` | 1272x720 | Active party variant using the same safe room contract. |
 
 ## Source Room Assets
 
@@ -51,13 +50,12 @@ This index captures the existing room, food, and comfort assets found before gen
 
 ## Recommendation
 
-Do not regenerate the night/rainy/party rooms from scratch yet. Reuse the found source variants as references, but keep them in `redraw` because they still contain animal-pet semantics. The best next integration path is:
+The old compact stage room and its night/rainy/party variants were removed from the runtime asset pack. The best next integration path is:
 
-1. Use `room-stage-v2.webp` directly as the current runtime background: compact, lively, warm, and visually busy.
-2. Use `room-shell-clean-2d.webp` and `home-room-stage-v2-candidate-01.webp` only as cleanup references for removing animal-pet semantics later.
+1. Use the `assets/yoyo/home/room-v3-*-safe.webp` set as the only active home-room runtime.
+2. Keep room interaction slots invisible over the baked room art so props do not pile up.
 3. Do not promote the large `room-human-clean2d-v4-candidate.png` style into the current main room.
 
 Runtime proof captures:
 
-- `assets/yoyo/qa/home-saved-room-stage-v2-runtime.png`
-- `assets/yoyo/qa/home-saved-room-stage-v2-feed-runtime.png`
+- Re-run local home screenshots after further room placement changes.

@@ -51,36 +51,38 @@
     ]
   },
   "home": {
+    "roomMode": "phaser-v3-safe-room",
     "rooms": {
-      "day": "home/room-v3-day-safe.webp",
+      "default": "home/room-v3-day-safe.webp",
       "night": "home/room-v3-night-safe.webp",
       "rainy": "home/room-v3-rainy-safe.webp",
       "party": "home/room-v3-party-safe.webp"
     },
     "runtimeSheet": "home/yoyo-home-sheet.webp",
     "runtimeCharacter": "home/yoyo-home-v7-room-palette.webp",
-    "zoneSource": "../../src/shared/home-scene.js"
+    "runtimeEntry": "../../src/yoyo-home.html",
+    "zoneSource": "../../src/yoyo-home/data/home-manifest.mjs"
   },
   "careScenes": {
     "feed": {
       "prop": "home/prop-v3-meal-table.webp",
-      "status": "native-room-zone"
+      "status": "entity-prop"
     },
     "sleep": {
       "prop": "home/prop-v3-bed.webp",
-      "status": "native-room-zone"
+      "status": "entity-prop"
     },
     "bath": {
       "prop": "home/prop-v3-wash-stand.webp",
-      "status": "native-room-zone"
+      "status": "entity-prop"
     },
     "play": {
       "prop": "home/prop-v3-toy-shelf.webp",
-      "status": "native-room-zone"
+      "status": "entity-prop"
     },
     "comfort": {
       "prop": "home/prop-v3-comfort-cushion.webp",
-      "status": "native-room-zone"
+      "status": "entity-prop"
     }
   },
   "specialActions": {

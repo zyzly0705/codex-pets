@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test tests/*.test.mjs",
+    "preview:yoyo-home": "node scripts/serve-yoyo-home-preview.js",
     "start:debug": "YOYO_BEHAVIOR_DEBUG=1 electron .",
     "start:keyboard": "YOYO_ENABLE_UIOHOOK=1 electron .",
     "start:keyboard:win": "set YOYO_ENABLE_UIOHOOK=1&& electron .",
@@ -53,7 +54,7 @@
     "import:gugu-gaga": "node scripts/import-gugu-gaga-reference-sheet.js",
     "pack": "electron-builder --dir",
     "dist:win": "electron-builder --win nsis",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/home.js && node --check src/pixi-effect-stage.js && node -e \"const fs=require('fs'),cp=require('child_process');fs.readdirSync('src/main').filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node --check src/main/'+f,{stdio:'inherit'}))\" && node -e \"const fs=require('fs'),cp=require('child_process');fs.readdirSync('src/shared').filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node --check src/shared/'+f,{stdio:'inherit'}))\" && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\" && node scripts/validate-behavior-data.js && node scripts/smoke-ai-config.js && npm run audit:assets"
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/pixi-effect-stage.js && node -e \"const fs=require('fs'),cp=require('child_process');fs.readdirSync('src/main').filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node --check src/main/'+f,{stdio:'inherit'}))\" && node -e \"const fs=require('fs'),cp=require('child_process');fs.readdirSync('src/shared').filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node --check src/shared/'+f,{stdio:'inherit'}))\" && node -e \"require('fs').readdirSync('src/modules').forEach(f=>{require('child_process').execSync('node --check src/modules/'+f,{stdio:'inherit'})})\" && node scripts/check-yoyo-home-entry.js && node scripts/check-yoyo-home-runtime.js && node scripts/check-yoyo-home-quarantine.js && node scripts/validate-behavior-data.js && node scripts/smoke-ai-config.js && npm run audit:assets"
   },
   "keywords": [
     "desktop-pet",
@@ -76,6 +77,14 @@
     },
     "files": [
       "src/**/*",
+      "!src/home.html",
+      "!src/home.css",
+      "!src/home.js",
+      "!src/home-games.js",
+      "!src/home-phaser-games.js",
+      "!src/home-spine-action.js",
+      "!src/home-spine-feed-assets.js",
+      "!src/shared/home-scene.js",
       "assets/*/pet.json",
       "assets/*/pack-manifest.json",
       "assets/*/asset-status.json",
@@ -134,6 +143,7 @@
     "@pixi/particle-emitter": "^5.0.10",
     "electron-updater": "^6.1.0",
     "node-window-manager": "^2.2.4",
+    "phaser": "^4.1.0",
     "pixi-filters": "^6.1.5",
     "pixi.js": "^8.18.1",
     "playwright": "^1.60.0",

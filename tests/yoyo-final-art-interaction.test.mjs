@@ -64,7 +64,7 @@ test('resolves final-art rig parts inside copied app pet packages', () => {
 
 test('main care flow triggers final-art effect after successful care', () => {
   const lifeSource = readFileSync(join(repoRoot, 'src/main/life.js'), 'utf8');
-  const homeSource = readFileSync(join(repoRoot, 'src/home.js'), 'utf8');
+  const homeBridgeSource = readFileSync(join(repoRoot, 'src/yoyo-home/bridge/electron-life-bridge.mjs'), 'utf8');
   const mainSource = readFileSync(join(repoRoot, 'src/main.js'), 'utf8');
   const effectsSource = readFileSync(join(repoRoot, 'src/main/effects.js'), 'utf8');
   const traySource = readFileSync(join(repoRoot, 'src/main/tray-menu.js'), 'utf8');
@@ -75,8 +75,11 @@ test('main care flow triggers final-art effect after successful care', () => {
   assert.match(lifeSource, /desktopAction: buildDesktopAction\(actionId/);
   assert.match(lifeSource, /!suppressFinalEffect && !snapshot\.blocked/);
   assert.match(lifeSource, /triggerCareEffect\(action\.finalEffectId, actionId\)/);
-  assert.match(homeSource, /source: 'home'/);
-  assert.match(homeSource, /suppressFinalEffect: true/);
+  assert.match(homeBridgeSource, /source: 'home'/);
+  assert.match(homeBridgeSource, /homeTask: aftermath/);
+  assert.match(lifeSource, /source === 'home'/);
+  assert.match(lifeSource, /propId: source === 'desktop-menu' \? null : undefined/);
+  assert.match(lifeSource, /source: source === 'desktop-menu' \? 'desktop-menu' : 'care-result'/);
   assert.match(mainSource, /triggerCareEffect: \(effectId, actionId\) => triggerFinalArtEffect/);
   assert.match(mainSource, /YOYO_TEST_FINAL_ART/);
   assert.match(mainSource, /YOYO_TEST_OPEN_HOME/);
@@ -91,6 +94,8 @@ test('desktop care flow uses unified desktop action dispatcher', () => {
   const toysSource = readFileSync(join(repoRoot, 'src/modules/desktop-toys.js'), 'utf8');
 
   assert.match(interactionSource, /import \{ playDesktopAction, playDesktopClickToyReaction \}/);
+  assert.match(interactionSource, /source: 'desktop-menu'/);
+  assert.doesNotMatch(interactionSource, /source: 'desktop-menu',\s*suppressFinalEffect: true/s);
   assert.match(readFileSync(join(repoRoot, 'src/renderer.js'), 'utf8'), /import \{ playDesktopAction \}/);
   assert.match(toysSource, /buildDesktopAction/);
   assert.match(toysSource, /export function playDesktopAction/);

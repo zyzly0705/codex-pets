@@ -5,6 +5,10 @@ let mainWindow = null;
 let settingsWindow = null;
 let homeWindow = null;
 
+function getHomeEntryFile() {
+  return 'yoyo-home.html';
+}
+
 function createMainWindow({ appWidth, appHeight, appendDebugLog }) {
   const primary = screen.getPrimaryDisplay().workArea;
   mainWindow = new BrowserWindow({
@@ -106,7 +110,11 @@ function openHome() {
       nodeIntegration: false
     }
   });
-  homeWindow.loadFile(path.join(__dirname, '..', 'home.html'));
+  const entryFile = getHomeEntryFile();
+  const loadOptions = process.env.YOYO_HOME_DEBUG === '1'
+    ? { query: { debug: '1' } }
+    : undefined;
+  homeWindow.loadFile(path.join(__dirname, '..', entryFile), loadOptions);
   homeWindow.on('closed', () => {
     homeWindow = null;
     // 小屋关闭：桌宠重新出现
@@ -196,6 +204,7 @@ function registerWindowIpc({ ipcMain, getData, saveData, setData, DEFAULT_DATA, 
 
 module.exports = {
   createMainWindow,
+  getHomeEntryFile,
   getMainWindow,
   openHome,
   openSettings,
